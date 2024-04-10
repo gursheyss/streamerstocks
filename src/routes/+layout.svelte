@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../app.pcss';
 	import { invalidate, invalidateAll } from '$app/navigation';
 
 	let { data } = $props();

@@ -1,4 +1,5 @@
 <script>
+	import { enhance } from '$app/forms';
 	import { invalidate, invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
@@ -16,7 +17,8 @@
 </script>
 
 <button on:click={signInWithTwitch}>Sign in with Twitch</button>
-<form action="?/signOut" method="POST">
+<form action="?/signOut" method="POST" use:enhance>
 	<button type="submit">Sign out</button>
 </form>
-{data.session?.user.email}
+
+<img src={data.session?.user.user_metadata.avatar_url} alt="avatar" />
