@@ -1,4 +1,4 @@
-import type { Profile, Trade } from '$lib/types.ts';
+import type { Trade } from '$lib/types.ts';
 
 // Helper function to calculate total valuation
 async function calculateTotalValuation(trades: Trade[], currentPrices: Record<number, number>) {
@@ -40,10 +40,10 @@ async function getCurrentMarketPrices(supabase: {
 	return marketPrices;
 }
 
-export const load = async ({ locals }) => {
-	const currentMarketPrices = await getCurrentMarketPrices(locals.supabase);
-	const { data: profiles } = await locals.supabase.from<Profile>('profiles').select('*');
-	const { data: trades } = await locals.supabase.from<Trade>('trades').select('*');
+export const load = async ({ locals: { supabase } }) => {
+	const currentMarketPrices = await getCurrentMarketPrices(supabase);
+	const { data: profiles } = await supabase.from('profiles').select('*').order('balance', { ascending: false }).limit(100);
+	const { data: trades } = await supabase.from('trades').select('*');
 
 	// Add total valuation to each profile
 	const profilesWithValuation = await Promise.all(
@@ -55,6 +55,10 @@ export const load = async ({ locals }) => {
 			const totalValuation = await calculateTotalValuation(userTrades, currentMarketPrices);
 			return { ...profile, totalValuation };
 		})
+	);
+
+	profilesWithValuation.sort(
+		(a: { totalValuation: number }, b: { totalValuation: number }) => b.totalValuation - a.totalValuation
 	);
 
 	return { marketData: profilesWithValuation };
