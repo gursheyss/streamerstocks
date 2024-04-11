@@ -8,54 +8,9 @@
 	}
 
 	let chartRef: HTMLCanvasElement;
-	let stockData: StockData[] = [
-		{ timestamp: 1617235200000, price: 100 },
-		{ timestamp: 1617321600000, price: 110 },
-		{ timestamp: 1617408000000, price: 95 },
-		{ timestamp: 1617494400000, price: 105 },
-		{ timestamp: 1617580800000, price: 120 },
-		{ timestamp: 1617668000000, price: 130 },
-		{ timestamp: 1617754400000, price: 115 },
-		{ timestamp: 1617840800000, price: 100 },
-		{ timestamp: 1617927200000, price: 118 },
-		{ timestamp: 1618013600000, price: 125 },
-		{ timestamp: 1618100000000, price: 130 },
-		{ timestamp: 1618187200000, price: 120 },
-		{ timestamp: 1618274400000, price: 115 },
-		{ timestamp: 1618361600000, price: 125 },
-		{ timestamp: 1618448000000, price: 130 },
-		{ timestamp: 1618535200000, price: 120 },
-		{ timestamp: 1618622400000, price: 125 },
-		{ timestamp: 1618709600000, price: 130 },
-		{ timestamp: 1618796800000, price: 120 },
-		{ timestamp: 1618884000000, price: 125 },
-		{ timestamp: 1618971200000, price: 130 },
-		{ timestamp: 1619058400000, price: 120 },
-		{ timestamp: 1619145600000, price: 125 },
-		{ timestamp: 1619232800000, price: 130 },
-		{ timestamp: 1619319200000, price: 120 },
-		{ timestamp: 1619406400000, price: 125 },
-		{ timestamp: 1619493600000, price: 130 },
-		{ timestamp: 1619580800000, price: 120 },
-		{ timestamp: 1619668000000, price: 125 },
-		{ timestamp: 1619755200000, price: 130 },
-		{ timestamp: 1619842400000, price: 120 },
-		{ timestamp: 1619930000000, price: 125 },
-		{ timestamp: 1620017600000, price: 130 },
-		{ timestamp: 1620104800000, price: 120 },
-		{ timestamp: 1620192000000, price: 125 },
-		{ timestamp: 1620279200000, price: 130 },
-		{ timestamp: 1620366400000, price: 120 },
-		{ timestamp: 1620453600000, price: 125 },
-		{ timestamp: 1620540800000, price: 130 },
-		{ timestamp: 1620628000000, price: 120 },
-		{ timestamp: 1620715200000, price: 125 },
-		{ timestamp: 1620802400000, price: 130 },
-		{ timestamp: 1620890000000, price: 120 }
-	];
+	let { stockData }: { stockData: StockData[] } = $props();
 
 	let chart: Chart;
-	let selectedRange: { start: number | null; end: number | null } = { start: null, end: null };
 
 	onMount(() => {
 		const ctx = chartRef.getContext('2d');
@@ -147,63 +102,48 @@
 					interaction: {
 						intersect: false,
 						mode: 'nearest'
-					},
-					onHover: (event: MouseEvent, activeElements: any[]) => {
-						if (activeElements.length === 0) {
-							selectedRange = { start: null, end: null };
-						}
 					}
 				}
 			});
-
-			chartRef.addEventListener('mousedown', handleMouseDown);
-			chartRef.addEventListener('mouseup', handleMouseUp);
-			chartRef.addEventListener('mousemove', handleMouseMove);
 		}
 	});
 
-	function handleMouseDown(event: MouseEvent) {
+	function handleHover(event: MouseEvent) {
 		const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
 		if (points.length) {
 			const firstPoint = points[0];
-			selectedRange.start = firstPoint.index;
+			const data = stockData[firstPoint.index];
+			// Display the data and vertical line on hover
+			// You can customize this based on your requirements
+			console.log(`Price: ${data.price}, Date: ${new Date(data.timestamp).toLocaleDateString()}`);
 		}
 	}
 
-	function handleMouseUp(event: MouseEvent) {
-		const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
-		if (points.length) {
-			const firstPoint = points[0];
-			selectedRange.end = firstPoint.index;
-			calculateDifference();
-		}
+	function updateChart() {
+		const isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
+		const gradientColor = isIncreasing ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.5)';
+		const prices = stockData.map((data) => data.price);
+		const minPrice = Math.floor(Math.min(...prices) - 2);
+		const maxPrice = Math.ceil(Math.max(...prices) + 2);
+
+		chart.data.labels = stockData.map((data) => new Date(data.timestamp).toLocaleDateString());
+		chart.data.datasets[0].data = stockData.map((data) => data.price);
+		chart.data.datasets[0].borderColor = isIncreasing ? 'green' : 'red';
+		chart.options.scales.y.min = minPrice;
+		chart.options.scales.y.max = maxPrice;
+
+		chart.update();
 	}
 
-	function handleMouseMove(event: MouseEvent) {
-		if (selectedRange.start !== null && selectedRange.end === null) {
-			const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
-			if (points.length) {
-				const firstPoint = points[0];
-				selectedRange.end = firstPoint.index;
-				calculateDifference();
-			}
+	$effect(() => {
+		if (chart) {
+			updateChart();
 		}
-	}
-
-	function calculateDifference() {
-		if (selectedRange.start !== null && selectedRange.end !== null) {
-			const startPrice = stockData[selectedRange.start].price;
-			const endPrice = stockData[selectedRange.end].price;
-			const difference = endPrice - startPrice;
-			const percentage = (difference / startPrice) * 100;
-
-			console.log(`Price difference: $${difference.toFixed(2)} (${percentage.toFixed(2)}%)`);
-		}
-	}
+	});
 </script>
 
 <div class="container mx-auto mt-8">
 	<div class="w-full h-96">
-		<canvas bind:this={chartRef}></canvas>
+		<canvas bind:this={chartRef} on:mousemove={handleHover}></canvas>
 	</div>
 </div>

@@ -8,4 +8,10 @@ export interface MarketItem {
 	market_cap: number;
 	volume: number;
 	image: string;
+	history: MarketItemHistory[];
+}
+
+interface MarketItemHistory {
+	timestamp: number;
+	price: number;
 }

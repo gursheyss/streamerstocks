@@ -80,8 +80,13 @@
 	});
 </script>
 
-<Chart />
+{#if marketData.length === 0}
+	<p>Loading...</p>
+{:else}
+	<Chart stockData={marketData[0].history} />
+{/if}
 {#if data.session && userBalance !== null}
 	<Portfolio balance={userBalance} />
 {/if}
+
 <Table {marketData} />
