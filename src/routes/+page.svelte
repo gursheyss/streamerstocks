@@ -13,7 +13,6 @@
 		uuid = data.session.user.id;
 	}
 	let placeHolderID: number = 28;
-	let bal = $state(-69);
 	async function signInWithTwitch() {
 		await supabase.auth.signInWithOAuth({
 			provider: 'twitch',
@@ -23,10 +22,10 @@
 		});
 	}
 
-	async function updateStockAndBal(amt: number, stockID: number) {
+	async function updateStockAndBal(bal: number, amt: number, stockID: number) {
 		//ERRORS NEED TO BE HANDLED FOR PROD, ALSO THIS CODE IS ASSUMING WE ARE LOGGED IN
 		let { data, error } = await supabase.from('market').select().eq('id', stockID);
-		if (error) console.error(error);
+		if (error) console.error("Error getting stockID" + error);
 		console.log(data);
 
 		if (data != null) {
@@ -56,7 +55,7 @@
 					userid: uuid
 				});
 				if (error) {
-					console.error('Error fetching initial balance data:', balanceError);
+					console.error('Error fetching updated balance data:', balanceError);
 				} else {
 					bal = balanceData;
 				}
@@ -99,16 +98,6 @@
 			} else {
 				userBalance = profileData?.balance ?? null;
 			}
-		}
-	});
-	onMount(async () => {
-		let { data, error } = await supabase.rpc('get_user_bal', {
-			userid: uuid
-		});
-		if (error) {
-			console.error('Error fetching initial balance data:', error);
-		} else {
-			bal = data;
 		}
 	});
 
@@ -165,5 +154,5 @@
 <Table {marketData} />
 
 <!-- PLACEHOLDER VALUES FOR NOW -->
-<button id="BuyButton" on:click={() => updateStockAndBal(-3, placeHolderID)}>Buy</button>
-<button id="SellButton" on:click={() => updateStockAndBal(3, placeHolderID)}>Sell</button>
+<button id="BuyButton" on:click={() => updateStockAndBal(userBalance!, -3, placeHolderID)}>Buy</button>
+<button id="SellButton" on:click={() => updateStockAndBal(userBalance!, 3, placeHolderID)}>Sell</button>
