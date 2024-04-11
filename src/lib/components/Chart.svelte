@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import Chart from 'chart.js/auto';
 
 	interface StockData {
@@ -105,6 +105,7 @@
 					}
 				}
 			});
+			window.addEventListener('resize', updateChart);
 		}
 	});
 
@@ -136,13 +137,18 @@
 		chart.options.scales.y.min = minPrice;
 		chart.options.scales.y.max = maxPrice;
 
-		chart.update();
+		chart.update('reset');
+		chart.resize();
 	}
 
 	$effect(() => {
 		if (chart) {
 			updateChart();
 		}
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('resize', updateChart);
 	});
 </script>
 
