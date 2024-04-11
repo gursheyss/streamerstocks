@@ -67,8 +67,7 @@
 				plugins: {
 					legend: { display: false },
 					tooltip: { enabled: false }
-				},
-				interaction: { intersect: false, mode: 'nearest' }
+				}
 			}
 		});
 	}

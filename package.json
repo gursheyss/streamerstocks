@@ -38,6 +38,7 @@
     "@supabase/ssr": "^0.3.0",
     "@sveltejs/adapter-vercel": "^5.2.0",
     "@types/chart.js": "^2.9.41",
-    "chart.js": "^4.4.2"
+    "chart.js": "^4.4.2",
+    "lucide-svelte": "^0.367.0"
   }
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import Chart from 'chart.js/auto';
 
 	interface StockData {
@@ -25,7 +25,7 @@
 			chart = new Chart(ctx, {
 				type: 'line',
 				data: {
-					labels: stockData.map((data) => new Date(data.timestamp).toLocaleDateString()),
+					labels: stockData.map((data) => new Date(data.timestamp * 1000).toLocaleTimeString()),
 					datasets: [
 						{
 							data: stockData.map((data) => data.price),
@@ -77,13 +77,16 @@
 						tooltip: {
 							callbacks: {
 								label: (context: any) => {
-									let label = context.dataset.label || '';
-									if (label) {
-										label += ': ';
-									}
+									let date = new Date(stockData[context.dataIndex].timestamp * 1000);
+									let time = date.toLocaleTimeString();
+									let dateString = date.toLocaleDateString();
+
+									let label = time + ' (' + dateString + ')';
+
 									if (context.parsed.y !== null) {
-										label += '$' + context.parsed.y.toFixed(2);
+										label += ' $' + context.parsed.y.toFixed(2);
 									}
+
 									return label;
 								}
 							},
@@ -105,6 +108,7 @@
 					}
 				}
 			});
+			window.addEventListener('resize', updateChart);
 		}
 	});
 
@@ -115,7 +119,9 @@
 			const data = stockData[firstPoint.index];
 			// Display the data and vertical line on hover
 			// You can customize this based on your requirements
-			console.log(`Price: ${data.price}, Date: ${new Date(data.timestamp).toLocaleDateString()}`);
+			console.log(
+				`Price: ${data.price}, Date: ${new Date(data.timestamp * 1000).toLocaleDateString()}`
+			);
 		}
 	}
 
@@ -123,16 +129,21 @@
 		const isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
 		const gradientColor = isIncreasing ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.5)';
 		const prices = stockData.map((data) => data.price);
-		const minPrice = Math.floor(Math.min(...prices) - 2);
-		const maxPrice = Math.ceil(Math.max(...prices) + 2);
+		const minPrice = Math.min(...prices);
+		const maxPrice = Math.max(...prices);
+		const padding = (maxPrice - minPrice) * 0.1; // Add 10% padding
 
-		chart.data.labels = stockData.map((data) => new Date(data.timestamp).toLocaleDateString());
+		chart.data.labels = stockData.map((data) =>
+			new Date(data.timestamp * 1000).toLocaleTimeString()
+		);
+
 		chart.data.datasets[0].data = stockData.map((data) => data.price);
 		chart.data.datasets[0].borderColor = isIncreasing ? 'green' : 'red';
-		chart.options.scales.y.min = minPrice;
-		chart.options.scales.y.max = maxPrice;
+		chart.options.scales.y.min = minPrice - padding;
+		chart.options.scales.y.max = maxPrice + padding;
 
-		chart.update();
+		chart.update('reset');
+		chart.resize();
 	}
 
 	$effect(() => {
@@ -140,10 +151,14 @@
 			updateChart();
 		}
 	});
+
+	onDestroy(() => {
+		window.removeEventListener('resize', updateChart);
+	});
 </script>
 
 <div class="container mx-auto mt-8">
-	<div class="w-full h-96">
+	<div class="w-full">
 		<canvas bind:this={chartRef} on:mousemove={handleHover}></canvas>
 	</div>
 </div>

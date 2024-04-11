@@ -87,7 +87,10 @@
 	let marketData = $state<MarketItem[]>([]);
 	let userBalance = $state<number | null>(null);
 	onMount(async () => {
-		let { data: initialData, error } = await supabase.from('market').select('*');
+		let { data: initialData, error } = await supabase
+			.from('market')
+			.select('*')
+			.order('price', { ascending: false });
 		if (error) {
 			console.error('Error fetching initial data:', error);
 		} else {

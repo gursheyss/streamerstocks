@@ -16,6 +16,12 @@ export interface MarketItemHistory {
 	price: number;
 }
 
+export interface Comment {
+	id: number;
+	avatar_url: string | null;
+	username: string | null;
+	comment: string;
+}
 export interface Profile {
 	id: string;
 	username: string;

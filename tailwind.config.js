@@ -8,7 +8,8 @@ export default {
 			},
 			colors: {
 				darkgray: 'hsl(200, 6%, 10%)',
-				gray2: 'hsl(200, 6%, 12%)'
+				gray2: 'hsl(200, 6%, 12%)',
+				lightgray: 'hsl(200, 6%, 17%)'
 			}
 		}
 	},
