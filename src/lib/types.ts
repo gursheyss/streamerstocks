@@ -34,3 +34,11 @@ export interface Trade {
 	sale_volume: number | null;
 	status: 'bought' | 'sold' | 'pending';
 }
+
+export interface InventoryItem {
+	id: number;
+	user_id: number;
+	stock_id: number;
+	quantity: number;
+	market: MarketItem;
+}
