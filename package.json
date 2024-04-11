@@ -34,6 +34,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@fontsource/inter": "^5.0.17",
     "@supabase/ssr": "^0.3.0"
   }
 }

@@ -64,14 +64,6 @@
 	});
 </script>
 
-<button id="SignInButton" on:click={signInWithTwitch}>Sign in with Twitch</button>
-
-<form action="?/signOut" method="POST" use:enhance>
-	<button id="SignOutButton" type="submit">Sign out</button>
-</form>
-
-<img src={data.session?.user.user_metadata.avatar_url} alt="avatar" />
-
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 	{#each marketData as item}
 		<div class="bg-white shadow-md rounded-lg p-4">

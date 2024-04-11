@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.pcss';
 	import { invalidate, invalidateAll } from '$app/navigation';
+	import Header from '$lib/components/Header.svelte';
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
@@ -24,4 +25,9 @@
 	});
 </script>
 
+<Header
+	{supabase}
+	profilePicture={data.session?.user.user_metadata.avatar_url}
+	username={data.session?.user.user_metadata.nickname}
+/>
 <slot />
