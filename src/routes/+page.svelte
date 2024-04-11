@@ -50,15 +50,6 @@
 				});
 				if (stockError) console.error(stockError);
 				else console.log('stock updating:' + stockData);
-				//update local bal
-				let { data: balanceData, error: balanceError } = await supabase.rpc('get_user_bal', {
-					userid: uuid
-				});
-				if (error) {
-					console.error('Error fetching updated balance data:', balanceError);
-				} else {
-					bal = balanceData;
-				}
 			}
 		}
 	}
