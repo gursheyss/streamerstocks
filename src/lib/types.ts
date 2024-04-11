@@ -15,3 +15,11 @@ export interface MarketItemHistory {
 	timestamp: number;
 	price: number;
 }
+
+export interface Comment {
+	id: number;
+	avatar_url: string | null;
+	username: string | null;
+	comment: string;
+	score: number;
+}

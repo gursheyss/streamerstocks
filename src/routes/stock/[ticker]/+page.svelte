@@ -2,19 +2,13 @@
 	import { page } from '$app/stores';
 	import Chart from '$lib/components/Chart.svelte';
 	import Comments from '$lib/components/Comments.svelte';
-	import type { MarketItem } from '$lib/types.js';
+	import type { MarketItem } from '$lib/types';
 	import { onMount } from 'svelte';
+	import type { Comment } from '$lib/types';
 
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
-
-	interface Comment {
-		avatar_url: string | null;
-		username: string | null;
-		comment: string;
-		score: number;
-	}
 
 	let marketData: MarketItem[] = $state([]);
 	let comments: Comment[] = $state([]);
@@ -110,12 +104,31 @@
 					table: 'comments'
 				},
 				async (payload: any) => {
-					if (
-						payload.eventType === 'INSERT' ||
-						payload.eventType === 'UPDATE' ||
-						payload.eventType === 'DELETE'
-					) {
-						console.log('updated');
+					console.log('postgres_changes event triggered', payload);
+					const { new: newData, old: oldData } = payload;
+					if (payload.eventType === 'INSERT') {
+						const newComment = {
+							id: newData.id,
+							avatar_url: newData.profiles?.avatar_url || null,
+							username: newData.profiles?.username || null,
+							comment: newData.comment,
+							score: newData.score
+						};
+						comments = [...comments, newComment];
+					} else if (payload.eventType === 'UPDATE') {
+						comments = comments.map((comment) =>
+							comment.id === newData.id
+								? {
+										...comment,
+										comment: newData.comment,
+										score: newData.score,
+										avatar_url: newData.profiles?.avatar_url || comment.avatar_url,
+										username: newData.profiles?.username || comment.username
+									}
+								: comment
+						);
+					} else if (payload.eventType === 'DELETE') {
+						comments = comments.filter((comment) => comment.id !== oldData.id);
 					}
 				}
 			)
@@ -140,6 +153,5 @@
 			</div>
 			<Comments {comments} />
 		</div>
-		{JSON.stringify(comments)}
 	</div>
 {/if}
