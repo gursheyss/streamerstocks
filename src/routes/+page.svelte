@@ -32,6 +32,7 @@
 		.rpc('get_user_inventory', {
 			userid: uuid
 		})
+		.eq('stock_id', stockID)
 		if (inventoryError) console.error(inventoryError)
 		else console.log(inventoryData[0]['quantity'])
 
@@ -40,6 +41,7 @@
 			let currentQuantity = inventoryData[0]['quantity'];
 			//first condition is buy, second sell. - for buy, + for sell
 			if ((bal + price * amt >= 0 && amt < 0) || (amt > 0 && currentQuantity >= amt)) {
+				console.log("work")
 				console.log({
 					amt: (price * amt),
 					userid: uuid
@@ -51,8 +53,15 @@
 				if (userError) console.error(userError);
 				else console.log('user updating' + userData);
 			
-				//needs to add/remove stock from porfolio
-
+				//needs to add/remove stock from porfolio, negative because we do - when buy
+				let { data: inventoryData, error: inventoryError } = await supabase
+				.rpc('update_inventory', {
+					amt: -amt, 
+					stockid: stockID, 
+					userid: uuid
+				})
+				if (inventoryError) console.error(inventoryError)
+				else console.log(inventoryData)
 				let { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
 					amt: amt,
 					stockid: stockID
@@ -154,5 +163,5 @@
 <Table {marketData} />
 
 <!-- PLACEHOLDER VALUES FOR NOW -->
-<button id="BuyButton" on:click={() => updateStockAndBal(userBalance!, -3, placeHolderID)}>Buy</button>
-<button id="SellButton" on:click={() => updateStockAndBal(userBalance!, 3, placeHolderID)}>Sell</button>
+<button id="BuyButton" on:click={() => updateStockAndBal(userBalance!, -1, placeHolderID)}>Buy</button>
+<button id="SellButton" on:click={() => updateStockAndBal(userBalance!, 1, placeHolderID)}>Sell</button>
