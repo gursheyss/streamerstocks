@@ -44,13 +44,6 @@
 					<span class="font-semibold">{comment.username || 'Anonymous'}</span>
 				</div>
 				<p class="text-gray-300">{comment.comment}</p>
-				<div class="flex items-center justify-between mt-2">
-					<div class="flex items-center">
-						<ThumbsUp color={'#ffffff'} size={16} class="mr-2 cursor-pointer" />
-						<span class="text-gray-400">{comment.score}</span>
-						<ThumbsDown color={'#ffffff'} size={16} class="ml-2 cursor-pointer" />
-					</div>
-				</div>
 			</div>
 		{/each}
 	</div>

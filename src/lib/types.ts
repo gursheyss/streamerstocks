@@ -21,5 +21,4 @@ export interface Comment {
 	avatar_url: string | null;
 	username: string | null;
 	comment: string;
-	score: number;
 }

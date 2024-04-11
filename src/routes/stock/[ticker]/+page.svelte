@@ -19,15 +19,14 @@
 			.from('comments')
 			.select(
 				`
-      id,
-      comment,
-      score,
-      user_id,
-      profiles (
+    id,
+    comment,
+    user_id,
+    profiles!comments_user_id_fkey (
         avatar_url,
         username
-      )
-    `
+    )
+`
 			)
 			.eq('stock_id', marketData[0].id)
 			.order('id', { ascending: false });
@@ -39,8 +38,7 @@
 				id: comment.id,
 				avatar_url: comment.profiles?.avatar_url || null,
 				username: comment.profiles?.username || null,
-				comment: comment.comment,
-				score: comment.score
+				comment: comment.comment
 			}));
 
 			// Update existing comments
