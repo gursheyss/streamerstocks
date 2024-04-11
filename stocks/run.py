@@ -146,9 +146,9 @@ def save_history_loop(save_interval_seconds:int=60) -> None:
 
 if __name__ == "__main__":
     online_thread = threading.Thread(target=check_if_jason_online)
-    chat_update_thread = threading.Thread(target=update_by_chat_loop, args=(60,))
-    reddit_update_thread = threading.Thread(target=update_by_reddit_loop, args=(300,))
-    save_thread = threading.Thread(target=save_history_loop, args=(60,))
+    chat_update_thread = threading.Thread(target=update_by_chat_loop)
+    reddit_update_thread = threading.Thread(target=update_by_reddit_loop)
+    save_thread = threading.Thread(target=save_history_loop)
 
     online_thread.start()
     chat_update_thread.start()
