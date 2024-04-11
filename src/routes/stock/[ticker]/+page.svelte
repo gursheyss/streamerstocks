@@ -13,8 +13,6 @@
 	let marketData: MarketItem[] = $state([]);
 	let comments: Comment[] = $state([]);
 
-	// ... existing code ...
-
 	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
@@ -118,7 +116,7 @@
 							comment: newData.comment,
 							score: newData.score
 						};
-						comments = [...comments, newComment];
+						comments = [newComment, ...comments];
 					} else if (payload.eventType === 'UPDATE') {
 						comments = comments.map((comment) =>
 							comment.id === newData.id
@@ -173,7 +171,7 @@
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
 				<Chart stockData={marketData[0].history} />
 			</div>
-			<Comments {comments} />
+			<Comments {comments} currentId={marketData[0].id} />
 		</div>
 	</div>
 {/if}
