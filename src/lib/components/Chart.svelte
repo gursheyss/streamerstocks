@@ -126,16 +126,17 @@
 		const isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
 		const gradientColor = isIncreasing ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.5)';
 		const prices = stockData.map((data) => data.price);
-		const minPrice = Math.floor(Math.min(...prices) - 2);
-		const maxPrice = Math.ceil(Math.max(...prices) + 2);
+		const minPrice = Math.min(...prices);
+		const maxPrice = Math.max(...prices);
+		const padding = (maxPrice - minPrice) * 0.1; // Add 10% padding
 
 		chart.data.labels = stockData.map((data) =>
 			new Date(data.timestamp * 1000).toLocaleDateString()
 		);
 		chart.data.datasets[0].data = stockData.map((data) => data.price);
 		chart.data.datasets[0].borderColor = isIncreasing ? 'green' : 'red';
-		chart.options.scales.y.min = minPrice;
-		chart.options.scales.y.max = maxPrice;
+		chart.options.scales.y.min = minPrice - padding;
+		chart.options.scales.y.max = maxPrice + padding;
 
 		chart.update('reset');
 		chart.resize();

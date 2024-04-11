@@ -1,14 +1,62 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import Chart from '$lib/components/Chart.svelte';
+	import Comments from '$lib/components/Comments.svelte';
 	import type { MarketItem } from '$lib/types.js';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
+
+	interface Comment {
+		avatar_url: string | null;
+		username: string | null;
+		comment: string;
+		score: number;
+	}
+
 	let marketData: MarketItem[] = $state([]);
-	let activeTab = 'comments';
+	let comments: Comment[] = $state([]);
+
+	async function fetchComments() {
+		console.log('testing');
+		const { data: commentsData, error: commentsError } = await supabase
+			.from('comments')
+			.select(
+				`
+      id,
+      comment,
+      score,
+      user_id,
+      profiles (
+        avatar_url,
+        username
+      )
+    `
+			)
+			.eq('stock_id', marketData[0].id)
+			.order('id', { ascending: false });
+
+		if (commentsError) {
+			console.error('Error fetching comments:', commentsError);
+		} else {
+			const newComments = commentsData.map((comment) => ({
+				id: comment.id,
+				avatar_url: comment.profiles?.avatar_url || null,
+				username: comment.profiles?.username || null,
+				comment: comment.comment,
+				score: comment.score
+			}));
+
+			// Update existing comments
+			comments = comments.map((c) => newComments.find((nc) => nc.id === c.id) || c);
+
+			// Add new comments
+			const newCommentsToAdd = newComments.filter((nc) => !comments.find((c) => c.id === nc.id));
+			comments = [...comments, ...newCommentsToAdd];
+		}
+	}
 
 	onMount(async () => {
 		let { data: initialData, error } = await supabase
@@ -20,6 +68,7 @@
 			console.error('Error fetching initial data:', error);
 		} else {
 			marketData = initialData as MarketItem[];
+			await fetchComments();
 		}
 	});
 
@@ -35,22 +84,38 @@
 				},
 				(payload: any) => {
 					const { new: newData, old: oldData } = payload;
-
 					if (newData.ticker !== ticker && oldData.ticker !== ticker) {
 						return;
 					}
-
 					if (payload.eventType === 'INSERT') {
-						// New record inserted
 						marketData = [...marketData, newData as MarketItem];
 					} else if (payload.eventType === 'UPDATE') {
-						// Record updated
 						marketData = marketData.map((item) =>
 							item.id === newData.id ? (newData as MarketItem) : item
 						);
 					} else if (payload.eventType === 'DELETE') {
-						// Record deleted
 						marketData = marketData.filter((item) => item.id !== oldData.id);
+					}
+				}
+			)
+			.subscribe();
+
+		const commentsSubscription = supabase
+			.channel('comments')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'comments'
+				},
+				async (payload: any) => {
+					if (
+						payload.eventType === 'INSERT' ||
+						payload.eventType === 'UPDATE' ||
+						payload.eventType === 'DELETE'
+					) {
+						console.log('updated');
 					}
 				}
 			)
@@ -58,6 +123,7 @@
 
 		return () => {
 			marketSubscription.unsubscribe();
+			commentsSubscription.unsubscribe();
 		};
 	});
 </script>
@@ -69,10 +135,11 @@
 				{marketData[0].name}
 				<span class="text-gray-500">${ticker.toUpperCase()}</span>
 			</h1>
-
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
 				<Chart stockData={marketData[0].history} />
 			</div>
+			<Comments {comments} />
 		</div>
+		{JSON.stringify(comments)}
 	</div>
 {/if}
