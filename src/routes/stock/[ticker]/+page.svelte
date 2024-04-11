@@ -13,6 +13,12 @@
 	let marketData: MarketItem[] = $state([]);
 	let comments: Comment[] = $state([]);
 
+	// ... existing code ...
+
+	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
+	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
+	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
+
 	async function fetchComments() {
 		console.log('testing');
 		const { data: commentsData, error: commentsError } = await supabase
@@ -142,10 +148,28 @@
 {#if marketData[0] && marketData[0].history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
 		<div class="container mx-auto px-4 pt-8">
-			<h1 class="text-4xl font-bold">
-				{marketData[0].name}
-				<span class="text-gray-500">${ticker.toUpperCase()}</span>
-			</h1>
+			<div class="flex justify-between items-center">
+				<h1 class="text-4xl font-bold">
+					{marketData[0].name}
+					<span class="text-gray-500">${ticker.toUpperCase()}</span>
+				</h1>
+				<div class="text-2xl">
+					${currentPrice.toFixed(2)}
+					<span
+						class={percentageChange > 0
+							? 'text-green-500'
+							: percentageChange < 0
+								? 'text-red-500'
+								: 'text-gray-500'}
+					>
+						({percentageChange !== 0
+							? percentageChange > 0
+								? '+'
+								: ''
+							: ''}{percentageChange.toFixed(2)}%)
+					</span>
+				</div>
+			</div>
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
 				<Chart stockData={marketData[0].history} />
 			</div>

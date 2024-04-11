@@ -25,7 +25,7 @@
 			chart = new Chart(ctx, {
 				type: 'line',
 				data: {
-					labels: stockData.map((data) => new Date(data.timestamp * 1000).toLocaleDateString()),
+					labels: stockData.map((data) => new Date(data.timestamp * 1000).toLocaleTimeString()),
 					datasets: [
 						{
 							data: stockData.map((data) => data.price),
@@ -77,13 +77,16 @@
 						tooltip: {
 							callbacks: {
 								label: (context: any) => {
-									let label = context.dataset.label || '';
-									if (label) {
-										label += ': ';
-									}
+									let date = new Date(stockData[context.dataIndex].timestamp * 1000);
+									let time = date.toLocaleTimeString();
+									let dateString = date.toLocaleDateString();
+
+									let label = time + ' (' + dateString + ')';
+
 									if (context.parsed.y !== null) {
-										label += '$' + context.parsed.y.toFixed(2);
+										label += ' $' + context.parsed.y.toFixed(2);
 									}
+
 									return label;
 								}
 							},
@@ -131,8 +134,9 @@
 		const padding = (maxPrice - minPrice) * 0.1; // Add 10% padding
 
 		chart.data.labels = stockData.map((data) =>
-			new Date(data.timestamp * 1000).toLocaleDateString()
+			new Date(data.timestamp * 1000).toLocaleTimeString()
 		);
+
 		chart.data.datasets[0].data = stockData.map((data) => data.price);
 		chart.data.datasets[0].borderColor = isIncreasing ? 'green' : 'red';
 		chart.options.scales.y.min = minPrice - padding;
