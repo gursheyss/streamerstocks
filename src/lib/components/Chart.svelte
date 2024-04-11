@@ -77,14 +77,9 @@
 						tooltip: {
 							callbacks: {
 								label: (context: any) => {
-									let date = new Date(stockData[context.dataIndex].timestamp * 1000);
-									let time = date.toLocaleTimeString();
-									let dateString = date.toLocaleDateString();
-
-									let label = time + ' (' + dateString + ')';
-
+									let label = '';
 									if (context.parsed.y !== null) {
-										label += ' $' + context.parsed.y.toFixed(2);
+										label += '$' + context.parsed.y.toFixed(2);
 									}
 
 									return label;
