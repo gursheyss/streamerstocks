@@ -1,12 +1,12 @@
 from datetime import datetime
-import json
 from os import getenv
-from dotenv import load_dotenv
+import logging
 
-import openai
 import praw
 
-load_dotenv()
+from analyzers.analyze import get_sentiment
+
+logging.disable(logging.CRITICAL)
 
 reddit = praw.Reddit(
     client_id=getenv("REDDIT_CLIENT_ID"),
@@ -14,22 +14,17 @@ reddit = praw.Reddit(
     user_agent="your bot 0.1"
 )
 
-client = openai.OpenAI(
-    base_url="https://api.fireworks.ai/inference/v1",
-    api_key = getenv("FIREWORKS_API_KEY")
-)
-
 
 post_body_sentiment_cache = {}
 comment_sentiment_cache = {}
 
 def get_posts_sentiment(
-        subreddit_name, 
-        analysis_group,
-        start_datetime_unix=datetime.combine(datetime.now().date(), datetime.min.time()).timestamp(), 
-        end_datetime_unix=datetime.combine(datetime.now().date(), datetime.max.time()).timestamp(),
-        criteria=['body', 'comments'],
-        verbose=True
+        subreddit_name:str, 
+        analysis_group:list,
+        start_datetime_unix:float=datetime.combine(datetime.now().date(), datetime.min.time()).timestamp(), 
+        end_datetime_unix:float=datetime.combine(datetime.now().date(), datetime.max.time()).timestamp(),
+        criteria:list=['body', 'comments'],
+        verbose:bool=True
     ) -> dict:
     '''Analyzes the sentiment of the posts in the subreddit for a given timeframe (current day by default) for each person in the analysis group'''
     posts = _get_posts(subreddit_name, start_datetime_unix, end_datetime_unix)
@@ -49,7 +44,7 @@ def get_posts_sentiment(
             print(f"Post {post_count}/{len(posts)}: {post.title} analyzed.")
     return sentiment
 
-def _analyze_post_by_body(post, analysis_group, text_post_only=False) -> dict:
+def _analyze_post_by_body(post:praw.reddit.Submission, analysis_group:list, text_post_only:bool=False) -> dict:
     '''Analyzes the sentiment of the post by analyzing the sentiment of the post body for each person in the analysis group'''
     sentiment = {}
     # Initialize the sentiment for each person in the analysis group
@@ -71,7 +66,7 @@ def _analyze_post_by_body(post, analysis_group, text_post_only=False) -> dict:
     return sentiment
 
 
-def _analyze_post_by_comments(post, analysis_group) -> dict:
+def _analyze_post_by_comments(post:praw.reddit.Submission, analysis_group:list) -> dict:
     '''Analyzes the sentiment of the post by analyzing the sentiment of the comments for each person in the analysis group'''
     sentiment = {}
     # Initialize the sentiment for each person in the analysis group
@@ -97,7 +92,7 @@ def _analyze_post_by_comments(post, analysis_group) -> dict:
                 sentiment[key] = sentiment.get(key, 0) + comment_sentiment[key]
     return sentiment
 
-def _get_post_body_sentiment(post, analysis_group) -> dict:
+def _get_post_body_sentiment(post:praw.reddit.Submission, analysis_group:list) -> dict:
     '''Analyzes the sentiment of the post by analyzing the sentiment of the post body for each person in the analysis group'''
     title = post.title
     lower_title = title.lower()
@@ -109,10 +104,10 @@ def _get_post_body_sentiment(post, analysis_group) -> dict:
     for i in range(0, len(analysis_group), 10):
         if any ((person.lower() in lower_title or person.lower() in lower_post_body) for person in analysis_group[i:i+10]):
             prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
-            sentiment.update(_get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
+            sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
     return sentiment
 
-def _get_comment_sentiment(post, comment, analysis_group) -> dict:
+def _get_comment_sentiment(post:praw.reddit.Submission, comment:praw.reddit.Comment, analysis_group:list) -> dict:
     '''Analyzes the sentiment of the comment for each person in the analysis group'''
     title = post.title
     comment_body = comment.body.replace("\n\n", "\n").replace("\n", ". ")
@@ -124,37 +119,10 @@ def _get_comment_sentiment(post, comment, analysis_group) -> dict:
     for i in range(0, len(analysis_group), 10):
         if any ((person.lower() in lower_title or person.lower() in lower_comment_body) for person in analysis_group[i:i+10]):
             prompt = "Given a comment on a post and the title of the post, analyze the comment's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nComment: " + comment_body + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
-            sentiment.update(_get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
+            sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
     return sentiment
 
-
-def _get_sentiment(prompt, analysis_group) -> dict:
-    '''Analyzes the sentiment of the comment based on the prompt'''
-    properties = {}
-    for person in analysis_group:
-        properties[person.lower().replace(" ", "") + "_sentiment"] = {"type": "integer", "enum": [-1,0,1]}
-
-    completion = client.chat.completions.create(
-        model="accounts/fireworks/models/mixtral-8x7b-instruct",
-        max_tokens=1250,
-        response_format={
-            "type": "json_object", 
-            "schema": {
-                "type": "object",
-                "properties": properties,
-                "required": list(properties.keys())
-            },
-        },
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    )   
-    return json.loads(completion.choices[0].message.content)
-
-def _get_posts(subreddit_name, start_datetime_unix, end_datetime_unix) -> list:
+def _get_posts(subreddit_name:str, start_datetime_unix:float, end_datetime_unix:float) -> list:
     '''Gets the posts (out of the last 1000) for the a given timeframe in the subreddit'''
     subreddit = reddit.subreddit(subreddit_name)
     posts = [post for post in subreddit.new(limit=1000) if start_datetime_unix <= post.created_utc <= end_datetime_unix]
