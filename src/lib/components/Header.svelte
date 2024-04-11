@@ -18,7 +18,7 @@
 	}
 </script>
 
-<header class="bg-black py-4">
+<header class="py-4">
 	<div class="container mx-auto flex items-center justify-between">
 		<div class="flex items-center">
 			<span class="text-white text-2xl font-inter mr-2">📈</span>
