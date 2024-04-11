@@ -1,5 +1,6 @@
 openai==1.16.2
 praw==7.7.1
+postgrest==0.16.2
 python-dotenv==0.21.1
 requests==2.27.1
 supabase==2.4.1
