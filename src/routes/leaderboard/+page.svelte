@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { MarketItem } from '$lib/types.js';
+	import type { Profile } from '$lib/types.js';
 
 	let { data } = $props();
 
-	let marketData = $derived<MarketItem[]>(data.marketData);
+	let marketData = $derived<(Profile & { totalValuation?: number })[]>(data.marketData);
 </script>
 
-{JSON.stringify(marketData)}
+<pre>{JSON.stringify(marketData, null, 2)}</pre>
