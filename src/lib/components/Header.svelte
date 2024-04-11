@@ -27,11 +27,25 @@
 		<div class="hidden md:block">
 			<div class="ml-10 flex items-baseline space-x-4">
 				<!-- Navigation Links -->
-				<a class="text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm font-medium" href="/">Home</a>
-				<a class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="/portfolio">Portfolio</a>
-				<a class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="/stocks">Stocks</a>
-				<a class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="/leaderboard">Leaderboard</a>
-				<a class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="/featured">Featured</a>
+				<a class="text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm font-medium" href="/"
+					>Home</a
+				>
+				<a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="/portfolio">Portfolio</a
+				>
+				<a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="/stocks">Stocks</a
+				>
+				<a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="/leaderboard">Leaderboard</a
+				>
+				<a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="/about">About</a
+				>
 			</div>
 		</div>
 		<div class="flex items-center">
