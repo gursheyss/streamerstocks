@@ -15,7 +15,7 @@
 	<div class="flex items-center justify-between">
 		<div>
 			<h3 class="text-xl font-bold font-inter">Balance</h3>
-			<p class="text-4xl font-bold font-inter">${balance}</p>
+			<p class="text-4xl font-bold font-inter">${balance.toFixed(2)}</p>
 		</div>
 	</div>
 </div>
