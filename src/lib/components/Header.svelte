@@ -18,20 +18,20 @@
 	}
 </script>
 
-<header class="bg-black py-4">
+<header class="py-4">
 	<div class="container mx-auto flex items-center justify-between">
 		<div class="flex items-center">
-			<span class="text-white text-2xl font-inter mr-2">📈</span>
-			<h1 class="text-white text-2xl font-inter">BopStocks</h1>
+			<span class="text-white text-2xl mr-2">📈</span>
+			<h1 class="text-white text-2xl font-bold font-inter">BopStocks</h1>
 		</div>
 		<div class="flex items-center">
 			{#if username}
 				<img src={profilePicture} alt="avatar" class="w-8 h-8 rounded-full mr-2" />
-				<span class="text-white font-inter mr-4">{username}</span>
+				<span class="text-white font-inter font-bold mr-4">{username}</span>
 				<form action="?/signOut" method="POST" use:enhance>
 					<button
 						id="SignOutButton"
-						class="bg-white text-black px-4 py-2 rounded font-inter"
+						class="bg-white text-black px-4 py-2 rounded font-bold font-inter"
 						type="submit"
 					>
 						Sign out
@@ -40,10 +40,15 @@
 			{:else}
 				<button
 					id="SignInButton"
-					class="bg-white text-black px-4 py-2 rounded font-inter"
+					class="bg-white text-black px-4 py-2 rounded font-inter flex items-center"
 					on:click={signInWithTwitch}
 				>
-					Sign in with Twitch
+					<img
+						src="https://upload.wikimedia.org/wikipedia/commons/2/20/Twitch_icon_2012.svg"
+						alt="Twitch logo"
+						style="height: 20px; width: 20px; margin-right: 10px;"
+					/>
+					Sign in
 				</button>
 			{/if}
 		</div>
