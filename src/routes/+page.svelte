@@ -4,7 +4,12 @@
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
-
+	let uuid: string = '';
+	if (data != null && data.session != null) {
+		uuid = data.session.user.id;
+	}
+	let placeHolderID: number = 28;
+	let bal = $state(-69);
 	async function signInWithTwitch() {
 		await supabase.auth.signInWithOAuth({
 			provider: 'twitch',
@@ -12,6 +17,54 @@
 				redirectTo: 'http://localhost:5173/auth/callback'
 			}
 		});
+	}
+
+	async function updateStockAndBal(amt: number, stockID: number) {
+		//ERRORS NEED TO BE HANDLED FOR PROD, ALSO THIS CODE IS ASSUMING WE ARE LOGGED IN
+		let { data, error } = await supabase
+  		.from('market')
+  		.select()
+		.eq('id', stockID);
+		if(error) console.error(error)
+		console.log(data);
+		
+		if (data != null) {
+			let price = data[0]["price"];
+			if (bal >= (price * amt) || amt > 0) {
+				console.log({
+					amt: (price*amt).toFixed(2), 
+					userid: uuid
+				})
+				let { data: userData, error: userError } = await supabase
+				.rpc('update_user_bal', {
+					amt: (price*amt).toFixed(2), 
+					userid: uuid
+				})
+				if (userError) console.error(userError)
+				else console.log("user updating" + userData)
+
+				//needs to add/remove stock from porfolio
+
+				let { data: stockData, error: stockError } = await supabase
+				.rpc('update_stock', {
+					amt: amt, 
+					stockid: stockID
+				})
+				if (stockError) console.error(stockError)
+				else console.log("stock updating:" + stockData)
+				//update local bal
+				let { data: balanceData, error: balanceError } = await supabase
+				.rpc('get_user_bal', {
+					userid: uuid
+				})
+				if (error) {
+					console.error('Error fetching initial balance data:', balanceError);
+				}
+				else {
+					bal = balanceData;
+				}
+			}
+		}
 	}
 
 	interface MarketItem {
@@ -27,7 +80,6 @@
 	}
 
 	let marketData = $state<MarketItem[]>([]);
-
 	onMount(async () => {
 		let { data: initialData, error } = await supabase.from('market').select('*');
 		if (error) {
@@ -36,6 +88,19 @@
 			marketData = initialData as MarketItem[];
 		}
 	});
+	onMount(async () => {
+		let { data, error } = await supabase
+		.rpc('get_user_bal', {
+			userid: uuid
+		})
+		if (error) {
+			console.error('Error fetching initial balance data:', error);
+		}
+		else {
+			bal = data;
+		}
+	});
+
 
 	$effect(() => {
 		const subscription = supabase
@@ -65,13 +130,16 @@
 </script>
 
 <button id="SignInButton" on:click={signInWithTwitch}>Sign in with Twitch</button>
+<!-- PLACEHOLDER VALUES FOR NOW -->
+<button id="BuyButton" on:click={() => updateStockAndBal(-3, placeHolderID)}>Buy</button>
+<button id="SellButton" on:click={() => updateStockAndBal(3, placeHolderID)}>Sell</button>
 
 <form action="?/signOut" method="POST" use:enhance>
 	<button id="SignOutButton" type="submit">Sign out</button>
 </form>
 
 <img src={data.session?.user.user_metadata.avatar_url} alt="avatar" />
-
+<div>bal: ${bal}</div>
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 	{#each marketData as item}
 		<div class="bg-white shadow-md rounded-lg p-4">
