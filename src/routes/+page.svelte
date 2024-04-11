@@ -129,6 +129,7 @@
 	});
 </script>
 
+
 <button id="SignInButton" on:click={signInWithTwitch}>Sign in with Twitch</button>
 <!-- PLACEHOLDER VALUES FOR NOW -->
 <button id="BuyButton" on:click={() => updateStockAndBal(-3, placeHolderID)}>Buy</button>
