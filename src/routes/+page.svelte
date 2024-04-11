@@ -13,14 +13,6 @@
 		uuid = data.session.user.id;
 	}
 	let placeHolderID: number = 28;
-	async function signInWithTwitch() {
-		await supabase.auth.signInWithOAuth({
-			provider: 'twitch',
-			options: {
-				redirectTo: 'http://localhost:5173/auth/callback'
-			}
-		});
-	}
 
 	async function updateStockAndBal(bal: number, amt: number, stockID: number) {
 		//ERRORS NEED TO BE HANDLED FOR PROD, ALSO THIS CODE IS ASSUMING WE ARE LOGGED IN
