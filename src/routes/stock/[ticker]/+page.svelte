@@ -109,13 +109,29 @@
 					console.log('postgres_changes event triggered', payload);
 					const { new: newData, old: oldData } = payload;
 					if (payload.eventType === 'INSERT') {
-						const newComment = {
+						let newComment = {
 							id: newData.id,
 							avatar_url: newData.profiles?.avatar_url || null,
 							username: newData.profiles?.username || null,
 							comment: newData.comment,
 							score: newData.score
 						};
+
+						if (!newData.profiles) {
+							const { data: userProfile, error } = await supabase
+								.from('profiles')
+								.select('username, avatar_url')
+								.eq('id', newData.user_id)
+								.single();
+
+							if (error) {
+								console.error('Error fetching user profile:', error);
+							} else {
+								newComment.avatar_url = userProfile.avatar_url;
+								newComment.username = userProfile.username;
+							}
+						}
+
 						comments = [newComment, ...comments];
 					} else if (payload.eventType === 'UPDATE') {
 						comments = comments.map((comment) =>
