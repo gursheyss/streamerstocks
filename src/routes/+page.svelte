@@ -12,8 +12,15 @@
 	}
 	let placeHolderID: number = 28;
 
-	async function updateStockAndBal(bal: number, amt: number, stockID: number) {
-		//ERRORS NEED TO BE HANDLED FOR PROD, ALSO THIS CODE IS ASSUMING WE ARE LOGGED IN
+	async function updateStockAndBal(uuid: string, amt: number, stockID: number) {
+		//ERRORS NEED TO BE HANDLED FOR PROD
+		//get bal
+		let { data: bal, error: balError } = await supabase
+		.rpc('get_user_bal', {
+			userid: uuid
+		})
+		if (balError) console.error(balError)
+		else console.log(bal)
 		//get stock data
 		let { data: initStockData, error: initStockError } = await supabase
 			.from('market')
@@ -156,9 +163,9 @@
 <Table {marketData} />
 
 <!-- PLACEHOLDER VALUES FOR NOW -->
-<button id="BuyButton" on:click={() => updateStockAndBal(userBalance!, -1, placeHolderID)}
+<button id="BuyButton" on:click={() => updateStockAndBal(uuid, -1, placeHolderID)}
 	>Buy</button
 >
-<button id="SellButton" on:click={() => updateStockAndBal(userBalance!, 1, placeHolderID)}
+<button id="SellButton" on:click={() => updateStockAndBal(uuid, 1, placeHolderID)}
 	>Sell</button
 >
