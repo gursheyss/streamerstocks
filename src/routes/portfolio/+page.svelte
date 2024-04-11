@@ -36,6 +36,7 @@
 						*
 					)
 				`)
+				.gte('quantity', 1)
 				.eq('user_id', data.session.user.id);
 			if (inventoryError) {
 				console.error('Error fetching user inventory:', inventoryError);
