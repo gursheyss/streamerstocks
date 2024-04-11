@@ -2,9 +2,6 @@ import type { Profile, Trade } from '$lib/types.ts';
 
 // Helper function to calculate total valuation
 async function calculateTotalValuation(trades: Trade[], currentPrices: Record<number, number>) {
-	console.log('Current Prices:', currentPrices);
-	console.log('Trades:', trades);
-
 	const total = trades.reduce((acc, trade) => {
 		const currentPrice = currentPrices[trade.stock_id];
 		if (trade.status === 'bought' && currentPrice) {
@@ -13,7 +10,6 @@ async function calculateTotalValuation(trades: Trade[], currentPrices: Record<nu
 		return acc;
 	}, 0);
 
-	console.log('Total Valuation:', total);
 	return total;
 }
 
@@ -33,10 +29,6 @@ async function getCurrentMarketPrices(supabase: {
 		console.error('Error fetching market prices:', error);
 		return {};
 	}
-
-	// Check the structure of market data
-	console.log('Market Prices:', data);
-
 	const marketPrices = data.reduce(
 		(prices: { [x: string]: any }, stock: { id: string | number; price: any }) => {
 			prices[stock.id] = stock.price;
