@@ -43,7 +43,7 @@
 							<span class="text-gray-400">0%</span>
 						{/if}
 					</td>
-					<td class="py-4 text-right flex items-center justify-center">
+					<td class="pb-4 text-right flex items-center justify-center">
 						<div class="w-24 h-24">
 							<MiniChart stockData={item.history} />
 						</div>
