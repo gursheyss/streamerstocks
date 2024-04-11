@@ -4,7 +4,7 @@
 	let { marketData }: { marketData: MarketItem[] } = $props();
 </script>
 
-<div class="bg-gray-800 rounded-lg shadow-lg p-4">
+<div class="bg-gray-900 rounded-lg shadow-lg p-4">
 	<h2 class="text-xl font-bold text-white mb-4">FEATURED ISSUERS 1 YEAR</h2>
 	<table class="w-full border-b border-gray-700">
 		<tbody>
@@ -22,7 +22,7 @@
 						<span class="text-gray-400 ml-1">Trades</span>
 					</td>
 					<td class="py-4 text-right">
-						<span class="text-white font-bold">{item.price}</span>
+						<span class="text-white font-bold">${item.price.toFixed(2).toLocaleString()}</span>
 					</td>
 					<td class="py-4 text-right">
 						<span class="text-green-500 font-bold">50%</span>

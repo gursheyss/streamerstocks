@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
 	import type { MarketItem } from '$lib/types.js';
+	import Portfolio from '$lib/components/Portfolio.svelte';
+	import Chart from '$lib/components/Chart.svelte';
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
@@ -44,4 +46,5 @@
 	});
 </script>
 
+<Chart />
 <Table {marketData} />

@@ -1,100 +1,178 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Chart from 'chart.js/auto';
+	import { Chart, registerables } from 'chart.js';
 
-	const stockHistory = [
-		{ timestamp: '2023-05-01', price: 100.0 },
-		{ timestamp: '2023-05-02', price: 102.5 },
-		{ timestamp: '2023-05-03', price: 99.75 },
-		{ timestamp: '2023-05-04', price: 105.25 },
-		{ timestamp: '2023-05-05', price: 103.8 },
-		{ timestamp: '2023-05-06', price: 107.1 },
-		{ timestamp: '2023-05-07', price: 108.5 },
-		{ timestamp: '2023-05-08', price: 106.2 },
-		{ timestamp: '2023-05-09', price: 109.75 },
-		{ timestamp: '2023-05-10', price: 111.3 },
-		{ timestamp: '2023-05-11', price: 113.6 },
-		{ timestamp: '2023-05-12', price: 112.4 },
-		{ timestamp: '2023-05-13', price: 115.0 },
-		{ timestamp: '2023-05-14', price: 117.8 },
-		{ timestamp: '2023-05-15', price: 119.2 },
-		{ timestamp: '2023-05-16', price: 121.5 },
-		{ timestamp: '2023-05-17', price: 120.0 },
-		{ timestamp: '2023-05-18', price: 122.75 },
-		{ timestamp: '2023-05-19', price: 125.3 },
-		{ timestamp: '2023-05-20', price: 127.6 }
+	interface HistoryItem {
+		timestamp: number;
+		price: number;
+	}
+
+	interface HistoryData {
+		priceData: HistoryItem[];
+	}
+
+	// let { priceData }: { priceData: { timestamp: number; price: number } }[] = $props();
+
+	let priceData = [
+		{
+			timestamp: 1620000000000,
+			price: 100
+		},
+		{
+			timestamp: 1620000001000,
+			price: 110
+		},
+		{
+			timestamp: 1620000002000,
+			price: 120
+		},
+		{
+			timestamp: 1620000003000,
+			price: 130
+		},
+		{
+			timestamp: 1620000004000,
+			price: 140
+		},
+		{
+			timestamp: 1620000005000,
+			price: 150
+		},
+		{
+			timestamp: 1620000006000,
+			price: 160
+		},
+		{
+			timestamp: 1620000007000,
+			price: 170
+		},
+		{
+			timestamp: 1620000008000,
+			price: 180
+		},
+		{
+			timestamp: 1620000009000,
+			price: 190
+		},
+		{
+			timestamp: 1620000010000,
+			price: 200
+		},
+		{
+			timestamp: 1620000011000,
+			price: 210
+		},
+		{
+			timestamp: 1620000012000,
+			price: 220
+		},
+		{
+			timestamp: 1620000013000,
+			price: 230
+		},
+		{
+			timestamp: 1620000014000,
+			price: 240
+		},
+		{
+			timestamp: 1620000015000,
+			price: 250
+		},
+		{
+			timestamp: 1620000016000,
+			price: 260
+		},
+		{
+			timestamp: 1620000017000,
+			price: 270
+		},
+		{
+			timestamp: 1620000018000,
+			price: 280
+		},
+		{
+			timestamp: 1620000019000,
+			price: 290
+		},
+		{
+			timestamp: 1620000020000,
+			price: 300
+		},
+		{
+			timestamp: 1620000021000,
+			price: 310
+		}
 	];
 
+	let chart: Chart;
+
 	let chartRef: HTMLCanvasElement;
-	let chart;
+	const chartOptions = {
+		responsive: true,
+		maintainAspectRatio: false,
+		scales: {
+			x: {
+				type: 'time',
+				time: {
+					unit: 'day'
+				},
+				grid: {
+					color: '#2d3748',
+					borderColor: '#4a5568'
+				},
+				ticks: {
+					color: '#cbd5e0'
+				}
+			},
+			y: {
+				grid: {
+					color: '#2d3748',
+					borderColor: '#4a5568'
+				},
+				ticks: {
+					color: '#cbd5e0'
+				}
+			}
+		},
+		elements: {
+			point: {
+				radius: 0
+			},
+			line: {
+				tension: 0.4,
+				borderWidth: 2,
+				borderColor: '#63b3ed'
+			}
+		},
+		plugins: {
+			legend: {
+				display: false
+			},
+			tooltip: {
+				displayColors: false,
+				callbacks: {
+					label: (context) => `$${context.parsed.y}`
+				}
+			}
+		}
+	};
 
 	onMount(() => {
-		const ctx = chartRef.getContext('2d');
-
-		chart = new Chart(ctx, {
-			type: 'candlestick',
+		Chart.register(...registerables);
+		chart = new Chart(chartRef, {
+			type: 'line',
 			data: {
-				labels: stockHistory.map((entry) => entry.timestamp),
 				datasets: [
 					{
-						label: 'Stock Price',
-						data: stockHistory.map((entry) => ({
-							x: entry.timestamp,
-							y: [entry.price, entry.price * 1.01, entry.price * 0.99, entry.price]
-						})),
-						borderColor: 'rgba(75, 192, 192, 1)',
-						wickColor: 'rgba(75, 192, 192, 1)',
-						borderWidth: 1
+						data: priceData.map((data) => ({ x: data.timestamp, y: data.price }))
 					}
 				]
 			},
-			options: {
-				responsive: true,
-				maintainAspectRatio: false,
-				scales: {
-					x: {
-						display: true,
-						title: {
-							display: true,
-							text: 'Date'
-						}
-					},
-					y: {
-						display: true,
-						title: {
-							display: true,
-							text: 'Price'
-						},
-						ticks: {
-							callback: (value) => '$' + value.toFixed(2)
-						}
-					}
-				},
-				plugins: {
-					tooltip: {
-						mode: 'index',
-						intersect: false,
-						callbacks: {
-							label: (context) => {
-								const { o, h, l, c } = context.parsed;
-								return `Open: $${o.toFixed(2)}, High: $${h.toFixed(2)}, Low: $${l.toFixed(2)}, Close: $${c.toFixed(2)}`;
-							}
-						}
-					}
-				}
-			}
+			options: chartOptions
 		});
 	});
 </script>
 
-<div class="chart-container">
-	<canvas bind:this={chartRef}></canvas>
+<div class="w-full h-96 bg-gray-900 rounded-lg shadow-lg p-4">
+	<canvas bind:this={chartRef} />
 </div>
-
-<style>
-	.chart-container {
-		position: relative;
-		width: 100%;
-		height: 400px;
-	}
-</style>

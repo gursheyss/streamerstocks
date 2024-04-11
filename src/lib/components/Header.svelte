@@ -27,11 +27,11 @@
 		<div class="flex items-center">
 			{#if username}
 				<img src={profilePicture} alt="avatar" class="w-8 h-8 rounded-full mr-2" />
-				<span class="text-white font-inter mr-4">{username}</span>
+				<span class="text-white font-inter font-bold mr-4">{username}</span>
 				<form action="?/signOut" method="POST" use:enhance>
 					<button
 						id="SignOutButton"
-						class="bg-white text-black px-4 py-2 rounded font-inter"
+						class="bg-white text-black px-4 py-2 rounded font-bold font-inter"
 						type="submit"
 					>
 						Sign out

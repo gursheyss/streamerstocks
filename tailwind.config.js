@@ -5,6 +5,10 @@ export default {
 		extend: {
 			fontFamily: {
 				inter: ['Inter', 'sans-serif']
+			},
+			colors: {
+				darkgray: 'hsl(200, 6%, 10%)',
+				gray: 'hsl(200, 6%, 15%)'
 			}
 		}
 	},
