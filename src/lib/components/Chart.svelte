@@ -1,178 +1,209 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Chart, registerables } from 'chart.js';
+	import Chart from 'chart.js/auto';
 
-	interface HistoryItem {
+	interface StockData {
 		timestamp: number;
 		price: number;
 	}
 
-	interface HistoryData {
-		priceData: HistoryItem[];
-	}
-
-	// let { priceData }: { priceData: { timestamp: number; price: number } }[] = $props();
-
-	let priceData = [
-		{
-			timestamp: 1620000000000,
-			price: 100
-		},
-		{
-			timestamp: 1620000001000,
-			price: 110
-		},
-		{
-			timestamp: 1620000002000,
-			price: 120
-		},
-		{
-			timestamp: 1620000003000,
-			price: 130
-		},
-		{
-			timestamp: 1620000004000,
-			price: 140
-		},
-		{
-			timestamp: 1620000005000,
-			price: 150
-		},
-		{
-			timestamp: 1620000006000,
-			price: 160
-		},
-		{
-			timestamp: 1620000007000,
-			price: 170
-		},
-		{
-			timestamp: 1620000008000,
-			price: 180
-		},
-		{
-			timestamp: 1620000009000,
-			price: 190
-		},
-		{
-			timestamp: 1620000010000,
-			price: 200
-		},
-		{
-			timestamp: 1620000011000,
-			price: 210
-		},
-		{
-			timestamp: 1620000012000,
-			price: 220
-		},
-		{
-			timestamp: 1620000013000,
-			price: 230
-		},
-		{
-			timestamp: 1620000014000,
-			price: 240
-		},
-		{
-			timestamp: 1620000015000,
-			price: 250
-		},
-		{
-			timestamp: 1620000016000,
-			price: 260
-		},
-		{
-			timestamp: 1620000017000,
-			price: 270
-		},
-		{
-			timestamp: 1620000018000,
-			price: 280
-		},
-		{
-			timestamp: 1620000019000,
-			price: 290
-		},
-		{
-			timestamp: 1620000020000,
-			price: 300
-		},
-		{
-			timestamp: 1620000021000,
-			price: 310
-		}
+	let chartRef: HTMLCanvasElement;
+	let stockData: StockData[] = [
+		{ timestamp: 1617235200000, price: 100 },
+		{ timestamp: 1617321600000, price: 110 },
+		{ timestamp: 1617408000000, price: 95 },
+		{ timestamp: 1617494400000, price: 105 },
+		{ timestamp: 1617580800000, price: 120 },
+		{ timestamp: 1617668000000, price: 130 },
+		{ timestamp: 1617754400000, price: 115 },
+		{ timestamp: 1617840800000, price: 100 },
+		{ timestamp: 1617927200000, price: 118 },
+		{ timestamp: 1618013600000, price: 125 },
+		{ timestamp: 1618100000000, price: 130 },
+		{ timestamp: 1618187200000, price: 120 },
+		{ timestamp: 1618274400000, price: 115 },
+		{ timestamp: 1618361600000, price: 125 },
+		{ timestamp: 1618448000000, price: 130 },
+		{ timestamp: 1618535200000, price: 120 },
+		{ timestamp: 1618622400000, price: 125 },
+		{ timestamp: 1618709600000, price: 130 },
+		{ timestamp: 1618796800000, price: 120 },
+		{ timestamp: 1618884000000, price: 125 },
+		{ timestamp: 1618971200000, price: 130 },
+		{ timestamp: 1619058400000, price: 120 },
+		{ timestamp: 1619145600000, price: 125 },
+		{ timestamp: 1619232800000, price: 130 },
+		{ timestamp: 1619319200000, price: 120 },
+		{ timestamp: 1619406400000, price: 125 },
+		{ timestamp: 1619493600000, price: 130 },
+		{ timestamp: 1619580800000, price: 120 },
+		{ timestamp: 1619668000000, price: 125 },
+		{ timestamp: 1619755200000, price: 130 },
+		{ timestamp: 1619842400000, price: 120 },
+		{ timestamp: 1619930000000, price: 125 },
+		{ timestamp: 1620017600000, price: 130 },
+		{ timestamp: 1620104800000, price: 120 },
+		{ timestamp: 1620192000000, price: 125 },
+		{ timestamp: 1620279200000, price: 130 },
+		{ timestamp: 1620366400000, price: 120 },
+		{ timestamp: 1620453600000, price: 125 },
+		{ timestamp: 1620540800000, price: 130 },
+		{ timestamp: 1620628000000, price: 120 },
+		{ timestamp: 1620715200000, price: 125 },
+		{ timestamp: 1620802400000, price: 130 },
+		{ timestamp: 1620890000000, price: 120 }
 	];
 
 	let chart: Chart;
-
-	let chartRef: HTMLCanvasElement;
-	const chartOptions = {
-		responsive: true,
-		maintainAspectRatio: false,
-		scales: {
-			x: {
-				type: 'time',
-				time: {
-					unit: 'day'
-				},
-				grid: {
-					color: '#2d3748',
-					borderColor: '#4a5568'
-				},
-				ticks: {
-					color: '#cbd5e0'
-				}
-			},
-			y: {
-				grid: {
-					color: '#2d3748',
-					borderColor: '#4a5568'
-				},
-				ticks: {
-					color: '#cbd5e0'
-				}
-			}
-		},
-		elements: {
-			point: {
-				radius: 0
-			},
-			line: {
-				tension: 0.4,
-				borderWidth: 2,
-				borderColor: '#63b3ed'
-			}
-		},
-		plugins: {
-			legend: {
-				display: false
-			},
-			tooltip: {
-				displayColors: false,
-				callbacks: {
-					label: (context) => `$${context.parsed.y}`
-				}
-			}
-		}
-	};
+	let selectedRange: { start: number | null; end: number | null } = { start: null, end: null };
 
 	onMount(() => {
-		Chart.register(...registerables);
-		chart = new Chart(chartRef, {
-			type: 'line',
-			data: {
-				datasets: [
-					{
-						data: priceData.map((data) => ({ x: data.timestamp, y: data.price }))
+		const ctx = chartRef.getContext('2d');
+		if (ctx) {
+			const isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
+			const gradientColor = isIncreasing ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.5)';
+
+			const prices = stockData.map((data) => data.price);
+			const minPrice = Math.floor(Math.min(...prices) - 2);
+			const maxPrice = Math.ceil(Math.max(...prices) + 2);
+
+			chart = new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: stockData.map((data) => new Date(data.timestamp).toLocaleDateString()),
+					datasets: [
+						{
+							data: stockData.map((data) => data.price),
+							borderColor: isIncreasing ? 'green' : 'red',
+							fill: {
+								target: 'origin',
+								above: (context: any) => {
+									const chart = context.chart;
+									const { ctx, chartArea } = chart;
+
+									if (!chartArea) {
+										return null;
+									}
+
+									const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+									gradient.addColorStop(0, gradientColor);
+									gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+									return gradient;
+								}
+							},
+							tension: 0.1,
+							pointRadius: 0
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					scales: {
+						y: {
+							min: minPrice,
+							max: maxPrice,
+							ticks: {
+								stepSize: 1,
+								callback: (value: number) => value.toFixed(0)
+							},
+							grid: {
+								color: 'rgba(255, 255, 255, 0.1)',
+								borderDash: [5, 5],
+								drawBorder: false,
+								drawTicks: false
+							}
+						}
+					},
+					plugins: {
+						legend: {
+							display: false
+						},
+						tooltip: {
+							callbacks: {
+								label: (context: any) => {
+									let label = context.dataset.label || '';
+									if (label) {
+										label += ': ';
+									}
+									if (context.parsed.y !== null) {
+										label += '$' + context.parsed.y.toFixed(2);
+									}
+									return label;
+								}
+							},
+							displayColors: false,
+							titleFont: {
+								family: 'Inter'
+							},
+							bodyFont: {
+								family: 'Inter'
+							},
+							footerFont: {
+								family: 'Inter'
+							}
+						}
+					},
+					interaction: {
+						intersect: false,
+						mode: 'nearest'
+					},
+					onHover: (event: MouseEvent, activeElements: any[]) => {
+						if (activeElements.length === 0) {
+							selectedRange = { start: null, end: null };
+						}
 					}
-				]
-			},
-			options: chartOptions
-		});
+				}
+			});
+
+			chartRef.addEventListener('mousedown', handleMouseDown);
+			chartRef.addEventListener('mouseup', handleMouseUp);
+			chartRef.addEventListener('mousemove', handleMouseMove);
+		}
 	});
+
+	function handleMouseDown(event: MouseEvent) {
+		const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+		if (points.length) {
+			const firstPoint = points[0];
+			selectedRange.start = firstPoint.index;
+		}
+	}
+
+	function handleMouseUp(event: MouseEvent) {
+		const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+		if (points.length) {
+			const firstPoint = points[0];
+			selectedRange.end = firstPoint.index;
+			calculateDifference();
+		}
+	}
+
+	function handleMouseMove(event: MouseEvent) {
+		if (selectedRange.start !== null && selectedRange.end === null) {
+			const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+			if (points.length) {
+				const firstPoint = points[0];
+				selectedRange.end = firstPoint.index;
+				calculateDifference();
+			}
+		}
+	}
+
+	function calculateDifference() {
+		if (selectedRange.start !== null && selectedRange.end !== null) {
+			const startPrice = stockData[selectedRange.start].price;
+			const endPrice = stockData[selectedRange.end].price;
+			const difference = endPrice - startPrice;
+			const percentage = (difference / startPrice) * 100;
+
+			console.log(`Price difference: $${difference.toFixed(2)} (${percentage.toFixed(2)}%)`);
+		}
+	}
 </script>
 
-<div class="w-full h-96 bg-gray-900 rounded-lg shadow-lg p-4">
-	<canvas bind:this={chartRef} />
+<div class="container mx-auto mt-8">
+	<div class="w-full h-96">
+		<canvas bind:this={chartRef}></canvas>
+	</div>
 </div>

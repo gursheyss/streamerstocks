@@ -7,8 +7,8 @@
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
-
 	let marketData = $state<MarketItem[]>([]);
+	let userBalance = $state<number | null>(null);
 
 	onMount(async () => {
 		let { data: initialData, error } = await supabase.from('market').select('*');
@@ -17,14 +17,28 @@
 		} else {
 			marketData = initialData as MarketItem[];
 		}
+
+		// Fetch user balance only if data.session exists
+		if (data.session) {
+			let { data: profileData, error: profileError } = await supabase
+				.from('profiles')
+				.select('balance')
+				.eq('id', data.session.user.id)
+				.single();
+
+			if (profileError) {
+				console.error('Error fetching user balance:', profileError);
+			} else {
+				userBalance = profileData?.balance ?? null;
+			}
+		}
 	});
 
 	$effect(() => {
-		const subscription = supabase
+		const marketSubscription = supabase
 			.channel('market')
 			.on('postgres_changes', { event: '*', schema: 'public', table: 'market' }, (payload: any) => {
 				const { new: newData, old: oldData } = payload;
-
 				if (payload.eventType === 'INSERT') {
 					// New record inserted
 					marketData = [...marketData, newData as MarketItem];
@@ -40,11 +54,34 @@
 			})
 			.subscribe();
 
+		const profileSubscription = data.session
+			? supabase
+					.channel('profiles')
+					.on(
+						'postgres_changes',
+						{
+							event: 'UPDATE',
+							schema: 'public',
+							table: 'profiles',
+							filter: `id=eq.${data.session.user.id}`
+						},
+						(payload: any) => {
+							const { new: newData } = payload;
+							userBalance = newData.balance;
+						}
+					)
+					.subscribe()
+			: null;
+
 		return () => {
-			subscription.unsubscribe();
+			marketSubscription.unsubscribe();
+			profileSubscription?.unsubscribe();
 		};
 	});
 </script>
 
 <Chart />
+{#if data.session && userBalance !== null}
+	<Portfolio balance={userBalance} />
+{/if}
 <Table {marketData} />

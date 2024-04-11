@@ -40,10 +40,15 @@
 			{:else}
 				<button
 					id="SignInButton"
-					class="bg-white text-black px-4 py-2 rounded font-inter"
+					class="bg-white text-black px-4 py-2 rounded font-inter flex items-center"
 					on:click={signInWithTwitch}
 				>
-					Sign in with Twitch
+					<img
+						src="https://upload.wikimedia.org/wikipedia/commons/2/20/Twitch_icon_2012.svg"
+						alt="Twitch logo"
+						style="height: 20px; width: 20px; margin-right: 10px;"
+					/>
+					Sign in
 				</button>
 			{/if}
 		</div>
