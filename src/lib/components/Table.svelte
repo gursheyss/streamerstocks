@@ -16,16 +16,16 @@
 </script>
 
 <div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
-	<h2 class="text-xl font-bold text-white mb-4">FEATURED ISSUERS 1 YEAR</h2>
-
 	<table class="w-full border-b border-gray-700">
 		<tbody>
 			{#each marketData as item}
-				<tr class="text-white font-bold">
-					<td class="py-4 flex items-center">
-						{#if item.image}
-							<img src={item.image} alt={item.name} class="w-6 h-6 mr-2" />
-						{/if}
+				<tr
+					class="text-white font-bold cursor-pointer"
+					onclick={() => {
+						window.location.href = `/stock/${item.ticker}`;
+					}}
+				>
+					<td class="py-4 px-4">
 						<span>{item.name}</span>
 						<span class="text-gray-400 ml-2">${item.ticker}</span>
 					</td>

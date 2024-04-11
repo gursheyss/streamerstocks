@@ -17,7 +17,7 @@
 	async function updateStockAndBal(bal: number, amt: number, stockID: number) {
 		//ERRORS NEED TO BE HANDLED FOR PROD, ALSO THIS CODE IS ASSUMING WE ARE LOGGED IN
 		let { data, error } = await supabase.from('market').select().eq('id', stockID);
-		if (error) console.error("Error getting stockID" + error);
+		if (error) console.error('Error getting stockID' + error);
 		console.log(data);
 
 		if (data != null) {
@@ -61,7 +61,10 @@
 	let marketData = $state<MarketItem[]>([]);
 	let userBalance = $state<number | null>(null);
 	onMount(async () => {
-		let { data: initialData, error } = await supabase.from('market').select('*');
+		let { data: initialData, error } = await supabase
+			.from('market')
+			.select('*')
+			.order('price', { ascending: false });
 		if (error) {
 			console.error('Error fetching initial data:', error);
 		} else {
@@ -137,5 +140,9 @@
 <Table {marketData} />
 
 <!-- PLACEHOLDER VALUES FOR NOW -->
-<button id="BuyButton" on:click={() => updateStockAndBal(userBalance!, -3, placeHolderID)}>Buy</button>
-<button id="SellButton" on:click={() => updateStockAndBal(userBalance!, 3, placeHolderID)}>Sell</button>
+<button id="BuyButton" on:click={() => updateStockAndBal(userBalance!, -3, placeHolderID)}
+	>Buy</button
+>
+<button id="SellButton" on:click={() => updateStockAndBal(userBalance!, 3, placeHolderID)}
+	>Sell</button
+>

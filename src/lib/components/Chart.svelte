@@ -25,7 +25,7 @@
 			chart = new Chart(ctx, {
 				type: 'line',
 				data: {
-					labels: stockData.map((data) => new Date(data.timestamp).toLocaleDateString()),
+					labels: stockData.map((data) => new Date(data.timestamp * 1000).toLocaleDateString()),
 					datasets: [
 						{
 							data: stockData.map((data) => data.price),
@@ -115,7 +115,9 @@
 			const data = stockData[firstPoint.index];
 			// Display the data and vertical line on hover
 			// You can customize this based on your requirements
-			console.log(`Price: ${data.price}, Date: ${new Date(data.timestamp).toLocaleDateString()}`);
+			console.log(
+				`Price: ${data.price}, Date: ${new Date(data.timestamp * 1000).toLocaleDateString()}`
+			);
 		}
 	}
 
@@ -126,7 +128,9 @@
 		const minPrice = Math.floor(Math.min(...prices) - 2);
 		const maxPrice = Math.ceil(Math.max(...prices) + 2);
 
-		chart.data.labels = stockData.map((data) => new Date(data.timestamp).toLocaleDateString());
+		chart.data.labels = stockData.map((data) =>
+			new Date(data.timestamp * 1000).toLocaleDateString()
+		);
 		chart.data.datasets[0].data = stockData.map((data) => data.price);
 		chart.data.datasets[0].borderColor = isIncreasing ? 'green' : 'red';
 		chart.options.scales.y.min = minPrice;
@@ -143,7 +147,7 @@
 </script>
 
 <div class="container mx-auto mt-8">
-	<div class="w-full h-96">
+	<div class="w-full">
 		<canvas bind:this={chartRef} on:mousemove={handleHover}></canvas>
 	</div>
 </div>
