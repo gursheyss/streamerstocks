@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
-	import Chart from '$lib/components/Chart.svelte';
 	import type { MarketItem } from '$lib/types.js';
 
 	let { data } = $props();
@@ -46,4 +45,3 @@
 </script>
 
 <Table {marketData} />
-<Chart />
