@@ -11,7 +11,7 @@ export interface MarketItem {
 	history: MarketItemHistory[];
 }
 
-interface MarketItemHistory {
+export interface MarketItemHistory {
 	timestamp: number;
 	price: number;
 }
