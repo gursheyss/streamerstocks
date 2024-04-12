@@ -1,3 +1,5 @@
+from os import getenv
+
 from datetime import datetime
 from discordwebhook import Webhook, Embed
 
@@ -41,8 +43,7 @@ name_stock_mapping = {
     "Arky": "arky"
 }
 
-discord = Webhook(url="https://discord.com/api/webhooks/1228263899921645628/Uoem41Kk68C6tnX3LOm2jmE7-YmKlt-9OuJxk4zFgBFql-4d6ZNv3HBz5HoOxJPSWMd0")
-
+discord = Webhook(url=getenv("DISCORD_WEBHOOK_URL"))
 
 def send_market_update(original_stock_data:list, delta_stock_data:dict, scalar:float):
     description = "The market has been updated. Here are the changes: \n\n"

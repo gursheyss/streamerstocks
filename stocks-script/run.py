@@ -112,7 +112,7 @@ def update_by_chat_loop(max_batch_size:int=40) -> None:
         except:
             send_error_message("Error analyzing Twitch chat")
 
-def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
+def update_by_reddit_loop(update_interval_seconds:int=300) -> None:
     '''Update prices based on Reddit if Jason is offline'''
     print("Starting Reddit analysis loop\n******************************\n")
     previous_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
@@ -148,7 +148,7 @@ def check_if_jason_online() -> None:
         except:
             send_error_message("Error checking if Jason is online")
 
-def save_history_loop(decay_rate:float=0.01, save_interval_seconds:int=60) -> None:
+def save_history_loop(decay_rate:float=0.001, save_interval_seconds:int=60) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
