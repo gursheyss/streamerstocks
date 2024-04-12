@@ -146,10 +146,6 @@
 			updateChart();
 		}
 	});
-
-	onDestroy(() => {
-		window.removeEventListener('resize', updateChart);
-	});
 </script>
 
 <div class="container mx-auto mt-8">
