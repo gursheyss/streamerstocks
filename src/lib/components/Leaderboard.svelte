@@ -75,10 +75,12 @@
 				</tbody>
 			</table>
 		</div>
-		<div class="flex justify-center mt-4">
-			<button class="flex text-white font-bold" on:click={() => (numRows += 10)}>
-				Load More
-			</button>
-		</div>
+		{#if numRows > 10}
+			<div class="flex justify-center mt-4">
+				<button class="flex text-white font-bold" on:click={() => (numRows += 10)}>
+					Load More
+				</button>
+			</div>
+		{/if}
 	</div>
 {/if}

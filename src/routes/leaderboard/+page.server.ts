@@ -43,7 +43,6 @@ BEGIN
     LEFT JOIN market m ON m.id = t.stock_id
     GROUP BY p.id
     HAVING COUNT(t."trade id") > 0
-    ORDER BY net_worth DESC;
 END; $$ LANGUAGE plpgsql;
 
 
