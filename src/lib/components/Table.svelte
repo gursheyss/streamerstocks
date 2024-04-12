@@ -26,8 +26,8 @@
 							<span class="text-gray-400 ml-2 text-sm">${item.ticker}</span>
 						</a>
 					</td>
-					<td class="py-4 text-right">${item.price.toFixed(2).toLocaleString()}</td>
-					<td class="py-4 text-right">
+					<td class="py-4 pl-2 pr-4 text-right">${item.price.toFixed(2).toLocaleString()}</td>
+					<td class="py-4 pl-2 pr-4 text-right">
 						{#if calculatePercentageChange(item.history) > 0}
 							<span class="text-green-500"
 								>+{calculatePercentageChange(item.history).toFixed(2)}%</span
@@ -39,7 +39,7 @@
 							<span class="text-gray-400">0%</span>
 						{/if}
 					</td>
-					<td class="pb-4 text-right flex items-center justify-center">
+					<td class="pb-4 pl-2 pr-4 text-right flex items-center justify-center">
 						<div class="w-24 h-24">
 							<MiniChart stockData={item.history} />
 						</div>
