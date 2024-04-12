@@ -100,7 +100,7 @@ def update_by_chat_loop(update_interval_seconds:int=120) -> None:
             if int(time.time()) % update_interval_seconds == 0:
                 print("Analyzing chat:")
                 # Spend half the time analyzing chat, and the other half updating prices
-                sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=[name.lower() for name in analysis_group], analysis_group=analysis_group)
+                sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=([name.lower() for name in analysis_group] + ['kelly', 'jira', 'vsb']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
                 update_prices(sentiment)
@@ -145,6 +145,7 @@ def save_history_loop(save_interval_seconds:int=60) -> None:
         time.sleep(1)
 
 if __name__ == "__main__":
+    print("Starting the market mover....")
     online_thread = threading.Thread(target=check_if_jason_online)
     chat_update_thread = threading.Thread(target=update_by_chat_loop)
     reddit_update_thread = threading.Thread(target=update_by_reddit_loop)
