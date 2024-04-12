@@ -3,7 +3,6 @@
 	import Chart from '$lib/components/Chart.svelte';
 	import Comments from '$lib/components/Comments.svelte';
 	import type { MarketItem } from '$lib/types';
-	import { onMount } from 'svelte';
 	import type { Comment } from '$lib/types';
 
 	let { data } = $props();
@@ -108,6 +107,10 @@
 		};
 	});
 </script>
+
+<svelte:head>
+	<title>${marketData[0]?.ticker} - {marketData[0]?.name}</title>
+</svelte:head>
 
 {#if marketData[0] && marketData[0].history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">

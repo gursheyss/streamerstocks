@@ -20,10 +20,12 @@
 
 <header class="py-4">
 	<div class="container mx-auto flex items-center justify-between">
-		<div class="flex items-center">
-			<span class="text-white text-2xl mr-2">📈</span>
-			<h1 class="text-white text-2xl font-bold font-inter">BopStocks</h1>
-		</div>
+		<a href="/">
+			<div class="flex items-center">
+				<span class="text-white text-2xl mr-2">📈</span>
+				<h1 class="text-white text-2xl font-bold font-inter">BopStocks</h1>
+			</div>
+		</a>
 		<div class="hidden md:block">
 			<div class="ml-10 flex items-baseline space-x-4">
 				<!-- Navigation Links -->
