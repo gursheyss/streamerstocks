@@ -6,19 +6,18 @@ import time
 
 from analyzers.analyze import get_sentiment
 
-sock = socket.socket()
-
-# Connect to Twitch chat
-sock.connect(('irc.chat.twitch.tv', 6667))
-sock.send(f"PASS oauth:{getenv('TWITCH_TOKEN')}\n".encode('utf-8'))
-sock.send("NICK bopstocks\n".encode('utf-8'))
-sock.send("JOIN #jasontheween\n".encode('utf-8'))
-print("Connected to Twitch chat")
-
-# Ignore the welcome messages
-sock.recv(2048).decode('utf-8')
 
 def analyze_chat_batch(analysis_time:int, keywords:list, analysis_group:list) -> dict:
+    sock = socket.socket()
+    # Connect to Twitch chat
+    sock.connect(('irc.chat.twitch.tv', 6667))
+    sock.send(f"PASS oauth:{getenv('TWITCH_TOKEN')}\n".encode('utf-8'))
+    sock.send("NICK bopstocks\n".encode('utf-8'))
+    sock.send("JOIN #jasontheween\n".encode('utf-8'))
+    print("Connected to Twitch chat")
+    # Ignore the welcome messages
+    sock.recv(2048).decode('utf-8')
+
     '''Analyze chat messages over a period of time for sentiment towards a group of people in JSON format'''
     batch = ""
     batch_size = 0

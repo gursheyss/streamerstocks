@@ -105,7 +105,7 @@ def update_by_chat_loop(update_interval_seconds:int=120) -> None:
                 sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=([name.lower() for name in analysis_group] + ['kelly', 'jira', 'vsb']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-                update_prices(sentiment, scalar=3.0)
+                update_prices(sentiment, scalar=0.5)
         time.sleep(1)
 
 def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
