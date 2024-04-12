@@ -8,6 +8,7 @@ export const load = async ({ locals }) => {
 	return { marketData: data };
 };
 
+// TODO: FIX PNL FUNCTION.
 /*
 
 SQL function calculate_pnl_with_networth():
