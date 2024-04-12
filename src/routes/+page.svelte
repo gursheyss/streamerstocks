@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
-	import type { MarketItem, News as NewsType } from '$lib/types.js';
+	import type { MarketItem } from '$lib/types.js';
 	import Portfolio from '$lib/components/Portfolio.svelte';
-	import News from '$lib/components/News.svelte';
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
@@ -17,20 +16,17 @@
 		const response = await fetch('/request_api', {
 			method: 'POST',
 			body: JSON.stringify({
-				uuid,
-				amt,
-				stockID
+				uuid, amt, stockID
 			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		});
-		console.log('server' + response);
+		console.log("server" + response)
 	}
 
 	let marketData = $state<MarketItem[]>([]);
 	let userBalance = $state<number | null>(null);
-	let news = $state<NewsType[]>([]);
 	onMount(async () => {
 		let { data: initialData, error } = await supabase
 			.from('market')
@@ -40,17 +36,6 @@
 			console.error('Error fetching initial data:', error);
 		} else {
 			marketData = initialData as MarketItem[];
-		}
-
-		let { data: newsData, error: newsError } = await supabase
-			.from('news')
-			.select('*')
-			.order('id', { ascending: false });
-		if (newsError) {
-			console.error('Error fetching news:', newsError);
-		} else {
-			console.log(newsData);
-			news = newsData as NewsType[];
 		}
 
 		// Fetch user balance only if data.session exists
@@ -108,29 +93,7 @@
 					.subscribe()
 			: null;
 
-		const newsSubscription = data.session
-			? supabase
-					.channel('news')
-					.on(
-						'postgres_changes',
-						{ event: '*', schema: 'public', table: 'news' },
-						(payload: any) => {
-							const { new: newData, old: oldData } = payload;
-							if (payload.eventType === 'INSERT') {
-								console.log('newData', newData);
-								news = [...news, newData as NewsType];
-							} else if (payload.eventType === 'UPDATE') {
-								news = news.map((item) => (item.id === newData.id ? (newData as NewsType) : item));
-							} else if (payload.eventType === 'DELETE') {
-								news = news.filter((item) => item.id !== oldData.id);
-							}
-						}
-					)
-					.subscribe()
-			: null;
-
 		return () => {
-			newsSubscription?.unsubscribe();
 			marketSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 		};
@@ -141,10 +104,7 @@
 	<Portfolio balance={userBalance} />
 {/if}
 
-<div class="flex flex-col space-y-4">
-	<News {news} />
-	<Table {marketData} />
-</div>
+<Table {marketData} />
 
 <!-- PLACEHOLDER VALUES FOR NOW
 <button id="BuyButton" on:click={() => updateStockAndBal(uuid, -1, placeHolderID)}
