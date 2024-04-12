@@ -3,10 +3,10 @@
 	import { onMount } from 'svelte';
 	export let numRows: number;
 	export let fetchLeaderboardData: () => Promise<
-		(Profile & { pnl?: number; net_worth?: number })[]
+		(Profile & { pnl?: number; net_worth?: number; trade_count: number })[]
 	>;
 
-	let leaderboardData: (Profile & { pnl?: number; net_worth?: number })[] = [];
+	let leaderboardData: (Profile & { pnl?: number; net_worth?: number; trade_count: number })[] = [];
 	let loading = true;
 
 	onMount(async () => {
@@ -33,6 +33,7 @@
 					<tr class="text-white font-bold">
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
+						<th class="text-left py-2"># of Trades</th>
 						<th class="text-left py-2">PnL</th>
 						<th class="text-left py-2">Networth</th>
 					</tr>
@@ -50,6 +51,9 @@
 									class="w-8 h-8 rounded-full mr-2"
 								/>
 								<span>{leaderboardItem.username}</span>
+							</td>
+							<td class="py-4 items-center">
+								<span>{leaderboardItem.trade_count}</span>
 							</td>
 							<td class="py-4 items-center">
 								<span
