@@ -6,25 +6,8 @@
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
-	let uuid: string = '';
 	if (data != null && data.session != null) {
 		uuid = data.session.user.id;
-	}
-	let placeHolderID: number = 28;
-
-	async function updateStockAndBal(uuid: string, amt: number, stockID: number) {
-		const response = await fetch('/request_api', {
-			method: 'POST',
-			body: JSON.stringify({
-				uuid,
-				amt,
-				stockID
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		console.log('server' + response);
 	}
 
 	let marketData = $state<MarketItem[]>([]);
@@ -111,11 +94,3 @@
 {/if}
 
 <Table {marketData} />
-
-<!-- PLACEHOLDER VALUES FOR NOW
-<button id="BuyButton" on:click={() => updateStockAndBal(uuid, -1, placeHolderID)}
-	>Buy</button
->
-<button id="SellButton" on:click={() => updateStockAndBal(uuid, 1, placeHolderID)}
-	>Sell</button
-> -->
