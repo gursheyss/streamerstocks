@@ -94,7 +94,7 @@ def save_prices_to_history() -> None:
             
     client.table('market').upsert(response).execute()
 
-def update_by_chat_loop(max_batch_size:int=50) -> None:
+def update_by_chat_loop(max_batch_size:int=40) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
     print("Starting Twitch chat analysis loop\n******************************\n")
     while True:
@@ -104,7 +104,7 @@ def update_by_chat_loop(max_batch_size:int=50) -> None:
             sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb']), analysis_group=analysis_group)
             for key in set(sentiment.keys()):
                 sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-            update_prices(sentiment, scalar=0.5)
+            update_prices(sentiment, scalar=1)
         time.sleep(1)
 
 def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
