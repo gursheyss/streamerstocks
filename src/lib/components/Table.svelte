@@ -5,12 +5,9 @@
 	let { marketData }: { marketData: MarketItem[] } = $props();
 
 	function calculatePercentageChange(history: MarketItemHistory[]): number {
-		if (history.length > 1) {
-			const firstValue = history[history.length - 60 < 0 ? 0 : history.length - 60].price;
-			const lastValue = history[history.length - 1].price;
-			return ((lastValue - firstValue) / firstValue) * 100;
-		}
-		return 0;
+		let currentPrice = history.slice(-1)[0]?.price || 0;
+		let beginningPrice = history[0]?.price || 0;
+		return ((currentPrice - beginningPrice) / beginningPrice) * 100;
 	}
 </script>
 
