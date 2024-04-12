@@ -7,6 +7,7 @@ from supabase import create_client, Client
 
 from analyzers.reddit import *
 from analyzers.twitch import analyze_chat_batch
+from webhook import send_market_update, send_error_message
 
 # Mapping of user names to their names in sentiment analysis JSON
 name_stock_mapping = {
@@ -62,6 +63,7 @@ def update_prices(delta_sentiment:dict, scalar:float=1.0) -> None:
     print('UPDATING PRICES')
     response = client.table('market').select('*').execute()
     response = list(response.data)
+    send_market_update(response, delta_sentiment, scalar)
     for row in response:
         if row['name'] in name_stock_mapping:
             row['price'] += (scalar * (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100)))
@@ -94,57 +96,72 @@ def save_prices_to_history() -> None:
             
     client.table('market').upsert(response).execute()
 
-def update_by_chat_loop(update_interval_seconds:int=120) -> None:
+def update_by_chat_loop(max_batch_size:int=40) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
     print("Starting Twitch chat analysis loop\n******************************\n")
     while True:
-        if jason_online:
-            if int(time.time()) % update_interval_seconds == 0:
+        try:
+            if jason_online:
                 print("Analyzing chat:")
                 # Spend half the time analyzing chat, and the other half updating prices
-                sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=([name.lower() for name in analysis_group] + ['kelly', 'jira', 'vsb']), analysis_group=analysis_group)
+                sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-                update_prices(sentiment, scalar=3.0)
-        time.sleep(1)
+                update_prices(sentiment, scalar=1)
+            time.sleep(1)
+        except:
+            send_error_message("Error analyzing Twitch chat")
 
 def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
     '''Update prices based on Reddit if Jason is offline'''
     print("Starting Reddit analysis loop\n******************************\n")
     previous_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
     while True:
-        if not jason_online:
-            current_time = int(time.time())
-            if current_time % update_interval_seconds == 0:
-                print("Analyzing Reddit:")
-                current_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
-                delta_sentiment = {}
-                for key in set(previous_sentiment.keys()):
-                    delta_sentiment[key.replace("_sentiment", "_delta")] = current_sentiment[key] - previous_sentiment[key]
-                update_prices(delta_sentiment)
-                previous_sentiment = dict(current_sentiment)
-        time.sleep(1)
+        try:
+            if not jason_online:
+                current_time = int(time.time())
+                if current_time % update_interval_seconds == 0:
+                    print("Analyzing Reddit:")
+                    current_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
+                    delta_sentiment = {}
+                    for key in set(previous_sentiment.keys()):
+                        delta_sentiment[key.replace("_sentiment", "_delta")] = current_sentiment[key] - previous_sentiment[key]
+                    update_prices(delta_sentiment, scalar=0.5792) # Funny number to make numbers seem more random
+                    previous_sentiment = dict(current_sentiment)
+            time.sleep(1)
+        except:
+            send_error_message("Error analyzing Reddit")
 
 def check_if_jason_online() -> None:
     '''Check if Jason is online every 5 minutes and update the global variable jason_online accordingly'''
     global jason_online
     while True:
-        contents = requests.get('https://www.twitch.tv/jasontheween').content.decode('utf-8')
-        if 'isLiveBroadcast' in contents:
-            jason_online = True
-            print("Jason is online")
-        else:
-            jason_online = False
-            print("Jason is offline")
-        time.sleep(300)
+        try:
+            contents = requests.get('https://www.twitch.tv/jasontheween').content.decode('utf-8')
+            if 'isLiveBroadcast' in contents:
+                jason_online = True
+                print("Jason is online")
+            else:
+                jason_online = False
+                print("Jason is offline")
+            time.sleep(300)
+        except:
+            send_error_message("Error checking if Jason is online")
 
-def save_history_loop(save_interval_seconds:int=60) -> None:
+def save_history_loop(decay_rate:float=0.002, save_interval_seconds:int=60) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
+    decay_delta = {}
+    for person in analysis_group:
+        decay_delta[person.lower().replace(" ", "") + "_delta"] = -1
     while True:
-        current_time = int(time.time())
-        if current_time % save_interval_seconds == 0:
-            save_prices_to_history()
-        time.sleep(1)
+        try:
+            current_time = int(time.time())
+            if current_time % save_interval_seconds == 0:
+                update_prices(decay_delta, scalar=decay_rate)
+                save_prices_to_history()
+            time.sleep(1)
+        except:
+            send_error_message("Error saving history")
 
 if __name__ == "__main__":
     print("Starting the market mover....")

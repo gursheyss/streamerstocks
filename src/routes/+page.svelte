@@ -11,6 +11,7 @@
 	let userBalance = $state<number | null>(data.userBalance);
 
 	$effect(() => {
+		document.title = 'BopStocks';
 		const marketSubscription = supabase
 			.channel('market')
 			.on('postgres_changes', { event: '*', schema: 'public', table: 'market' }, (payload: any) => {

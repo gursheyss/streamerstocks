@@ -5,7 +5,6 @@
 	import BuyandSell from '$lib/components/BuyandSell.svelte'
 	import Portfolio from '$lib/components/Portfolio.svelte';
 	import type { MarketItem } from '$lib/types';
-	import { onMount } from 'svelte';
 	import type { Comment } from '$lib/types';
 
 	let { data } = $props();
@@ -111,6 +110,11 @@
 		};
 	});
 </script>
+
+<svelte:head>
+	<title>${marketData[0]?.ticker} - {marketData[0]?.name}</title>
+</svelte:head>
+
 {#if marketData[0] && marketData[0].history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
 		<div class="container mx-auto px-4 pt-8">

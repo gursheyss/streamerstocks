@@ -59,8 +59,6 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 			created_at: comment.created_at
 		}));
 
-		console.log(commentsData);
-
 		// Update existing comments
 		comments = comments.map((c) => newComments.find((nc) => nc.id === c.id) || c);
 
