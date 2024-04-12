@@ -18,30 +18,32 @@
 			<a
 				href={`/stock/${item.ticker}`}
 				data-sveltekit-preload-data
-				class="text-white font-bold flex justify-between px-8 items-center hover:bg-lightgray bg-gray2 rounded"
+				class="text-white font-bold flex justify-between px-10 items-center hover:bg-lightgray bg-gray2 rounded"
 			>
 				<div class="flex-grow">
-					<div>
+					<div class="flex flex-col sm:flex-row">
 						<span class="text-xl">{item.name}</span>
-						<span class="text-gray-400 ml-2 text-sm">${item.ticker}</span>
+						<span class="text-gray-400 ml-0 sm:ml-2 text-sm sm:pt-1">${item.ticker}</span>
 					</div>
 				</div>
 				<div class="flex-shrink-0 flex items-center space-x-4">
-					<div class="text-right">
-						${item.price.toFixed(2).toLocaleString()}
-					</div>
-					<div class="text-right">
-						{#if calculatedPercentageChange > 0}
-							<span class="text-green-500">
-								+{calculatedPercentageChange.toFixed(2)}%
-							</span>
-						{:else if calculatedPercentageChange < 0}
-							<span class="text-red-500">
-								{calculatedPercentageChange.toFixed(2)}%
-							</span>
-						{:else}
-							<span class="text-gray-400">0%</span>
-						{/if}
+					<div class="text-right flex flex-col sm:flex-row space-x-4 sm:space-x-8">
+						<div class="order-2 sm:order-1">
+							${item.price.toFixed(2).toLocaleString()}
+						</div>
+						<div class="order-1 sm:order-2">
+							{#if calculatedPercentageChange > 0}
+								<span class="text-green-500">
+									+{calculatedPercentageChange.toFixed(2)}%
+								</span>
+							{:else if calculatedPercentageChange < 0}
+								<span class="text-red-500">
+									{calculatedPercentageChange.toFixed(2)}%
+								</span>
+							{:else}
+								<span class="text-gray-400">0%</span>
+							{/if}
+						</div>
 					</div>
 					<div>
 						<div class="w-24 h-24 mx-auto">

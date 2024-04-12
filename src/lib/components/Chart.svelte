@@ -60,7 +60,12 @@
 							max: maxPrice,
 							ticks: {
 								stepSize: 1,
-								callback: (value: number) => value.toFixed(0)
+								callback: (tickValue: number | string) => {
+									if (typeof tickValue === 'number') {
+										return tickValue.toFixed(0);
+									}
+									return tickValue;
+								}
 							},
 							grid: {
 								color: 'rgba(255, 255, 255, 0.1)',
@@ -105,6 +110,7 @@
 			});
 			window.addEventListener('resize', updateChart);
 			updateChart();
+			chart.resize();
 		}
 	});
 
@@ -138,8 +144,15 @@
 		chart.options.scales.y.min = minPrice - padding;
 		chart.options.scales.y.max = maxPrice + padding;
 
+		chart.resize();
 		chart.update('none');
 	}
+
+	$effect(() => {
+		if (stockData) {
+			updateChart();
+		}
+	});
 </script>
 
 <div class="container mx-auto mt-8">
