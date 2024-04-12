@@ -142,8 +142,8 @@
 			{#if data.session && userBalance !== null}
 				<Portfolio balance={userBalance} />
 			{/if}
-			{#if data.session}
-				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)}/>
+			{#if data.session && userBalance !== null}
+				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)} currentPrice = {Number(currentPrice)} userBalance = {userBalance}, ticker = {ticker}/>
 			{/if}
 			<Comments {comments} currentId={marketData[0].id} />
 		</div>

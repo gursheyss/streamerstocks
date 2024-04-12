@@ -6,7 +6,7 @@ const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
 export async function POST({ request }) {
     console.log("REQUEST" + request)
     let {uuid, amt, stockID} = await request.json()
-    
+    console.log(uuid + " " + amt + " " + stockID)
     let found = false;
     let { data: bal, error: balError } = await supabase
     .rpc('get_user_bal', {
