@@ -49,16 +49,17 @@ def send_market_update(original_stock_data:list, delta_stock_data:dict, scalar:f
     description = "The market has been updated. Here are the changes: \n\n"
     for row in original_stock_data:
         if row['name'] in name_stock_mapping:
-            if delta_stock_data.get(name_stock_mapping[row['name']] + '_delta', 0) != 0:
+            if -0.1 < delta_stock_data.get(name_stock_mapping[row['name']] + '_delta', 0) < 0.1:
                 delta_stock_data[name_stock_mapping[row['name']] + '_delta'] *= scalar
                 delta_stock_data[name_stock_mapping[row['name']] + '_delta'] = round(delta_stock_data[name_stock_mapping[row['name']] + '_delta'], 2)
                 description += f"${row['name']}: {delta_stock_data[name_stock_mapping[row['name']] + '_delta']}%\n"
-    embed = Embed(
-        title="BopStock Market Update: " + str(datetime.now().strftime("%m/%d/%Y %H:%M:%S")), 
-        color=0x00ff00, 
-        description=description
-    )
-    discord.send_sync(embed=embed)
+    if description != "The market has been updated. Here are the changes: \n\n":
+        embed = Embed(
+            title="BopStock Market Update: " + str(datetime.now().strftime("%m/%d/%Y %H:%M:%S")), 
+            color=0x00ff00, 
+            description=description
+        )
+        discord.send_sync(embed=embed)
 
 def send_error_message(error:str):
     embed = Embed(
