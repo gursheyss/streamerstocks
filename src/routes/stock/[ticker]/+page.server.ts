@@ -28,9 +28,9 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
 	const { data: initialData } = await supabase.from('market').select('*').ilike('ticker', ticker);
-
+	let netWorth: number | null = null;
 	const marketData = initialData as MarketItem[];
-
+	
 	const { data: commentsData, error: commentsError } = await supabase
 		.from('comments')
 		.select(
@@ -70,7 +70,22 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 	const session = await getSession();
 	let userBalance: number | null = null;
 
+	if (session) {
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('balance')
+			.eq('id', session.user.id)
+			.single();
 
+		if (profileError) {
+			console.error('Error fetching user profile:', profileError);
+		} else {
+			userBalance = profileData?.balance ?? null;
+			// Calculate net worth here
+			netWorth =
+				(await calculatePortfolioValue(supabase, session.user.id, marketData)) + userBalance;
+		}
+	}
 	if (session) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
@@ -89,6 +104,21 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 	return {
 		marketData,
 		comments,
-		userBalance
+		userBalance,
+		netWorth
 	};
 };
+// Helper function to calculate the portfolio value
+async function calculatePortfolioValue(supabase, userId, marketData) {
+	const { data: trades, error } = await supabase.from('trades').select('*').eq('user_id', userId);
+
+	if (error) {
+		console.error('Error fetching trades:', error);
+		return 0;
+	}
+
+	return trades.reduce((acc, trade) => {
+		const marketItem = marketData.find((item) => item.id === trade.stock_id);
+		return acc + (marketItem?.price ?? 0) * trade.purchase_volume;
+	}, 0);
+}

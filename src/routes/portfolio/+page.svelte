@@ -14,6 +14,7 @@
 
 	let userBalance = $state<number | null>(null);
 	let userInventory = $state<InventoryItem[]>([]);
+	let netWorth = $state<number | null>(data.netWorth);
 	onMount(async () => {
 		// Fetch user balance only if data.session exists
 		if (data.session) {

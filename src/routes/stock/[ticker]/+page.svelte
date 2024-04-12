@@ -14,6 +14,7 @@
 	let marketData: MarketItem[] = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
+	let netWorth = $state<number | null>(data.netWorth);
 
 	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
@@ -144,7 +145,7 @@
 				<Chart stockData={marketData[0].history} />
 			</div>
 			{#if data.session && userBalance !== null}
-				<Portfolio balance={userBalance} />
+				<Portfolio balance={userBalance } {netWorth}/>
 			{/if}
 			{#if data.session && userBalance !== null}
 				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)} currentPrice = {Number(currentPrice)} userBalance = {userBalance}, ticker = {ticker}/>
