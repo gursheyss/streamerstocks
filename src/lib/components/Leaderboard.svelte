@@ -2,9 +2,11 @@
 	import type { Profile } from '$lib/types';
 	import { onMount } from 'svelte';
 	export let numRows: number;
-	export let fetchLeaderboardData: () => Promise<(Profile & { pnl?: number })[]>;
+	export let fetchLeaderboardData: () => Promise<
+		(Profile & { pnl?: number; net_worth?: number })[]
+	>;
 
-	let leaderboardData: (Profile & { pnl?: number })[] = [];
+	let leaderboardData: (Profile & { pnl?: number; net_worth?: number })[] = [];
 	let loading = true;
 
 	onMount(async () => {
@@ -19,7 +21,7 @@
 </script>
 
 {#if loading}
-	<p>Fetching data...</p>
+	<div class="flex mt-16 justify-center h-screen">Fetching data...</div>
 {:else}
 	<div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
 		<div class="flex justify-center items-center mb-4 m-2">
@@ -32,6 +34,7 @@
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
 						<th class="text-left py-2">P&L</th>
+						<th class="text-left py-2">Networth</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -59,6 +62,9 @@
 									{leaderboardItem.pnl >= 0 ? '+' : ''}
 									${leaderboardItem.pnl?.toFixed(2)}
 								</span>
+							</td>
+							<td class="py-4 items-center">
+								<span class="text-white">${leaderboardItem.net_worth.toFixed(2)}</span>
 							</td>
 						</tr>
 					{/each}

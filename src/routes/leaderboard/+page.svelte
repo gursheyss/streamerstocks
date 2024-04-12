@@ -8,5 +8,5 @@
 {#if data}
 	<Leaderboard {numRows} fetchLeaderboardData={() => Promise.resolve(data.marketData)} />
 {:else}
-	<p>Loading leaderboard data...</p>
+	<div>Loading leaderboard data...</div>
 {/if}
