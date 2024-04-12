@@ -7,7 +7,7 @@ import time
 from analyzers.analyze import get_sentiment
 
 
-def analyze_chat_batch(analysis_time:int, keywords:list, analysis_group:list) -> dict:
+def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -> dict:
     sentiment = {}
     for person in analysis_group:
         sentiment[person.lower().replace(" ", "") + "_sentiment"] = 0
@@ -26,16 +26,14 @@ def analyze_chat_batch(analysis_time:int, keywords:list, analysis_group:list) ->
         '''Analyze chat messages over a period of time for sentiment towards a group of people in JSON format'''
         batch = ""
         batch_size = 0
-        start_time = time.time()
         
-        while ((time.time() - start_time) < analysis_time):
+        while batch < max_batch_size:
             ready = select.select([sock], [], [], 1.0)  # Wait for 1 second
             if ready[0]:    # If there is data to read
                 resp = sock.recv(2048).decode('utf-8')
                 if ' #jasontheween :' in resp:
-                    resp = resp[resp.index(' #jasontheween :') + 16:].strip()
-                    if batch_size < 50 and 4 < len(resp) < 30 and any(keyword in resp.lower() for keyword in keywords):
-                        resp.replace("you", "jason")
+                    resp = resp[resp.index(' #jasontheween :') + 16:].strip().lower()
+                    if (4 < len(resp) < 30) and any(keyword in resp.split(' ') for keyword in keywords):
                         batch += f'- {resp}\n'
                         batch_size += 1
                         print(f"Message added to batch: {resp}")
