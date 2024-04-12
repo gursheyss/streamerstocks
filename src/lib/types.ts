@@ -48,3 +48,9 @@ export interface InventoryItem {
 	quantity: number;
 	market: MarketItem;
 }
+
+export interface News {
+	id: string;
+	type: string;
+	news: string;
+}
