@@ -16,13 +16,15 @@
 		const response = await fetch('/request_api', {
 			method: 'POST',
 			body: JSON.stringify({
-				uuid, amt, stockID
+				uuid,
+				amt,
+				stockID
 			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		});
-		console.log("server" + response)
+		console.log('server' + response);
 	}
 
 	let marketData = $state<MarketItem[]>([]);
@@ -99,6 +101,10 @@
 		};
 	});
 </script>
+
+<div class="bg-red-700 text-white p-4 mb-4 text-inter font-bold">
+	Buying and selling is disabled until the boplympics
+</div>
 
 {#if data.session && userBalance !== null}
 	<Portfolio balance={userBalance} />
