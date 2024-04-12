@@ -2,6 +2,8 @@
 	import { page } from '$app/stores';
 	import Chart from '$lib/components/Chart.svelte';
 	import Comments from '$lib/components/Comments.svelte';
+	import BuyandSell from '$lib/components/BuyandSell.svelte'
+	import Portfolio from '$lib/components/Portfolio.svelte';
 	import type { MarketItem } from '$lib/types';
 	import type { Comment } from '$lib/types';
 
@@ -11,6 +13,7 @@
 
 	let marketData: MarketItem[] = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
+	let userBalance = $state<number | null>(data.userBalance);
 
 	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
@@ -140,6 +143,12 @@
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
 				<Chart stockData={marketData[0].history} />
 			</div>
+			{#if data.session && userBalance !== null}
+				<Portfolio balance={userBalance} />
+			{/if}
+			{#if data.session && userBalance !== null}
+				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)} currentPrice = {Number(currentPrice)} userBalance = {userBalance}, ticker = {ticker}/>
+			{/if}
 			<Comments {comments} currentId={marketData[0].id} />
 		</div>
 	</div>
