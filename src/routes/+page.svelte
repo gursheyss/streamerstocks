@@ -106,10 +106,10 @@
 
 <Table {marketData} />
 
-<!-- PLACEHOLDER VALUES FOR NOW -->
+<!-- PLACEHOLDER VALUES FOR NOW
 <button id="BuyButton" on:click={() => updateStockAndBal(uuid, -1, placeHolderID)}
 	>Buy</button
 >
 <button id="SellButton" on:click={() => updateStockAndBal(uuid, 1, placeHolderID)}
 	>Sell</button
->
+> -->
