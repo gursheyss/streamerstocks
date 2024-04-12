@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Profile } from '$lib/types';
 	import { onMount } from 'svelte';
+
 	export let numRows: number;
 	export let fetchLeaderboardData: () => Promise<
 		(Profile & { pnl?: number; net_worth?: number; trade_count: number })[]
@@ -8,16 +9,36 @@
 
 	let leaderboardData: (Profile & { pnl?: number; net_worth?: number; trade_count: number })[] = [];
 	let loading = true;
+	let sortColumn = 'pnl'; // default sort column
+	let sortOrder = 'asc'; // default sort order
 
 	onMount(async () => {
 		try {
 			leaderboardData = await fetchLeaderboardData();
+			sortData();
 			loading = false;
 		} catch (error) {
 			console.error('Failed to fetch leaderboard data:', error);
 			loading = false;
 		}
 	});
+	function sortData(column = sortColumn) {
+		if (column === sortColumn) {
+			sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+		} else {
+			sortColumn = column;
+			sortOrder = 'asc';
+		}
+
+		leaderboardData = leaderboardData.sort((a, b) => {
+			const valueA = (a as any)[sortColumn] ?? 0;
+			const valueB = (b as any)[sortColumn] ?? 0;
+			return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+		});
+	}
+	function getSortIcon() {
+		return '<i class="fas fa-sort"></i>';
+	}
 </script>
 
 {#if loading}
@@ -33,9 +54,15 @@
 					<tr class="text-white font-bold">
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
-						<th class="text-left py-2"># of Trades</th>
-						<th class="text-left py-2">PnL</th>
-						<th class="text-left py-2">Networth</th>
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
+							# of Trades {@html getSortIcon()}
+						</th>
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('pnl')}>
+							PnL {@html getSortIcon()}
+						</th>
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('net_worth')}>
+							Networth {@html getSortIcon()}
+						</th>
 					</tr>
 				</thead>
 				<tbody>
