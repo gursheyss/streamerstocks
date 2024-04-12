@@ -94,18 +94,17 @@ def save_prices_to_history() -> None:
             
     client.table('market').upsert(response).execute()
 
-def update_by_chat_loop(update_interval_seconds:int=120) -> None:
+def update_by_chat_loop() -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
     print("Starting Twitch chat analysis loop\n******************************\n")
     while True:
         if jason_online:
-            if int(time.time()) % update_interval_seconds == 0:
-                print("Analyzing chat:")
-                # Spend half the time analyzing chat, and the other half updating prices
-                sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=([name.lower() for name in analysis_group] + ['kelly', 'jira', 'vsb']), analysis_group=analysis_group)
-                for key in set(sentiment.keys()):
-                    sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-                update_prices(sentiment, scalar=0.5)
+            print("Analyzing chat:")
+            # Spend half the time analyzing chat, and the other half updating prices
+            sentiment = analyze_chat_batch(100, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb']), analysis_group=analysis_group)
+            for key in set(sentiment.keys()):
+                sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
+            update_prices(sentiment, scalar=0.5)
         time.sleep(1)
 
 def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
@@ -142,7 +141,7 @@ def save_history_loop(save_interval_seconds:int=60) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
-        decay_delta[person.lower().replace(" ", "") + "_sentiment"] = -1
+        decay_delta[person.lower().replace(" ", "") + "_delta"] = -1
     while True:
         current_time = int(time.time())
         if current_time % save_interval_seconds == 0:
