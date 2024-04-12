@@ -9,7 +9,7 @@
 
 	let leaderboardData: (Profile & { pnl?: number; net_worth?: number; trade_count: number })[] = [];
 	let loading = true;
-	let sortColumn = 'pnl'; // default sort column
+	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
 
 	onMount(async () => {
