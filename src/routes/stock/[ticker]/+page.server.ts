@@ -24,7 +24,7 @@ export const actions = {
 	}
 };
 
-export const load = async ({ params, locals: { supabase } }) => {
+export const load = async ({ params, locals: { supabase, getSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
 	const { data: initialData } = await supabase.from('market').select('*').ilike('ticker', ticker);
@@ -69,8 +69,28 @@ export const load = async ({ params, locals: { supabase } }) => {
 		comments = [...comments, ...newCommentsToAdd];
 	}
 
+	const session = await getSession();
+	let userBalance: number | null = null;
+
+
+	if (session) {
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('balance')
+			.eq('id', session.user.id)
+			.single();
+
+		if (profileError) {
+			console.error('Error fetching user balance:', profileError);
+		} else {
+			userBalance = profileData?.balance ?? null;
+		}
+	}
+	
+
 	return {
 		marketData,
-		comments
+		comments,
+		userBalance
 	};
 };
