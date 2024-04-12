@@ -104,6 +104,7 @@
 				}
 			});
 			window.addEventListener('resize', updateChart);
+			updateChart();
 		}
 	});
 
@@ -137,15 +138,8 @@
 		chart.options.scales.y.min = minPrice - padding;
 		chart.options.scales.y.max = maxPrice + padding;
 
-		chart.update('reset');
-		chart.resize();
+		chart.update('none');
 	}
-
-	$effect(() => {
-		if (chart) {
-			updateChart();
-		}
-	});
 </script>
 
 <div class="container mx-auto mt-8">
