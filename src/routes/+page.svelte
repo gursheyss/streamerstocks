@@ -6,9 +6,6 @@
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
-	if (data != null && data.session != null) {
-		uuid = data.session.user.id;
-	}
 
 	let marketData = $state<MarketItem[]>([]);
 	let userBalance = $state<number | null>(null);
