@@ -33,7 +33,7 @@
 					<tr class="text-white font-bold">
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
-						<th class="text-left py-2">P&L</th>
+						<th class="text-left py-2">PnL</th>
 						<th class="text-left py-2">Networth</th>
 					</tr>
 				</thead>
