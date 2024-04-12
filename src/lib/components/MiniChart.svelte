@@ -19,7 +19,8 @@
 	});
 
 	function createChart(ctx: CanvasRenderingContext2D) {
-		const startPrice = stockData[0].price;
+		try {
+			const startPrice = stockData[0].price;
 		const endPrice = stockData[stockData.length - 1].price;
 		const priceChange = endPrice - startPrice;
 		const isIncreasing = priceChange > 0;
@@ -70,6 +71,9 @@
 				}
 			}
 		});
+		} catch (error) {
+			
+		}
 	}
 
 	function updateChart() {
