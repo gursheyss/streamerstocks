@@ -140,9 +140,13 @@ def check_if_jason_online() -> None:
 
 def save_history_loop(save_interval_seconds:int=60) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
+    decay_delta = {}
+    for person in analysis_group:
+        decay_delta[person.lower().replace(" ", "") + "_sentiment"] = -1
     while True:
         current_time = int(time.time())
         if current_time % save_interval_seconds == 0:
+            update_prices(decay_delta, scalar=0.25)
             save_prices_to_history()
         time.sleep(1)
 
