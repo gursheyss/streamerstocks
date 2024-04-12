@@ -10,67 +10,12 @@
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
 
-	let marketData: MarketItem[] = $state([]);
-	let comments: Comment[] = $state([]);
+	let marketData: MarketItem[] = $state(data.marketData);
+	let comments: Comment[] = $state(data.comments);
 
 	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
-
-	async function fetchComments() {
-		console.log('testing');
-		const { data: commentsData, error: commentsError } = await supabase
-			.from('comments')
-			.select(
-				`
-    id,
-    comment,
-    user_id,
-		created_at,
-    profiles!comments_user_id_fkey (
-        avatar_url,
-        username
-    )
-`
-			)
-			.eq('stock_id', marketData[0].id)
-			.order('id', { ascending: false });
-
-		if (commentsError) {
-			console.error('Error fetching comments:', commentsError);
-		} else {
-			const newComments = commentsData.map((comment) => ({
-				id: comment.id,
-				avatar_url: comment.profiles?.avatar_url || null,
-				username: comment.profiles?.username || null,
-				comment: comment.comment,
-				created_at: comment.created_at
-			}));
-
-			console.log(commentsData);
-
-			// Update existing comments
-			comments = comments.map((c) => newComments.find((nc) => nc.id === c.id) || c);
-
-			// Add new comments
-			const newCommentsToAdd = newComments.filter((nc) => !comments.find((c) => c.id === nc.id));
-			comments = [...comments, ...newCommentsToAdd];
-		}
-	}
-
-	onMount(async () => {
-		let { data: initialData, error } = await supabase
-			.from('market')
-			.select('*')
-			.ilike('ticker', ticker);
-
-		if (error) {
-			console.error('Error fetching initial data:', error);
-		} else {
-			marketData = initialData as MarketItem[];
-			await fetchComments();
-		}
-	});
 
 	$effect(() => {
 		const marketSubscription = supabase
