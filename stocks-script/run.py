@@ -43,10 +43,12 @@ name_stock_mapping = {
     "Dat": "vsbdat",
     "Tobi": "vsbtobi",
     "Yugi": "yugi",
-    "Ba": "ba"
+    "Ba": "ba",
+    "Malik": "malik",
+    "Arky": "arky"
 }
 # List of users to analyze sentiment for
-analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Mariah', 'Mira', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
+analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
 # Cache of stock prices, used to check if the price has changed
 stock_price_cache = {}
 # Whether Jason is online, determines whether to analyze Twitch chat or Reddit
@@ -55,14 +57,14 @@ jason_online = False
 # Supabase client
 client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("PUBLIC_SUPABASE_ANON_KEY"))
 
-def update_prices(delta_sentiment:dict, scalar:float=0.5) -> None:
+def update_prices(delta_sentiment:dict, scalar:float=1.0) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
     response = client.table('market').select('*').execute()
     response = list(response.data)
     for row in response:
         if row['name'] in name_stock_mapping:
-            row['price'] += (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100))
+            row['price'] += (scalar * (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100)))
     client.table('market').upsert(response).execute()
 
 def save_prices_to_history() -> None:
@@ -100,10 +102,10 @@ def update_by_chat_loop(update_interval_seconds:int=120) -> None:
             if int(time.time()) % update_interval_seconds == 0:
                 print("Analyzing chat:")
                 # Spend half the time analyzing chat, and the other half updating prices
-                sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=[name.lower() for name in analysis_group], analysis_group=analysis_group)
+                sentiment = analyze_chat_batch(update_interval_seconds//2, keywords=([name.lower() for name in analysis_group] + ['kelly', 'jira', 'vsb']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-                update_prices(sentiment)
+                update_prices(sentiment, scalar=3.0)
         time.sleep(1)
 
 def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
@@ -145,6 +147,7 @@ def save_history_loop(save_interval_seconds:int=60) -> None:
         time.sleep(1)
 
 if __name__ == "__main__":
+    print("Starting the market mover....")
     online_thread = threading.Thread(target=check_if_jason_online)
     chat_update_thread = threading.Thread(target=update_by_chat_loop)
     reddit_update_thread = threading.Thread(target=update_by_reddit_loop)

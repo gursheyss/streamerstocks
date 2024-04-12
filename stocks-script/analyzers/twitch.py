@@ -30,7 +30,8 @@ def analyze_chat_batch(analysis_time:int, keywords:list, analysis_group:list) ->
             resp = sock.recv(2048).decode('utf-8')
             if ' #jasontheween :' in resp:
                 resp = resp[resp.index(' #jasontheween :') + 16:].strip()
-                if 4 < len(resp) < 20 and batch_size < 50 and any(keyword in resp.lower() for keyword in keywords):
+                if batch_size < 50 and 4 < len(resp) < 30 and any(keyword in resp.lower() for keyword in keywords):
+                    resp.replace("you", "jason")
                     batch += f'- {resp}\n'
                     batch_size += 1
                     print(f"Message added to batch: {resp}")
