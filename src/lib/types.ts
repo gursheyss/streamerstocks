@@ -18,6 +18,7 @@ export interface MarketItemHistory {
 
 export interface Comment {
 	id: number;
+	created_at: string;
 	avatar_url: string | null;
 	username: string | null;
 	comment: string;

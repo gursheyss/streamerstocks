@@ -26,6 +26,7 @@
     id,
     comment,
     user_id,
+		created_at,
     profiles!comments_user_id_fkey (
         avatar_url,
         username
@@ -42,8 +43,11 @@
 				id: comment.id,
 				avatar_url: comment.profiles?.avatar_url || null,
 				username: comment.profiles?.username || null,
-				comment: comment.comment
+				comment: comment.comment,
+				created_at: comment.created_at
 			}));
+
+			console.log(commentsData);
 
 			// Update existing comments
 			comments = comments.map((c) => newComments.find((nc) => nc.id === c.id) || c);
@@ -114,7 +118,7 @@
 							avatar_url: newData.profiles?.avatar_url || null,
 							username: newData.profiles?.username || null,
 							comment: newData.comment,
-							score: newData.score
+							created_at: newData.created_at
 						};
 
 						if (!newData.profiles) {
@@ -141,7 +145,8 @@
 										comment: newData.comment,
 										score: newData.score,
 										avatar_url: newData.profiles?.avatar_url || comment.avatar_url,
-										username: newData.profiles?.username || comment.username
+										username: newData.profiles?.username || comment.username,
+										created_at: newData.created_at
 									}
 								: comment
 						);

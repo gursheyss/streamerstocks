@@ -102,7 +102,7 @@
 	});
 </script>
 
-<div class="bg-red-700 text-white p-4 mb-4 text-inter font-bold">
+<div class="bg-red-700 text-white justify-center flex p-4 text-inter font-bold">
 	Buying and selling is disabled until the boplympics
 </div>
 

@@ -39,6 +39,7 @@
     "@sveltejs/adapter-vercel": "^5.2.0",
     "@types/chart.js": "^2.9.41",
     "chart.js": "^4.4.2",
+    "date-fns": "^3.6.0",
     "lucide-svelte": "^0.367.0"
   }
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidate, invalidateAll } from '$app/navigation';
+	import { formatDistanceToNow, parseISO } from 'date-fns';
+
 	import type { Comment } from '$lib/types';
 
 	let { comments, currentId }: { comments: Comment[]; currentId: string } = $props();
@@ -37,9 +38,14 @@
 						src={comment.avatar_url || '/default-avatar.png'}
 						alt="Avatar"
 					/>
-					<span class="font-semibold">{comment.username}</span>
+					<div>
+						<span class="font-semibold">{comment.username}</span>
+						<span class="text-gray-400 text-sm ml-2">
+							{formatDistanceToNow(parseISO(comment.created_at))} ago
+						</span>
+					</div>
 				</div>
-				<p class="text-gray-300">{comment.comment}</p>
+				<p class="text-gray-300 pt-2">{comment.comment}</p>
 			</div>
 		{/each}
 	</div>
