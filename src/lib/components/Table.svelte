@@ -6,7 +6,7 @@
 
 	function calculatePercentageChange(history: MarketItemHistory[]): number {
 		if (history.length > 1) {
-			const firstValue = history[0].price;
+			const firstValue = history[history.length - 60 < 0 ? 0 : history.length - 60].price;
 			const lastValue = history[history.length - 1].price;
 			return ((lastValue - firstValue) / firstValue) * 100;
 		}
@@ -17,6 +17,7 @@
 <div class="rounded-lg shadow-lg font-inter">
 	<div class="w-full flex flex-col space-y-2">
 		{#each marketData as item}
+			{@const calculatedPercentageChange = calculatePercentageChange(item.history)}
 			<a
 				href={`/stock/${item.ticker}`}
 				data-sveltekit-preload-data
@@ -33,13 +34,13 @@
 						${item.price.toFixed(2).toLocaleString()}
 					</div>
 					<div class="text-right">
-						{#if calculatePercentageChange(item.history) > 0}
+						{#if calculatedPercentageChange > 0}
 							<span class="text-green-500">
-								+{calculatePercentageChange(item.history).toFixed(2)}%
+								+{calculatedPercentageChange.toFixed(2)}%
 							</span>
-						{:else if calculatePercentageChange(item.history) < 0}
+						{:else if calculatedPercentageChange < 0}
 							<span class="text-red-500">
-								{calculatePercentageChange(item.history).toFixed(2)}%
+								{calculatedPercentageChange.toFixed(2)}%
 							</span>
 						{:else}
 							<span class="text-gray-400">0%</span>
