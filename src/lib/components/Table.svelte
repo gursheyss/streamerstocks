@@ -29,7 +29,6 @@
 						<span>{item.name}</span>
 						<span class="text-gray-400 ml-2">${item.ticker}</span>
 					</td>
-					<td class="py-4 text-right">5303 <span class="text-gray-400 ml-1">Trades</span></td>
 					<td class="py-4 text-right">${item.price.toFixed(2).toLocaleString()}</td>
 					<td class="py-4 text-right">
 						{#if calculatePercentageChange(item.history) > 0}
