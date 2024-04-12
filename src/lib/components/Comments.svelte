@@ -17,6 +17,7 @@
 			placeholder="Write a comment..."
 			bind:value={newComment}
 			rows={1}
+			required
 		/>
 		<input type="hidden" name="currentId" value={currentId} />
 		<button
