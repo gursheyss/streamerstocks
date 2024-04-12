@@ -7,34 +7,8 @@
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
 
-	let marketData = $state<MarketItem[]>([]);
-	let userBalance = $state<number | null>(null);
-	onMount(async () => {
-		let { data: initialData, error } = await supabase
-			.from('market')
-			.select('*')
-			.order('price', { ascending: false });
-		if (error) {
-			console.error('Error fetching initial data:', error);
-		} else {
-			marketData = initialData as MarketItem[];
-		}
-
-		// Fetch user balance only if data.session exists
-		if (data.session) {
-			let { data: profileData, error: profileError } = await supabase
-				.from('profiles')
-				.select('balance')
-				.eq('id', data.session.user.id)
-				.single();
-
-			if (profileError) {
-				console.error('Error fetching user balance:', profileError);
-			} else {
-				userBalance = profileData?.balance ?? null;
-			}
-		}
-	});
+	let marketData = $state<MarketItem[]>(data.marketData);
+	let userBalance = $state<number | null>(data.userBalance);
 
 	$effect(() => {
 		const marketSubscription = supabase
