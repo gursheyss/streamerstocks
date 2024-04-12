@@ -60,7 +60,12 @@
 							max: maxPrice,
 							ticks: {
 								stepSize: 1,
-								callback: (value: number) => value.toFixed(0)
+								callback: (tickValue: number | string) => {
+									if (typeof tickValue === 'number') {
+										return tickValue.toFixed(0);
+									}
+									return tickValue;
+								}
 							},
 							grid: {
 								color: 'rgba(255, 255, 255, 0.1)',

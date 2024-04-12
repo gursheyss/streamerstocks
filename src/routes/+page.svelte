@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
 	import type { MarketItem } from '$lib/types.js';
 	import Portfolio from '$lib/components/Portfolio.svelte';
