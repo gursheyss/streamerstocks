@@ -9,6 +9,7 @@
 
 	let marketData = $state<MarketItem[]>(data.marketData);
 	let userBalance = $state<number | null>(data.userBalance);
+	let netWorth = $state<number | null>(data.netWorth);
 
 	$effect(() => {
 		document.title = 'BopStocks';
@@ -62,7 +63,7 @@
 </div>
 
 {#if data.session && userBalance !== null}
-	<Portfolio balance={userBalance} />
+	<Portfolio balance={userBalance} {netWorth} />
 {/if}
 
 <Table {marketData} />

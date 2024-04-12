@@ -1,10 +1,12 @@
 <script lang="ts">
 	import Leaderboard from '$lib/components/Leaderboard.svelte';
-import type { Profile } from '$lib/types.js';
+	export let data;
 
-	let { data } = $props();
-
-	let marketData = $derived<(Profile & { totalValuation?: number })[]>(data.marketData);
+	let numRows = 10;
 </script>
 
-<Leaderboard numRows={10} leaderboardData={marketData} />
+{#if data}
+	<Leaderboard {numRows} fetchLeaderboardData={() => Promise.resolve(data.marketData)} />
+{:else}
+	<div>Loading leaderboard data...</div>
+{/if}
