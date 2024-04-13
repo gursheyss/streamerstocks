@@ -1,3 +1,4 @@
+import { redis } from '$lib/server/redis';
 import type { MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 export const actions = {
@@ -12,14 +13,21 @@ export const load = async ({ locals: { supabase, safeGetSession } }) => {
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
 
-	const { data: initialData, error } = await supabase
-		.from('market')
-		.select('*')
-		.order('price', { ascending: false });
-	if (error) {
-		console.error('Error fetching initial data:', error);
+	const cachedMarketData = await redis.get('marketData');
+	if (cachedMarketData) {
+		console.log('Using cached market data');
+		marketData = JSON.parse(cachedMarketData);
 	} else {
-		marketData = initialData as MarketItem[];
+		const { data: initialData, error } = await supabase
+			.from('market')
+			.select('*')
+			.order('price', { ascending: false });
+		if (error) {
+			console.error('Error fetching initial data:', error);
+		} else {
+			marketData = initialData as MarketItem[];
+			await redis.set('marketData', JSON.stringify(marketData), 'EX', 300);
+		}
 	}
 
 	if (session) {
@@ -34,7 +42,7 @@ export const load = async ({ locals: { supabase, safeGetSession } }) => {
 		} else {
 			userBalance = profileData?.balance ?? null;
 		}
-		let { data: inventoryData, error: inventoryError } = await supabase
+		const { data: inventoryData, error: inventoryError } = await supabase
 			.from('inventory')
 			.select(
 				`
