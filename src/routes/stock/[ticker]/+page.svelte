@@ -2,20 +2,39 @@
 	import { page } from '$app/stores';
 	import Chart from '$lib/components/Chart.svelte';
 	import Comments from '$lib/components/Comments.svelte';
-	import type { MarketItem } from '$lib/types';
+	import BuyandSell from '$lib/components/BuyandSell.svelte';
+	import Portfolio from '$lib/components/Portfolio.svelte';
+	import type { MarketItem, MarketItemHistory } from '$lib/types';
 	import type { Comment } from '$lib/types';
+	import type { InventoryItem } from '$lib/types';
 
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
+	let selectedDateRange = $state('12 hour');
 
 	let marketData: MarketItem[] = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
+	let userBalance = $state<number | null>(data.userBalance);
 
 	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
-
+	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
+	let snapshotBalance = 0;
+	if (userBalance != null) {
+		snapshotBalance = userBalance;
+	}
+	function calcNW(x: InventoryItem[]): number {
+		let total = 0;
+		if (snapshotBalance != 0) {
+			total = snapshotBalance;
+		}
+		x.forEach((element) => {
+			total += element.quantity * element.market.price;
+		});
+		return total;
+	}
 	$effect(() => {
 		const marketSubscription = supabase
 			.channel('market')
@@ -100,46 +119,147 @@
 				}
 			)
 			.subscribe();
+		const profileSubscription = data.session
+			? supabase
+					.channel('profiles')
+					.on(
+						'postgres_changes',
+						{
+							event: 'UPDATE',
+							schema: 'public',
+							table: 'profiles',
+							filter: `id=eq.${data.session.user.id}`
+						},
+						(payload: any) => {
+							const { new: newData } = payload;
+							userBalance = newData.balance;
+						}
+					)
+					.subscribe()
+			: null;
 
 		return () => {
 			marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
+			profileSubscription?.unsubscribe();
 		};
 	});
+
+	function getFilteredHistory(item: MarketItem, dateRange: string): MarketItemHistory[] {
+		const currentTimestamp = Math.floor(Date.now() / 1000); // Convert to seconds
+		let filterTimestamp = 0;
+
+		switch (dateRange) {
+			case '1 hour':
+				filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
+				break;
+			case '12 hour':
+				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
+				break;
+			case '24 hour':
+				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
+				break;
+			case '7 days':
+				filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
+				break;
+			default:
+				return item.history;
+		}
+
+		const filteredHistory = item.history.filter((entry) => entry.timestamp >= filterTimestamp);
+
+		// If the filtered history is empty, include the most recent data point
+		if (filteredHistory.length === 0 && item.history.length > 0) {
+			return [item.history[item.history.length - 1]];
+		}
+
+		return filteredHistory;
+	}
+
+	let filteredMarketData = $derived(
+		marketData.map((item) => {
+			const filteredHistory = getFilteredHistory(item, selectedDateRange);
+			const beginningPrice = filteredHistory[0]?.price || 0;
+			const currentPrice = filteredHistory.slice(-1)[0]?.price || 0;
+			return {
+				...item,
+				history: filteredHistory,
+				beginningPrice,
+				currentPrice
+			};
+		})
+	);
 </script>
 
 <svelte:head>
 	<title>${marketData[0]?.ticker} - {marketData[0]?.name}</title>
 </svelte:head>
 
-{#if marketData[0] && marketData[0].history}
+{#if filteredMarketData[0] && filteredMarketData[0].history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
 		<div class="container mx-auto px-4 pt-8">
 			<div class="flex justify-between items-center">
 				<h1 class="text-4xl font-bold">
-					{marketData[0].name}
+					{filteredMarketData[0].name}
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${currentPrice.toFixed(2)}
+					${Number(filteredMarketData[0].currentPrice).toLocaleString(undefined, {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					})}
 					<span
-						class={percentageChange > 0
+						class={filteredMarketData[0].currentPrice > filteredMarketData[0].beginningPrice
 							? 'text-green-500'
-							: percentageChange < 0
+							: filteredMarketData[0].currentPrice < filteredMarketData[0].beginningPrice
 								? 'text-red-500'
 								: 'text-gray-500'}
 					>
-						({percentageChange !== 0
-							? percentageChange > 0
+						({((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
+							filteredMarketData[0].beginningPrice) *
+							100 !==
+						0
+							? ((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
+									filteredMarketData[0].beginningPrice) *
+									100 >
+								0
 								? '+'
 								: ''
-							: ''}{percentageChange.toFixed(2)}%)
+							: ''}
+						{(
+							((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
+								filteredMarketData[0].beginningPrice) *
+							100
+						).toFixed(2)}%)
 					</span>
 				</div>
 			</div>
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
-				<Chart stockData={marketData[0].history} />
+				<Chart stockData={filteredMarketData[0].history} />
+				<div class="justify-end flex">
+					<select class="select max-w-[200px" bind:value={selectedDateRange}>
+						<option disabled selected>Select Date Range</option>
+						<option>1 hour</option>
+						<option>12 hour</option>
+						<option>24 hour</option>
+						<option>7 days</option>
+						<option>All</option>
+					</select>
+				</div>
 			</div>
+			{#if data.session && userBalance !== null && inventoryData != null}
+				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)}>
+					{#if data.session && userBalance !== null}
+						<BuyandSell
+							uuid={data.session.user.id}
+							stockID={Number(marketData[0].id)}
+							currentPrice={Number(currentPrice)}
+							{userBalance}
+							{ticker}
+						/>
+					{/if}
+				</Portfolio>
+			{/if}
 			<Comments {comments} currentId={marketData[0].id} />
 		</div>
 	</div>
