@@ -101,7 +101,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
 			.select('balance')
-			.eq('id', session.user.id)
+			.eq('id', session.user?.id)
 			.single();
 
 		if (profileError) {
@@ -109,7 +109,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 		} else {
 			userBalance = profileData?.balance ?? null;
 		}
-		let { data: inventoryData, error: inventoryError } = await supabase
+		const { data: inventoryData, error: inventoryError } = await supabase
 			.from('inventory')
 			.select(
 				`
@@ -120,7 +120,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 				`
 			)
 			.gte('quantity', 1)
-			.eq('user_id', session.user.id);
+			.eq('user_id', session.user?.id);
 		if (inventoryError) {
 			console.error('Error fetching user inventory:', inventoryError);
 		} else {
