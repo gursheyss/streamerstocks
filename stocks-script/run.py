@@ -58,7 +58,7 @@ jason_online = False
 # Supabase client
 client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_SERVICE_KEY"))
 
-def update_prices(delta_sentiment:dict, scalar:float=1.0) -> None:
+def update_prices(delta_sentiment:dict, scalar:float) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
     response = client.table('market').select('*').execute()
@@ -79,11 +79,11 @@ def save_prices_to_history(decay_rate:float) -> None:
     for row in response:
         row['history'].append({
             'timestamp': current_timestamp,
-            'price': row['price'] - decay_rate
+            'price': row['price'] * (1 - decay_rate)
         })
     client.table('market').upsert(response).execute()
 
-def update_by_chat_loop(max_batch_size:int=50) -> None:
+def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
     print("Starting Twitch chat analysis loop\n******************************\n")
     while True:
@@ -94,12 +94,12 @@ def update_by_chat_loop(max_batch_size:int=50) -> None:
                 sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb', 'dat', 'landon', 'tobi']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-                update_prices(sentiment, scalar=0.5)
+                update_prices(sentiment, scalar=scalar)
             time.sleep(1)
         except:
             send_error_message("Error analyzing Twitch chat")
 
-def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
+def update_by_reddit_loop(update_interval_seconds:int, scalar:float) -> None:
     '''Update prices based on Reddit if Jason is offline'''
     print("Starting Reddit analysis loop\n******************************\n")
     previous_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
@@ -113,7 +113,7 @@ def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
                     delta_sentiment = {}
                     for key in set(previous_sentiment.keys()):
                         delta_sentiment[key.replace("_sentiment", "_delta")] = current_sentiment[key] - previous_sentiment[key]
-                    update_prices(delta_sentiment, scalar=0.1047) # Funny number to make numbers seem more random
+                    update_prices(delta_sentiment, scalar=scalar) # Funny number to make numbers seem more random
                     previous_sentiment = dict(current_sentiment)
             time.sleep(1)
         except:
@@ -135,7 +135,7 @@ def check_if_jason_online() -> None:
         except:
             send_error_message("Error checking if Jason is online")
 
-def save_history_loop(decay_rate:float=0.005, save_interval_seconds:int=60) -> None:
+def save_history_loop(save_interval_seconds:int, decay_rate:float) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
@@ -152,9 +152,9 @@ def save_history_loop(decay_rate:float=0.005, save_interval_seconds:int=60) -> N
 if __name__ == "__main__":
     print("Starting the market mover....")
     online_thread = threading.Thread(target=check_if_jason_online)
-    chat_update_thread = threading.Thread(target=update_by_chat_loop)
-    reddit_update_thread = threading.Thread(target=update_by_reddit_loop)
-    save_thread = threading.Thread(target=save_history_loop)
+    chat_update_thread = threading.Thread(target=update_by_chat_loop, kwargs={'max_batch_size': 50, 'scalar': 0.4812})
+    reddit_update_thread = threading.Thread(target=update_by_reddit_loop, kwargs={'update_interval_seconds': 600, 'scalar': 0.2047})
+    save_thread = threading.Thread(target=save_history_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
 
     online_thread.start()
     chat_update_thread.start()
