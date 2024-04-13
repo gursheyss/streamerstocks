@@ -1,9 +1,9 @@
 import type { Comment, MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 export const actions = {
-	submitComment: async ({ locals: { supabase, getSession }, request }) => {
+	submitComment: async ({ locals: { supabase, safeGetSession }, request }) => {
 		// get form data
-		const session = await getSession();
+		const session = await safeGetSession();
 		if (!session) {
 			return { status: 401, body: { message: 'Unauthorized' } };
 		}
@@ -24,14 +24,14 @@ export const actions = {
 	}
 };
 
-export const load = async ({ params, locals: { supabase, getSession } }) => {
+export const load = async ({ params, locals: { supabase, safeGetSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
 	const { data: initialData } = await supabase.from('market').select('*').ilike('ticker', ticker);
 	let netWorth: number | null = null;
 	const marketData = initialData as MarketItem[];
 	let userInventory: InventoryItem[] | null = null;
-	
+
 	const { data: commentsData, error: commentsError } = await supabase
 		.from('comments')
 		.select(
@@ -68,7 +68,7 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 		comments = [...comments, ...newCommentsToAdd];
 	}
 
-	const session = await getSession();
+	const session = await safeGetSession();
 	let userBalance: number | null = null;
 
 	if (session) {
@@ -110,20 +110,22 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 			userBalance = profileData?.balance ?? null;
 		}
 		let { data: inventoryData, error: inventoryError } = await supabase
-				.from('inventory')
-				.select(`
+			.from('inventory')
+			.select(
+				`
 					*,
 					market (
 						*
 					)
-				`)
-				.gte('quantity', 1)
-				.eq('user_id', session.user.id);
-			if (inventoryError) {
-				console.error('Error fetching user inventory:', inventoryError);
-			} else {
-				userInventory = inventoryData as InventoryItem[];
-			}
+				`
+			)
+			.gte('quantity', 1)
+			.eq('user_id', session.user.id);
+		if (inventoryError) {
+			console.error('Error fetching user inventory:', inventoryError);
+		} else {
+			userInventory = inventoryData as InventoryItem[];
+		}
 	}
 
 	return {
@@ -133,4 +135,3 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 		userInventory
 	};
 };
-

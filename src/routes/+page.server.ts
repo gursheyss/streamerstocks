@@ -6,8 +6,8 @@ export const actions = {
 	}
 };
 
-export const load = async ({ locals: { supabase, getSession } }) => {
-	const session = await getSession();
+export const load = async ({ locals: { supabase, safeGetSession } }) => {
+	const session = await safeGetSession();
 	let marketData: MarketItem[] = [];
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
@@ -35,20 +35,22 @@ export const load = async ({ locals: { supabase, getSession } }) => {
 			userBalance = profileData?.balance ?? null;
 		}
 		let { data: inventoryData, error: inventoryError } = await supabase
-				.from('inventory')
-				.select(`
+			.from('inventory')
+			.select(
+				`
 					*,
 					market (
 						*
 					)
-				`)
-				.gte('quantity', 1)
-				.eq('user_id', session.user.id);
-			if (inventoryError) {
-				console.error('Error fetching user inventory:', inventoryError);
-			} else {
-				userInventory = inventoryData as InventoryItem[];
-			}
+				`
+			)
+			.gte('quantity', 1)
+			.eq('user_id', session.user.id);
+		if (inventoryError) {
+			console.error('Error fetching user inventory:', inventoryError);
+		} else {
+			userInventory = inventoryData as InventoryItem[];
+		}
 	}
 
 	return {
@@ -57,5 +59,3 @@ export const load = async ({ locals: { supabase, getSession } }) => {
 		userInventory
 	};
 };
-
-
