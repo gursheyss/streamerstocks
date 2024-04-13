@@ -19,18 +19,18 @@ sock.recv(1024).decode('utf-8')
 
 
 def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -> dict:
+    batch = ""
     sentiment = {}
     for person in analysis_group:
         sentiment[person.lower().replace(" ", "") + "_sentiment"] = 0
         
     try:
         '''Analyze chat messages over a period of time for sentiment towards a group of people in JSON format'''
-        batch = ""
         batch_size = 0
 
         def stop_loop():
             time.sleep(360)  # If stuck analyzing for 6 minutes, stop
-            raise Exception("Twitch chat analysis timed out")
+            raise Exception("timeout")
 
         stop_thread = threading.Thread(target=stop_loop)
         stop_thread.start()
@@ -51,6 +51,10 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
             prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format.\nMessages:\n" + batch + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
             sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
     except Exception as e:
+        if e == "timeout" and batch != "":
+            for i in range(0, len(analysis_group), 10):
+                prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format.\nMessages:\n" + batch + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
+                sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
         print(e)
     finally:
         stop_thread.join()
