@@ -53,6 +53,10 @@
 					]
 				},
 				options: {
+					animation: {
+						duration: 1000, // duration of the animation in milliseconds
+						easing: 'easeInOutQuad' // easing function to use
+					},
 					responsive: true,
 
 					scales: {
@@ -158,10 +162,7 @@
 
 		chart.resize();
 
-		chart.update({
-			duration: 100, // Customize the duration of the animation
-			easing: 'easeInOutQuad' // Customize the easing function
-		});
+		chart.update();
 	}
 
 	$effect(() => {
