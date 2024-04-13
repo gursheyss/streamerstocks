@@ -6,22 +6,22 @@ const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 export async function POST({ request }) {
 	console.log('REQUEST' + request);
-	let { uuid, amt, stockID } = await request.json();
+	const { uuid, amt, stockID } = await request.json();
 	console.log(uuid + ' ' + amt + ' ' + stockID);
 	let found = false;
-	let { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
+	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
 		userid: uuid
 	});
 	if (balError) console.error(balError);
 	else console.log(bal);
 	//get stock data
-	let { data: initStockData, error: initStockError } = await supabase
+	const { data: initStockData, error: initStockError } = await supabase
 		.from('market')
 		.select()
 		.eq('id', stockID);
 	if (initStockError) console.error('Error getting data from stockID' + initStockError);
 	//create entry if none (init at 0)
-	let { data: createEntryData, error: createEntryError } = await supabase.rpc(
+	const { data: createEntryData, error: createEntryError } = await supabase.rpc(
 		'create_inventory_entry',
 		{
 			stockid: stockID,
@@ -31,7 +31,7 @@ export async function POST({ request }) {
 	if (createEntryError) console.error(createEntryError);
 	else console.log(createEntryData);
 	//get user inventory for specific stock
-	let { data: inventoryData, error: inventoryError } = await supabase
+	const { data: inventoryData, error: inventoryError } = await supabase
 		.rpc('get_user_inventory', {
 			userid: uuid
 		})
@@ -40,8 +40,8 @@ export async function POST({ request }) {
 	else console.log(inventoryData[0]['quantity']);
 
 	if (initStockData != null) {
-		let price = initStockData[0]['price'];
-		let currentQuantity = inventoryData[0]['quantity'];
+		const price = initStockData[0]['price'];
+		const currentQuantity = inventoryData[0]['quantity'];
 		//first condition is buy, second sell. - for buy, + for sell
 		if ((bal + price * amt >= 0 && amt < 0) || (amt > 0 && currentQuantity >= amt)) {
 			console.log('work');
@@ -49,7 +49,7 @@ export async function POST({ request }) {
 				amt: price * amt,
 				userid: uuid
 			});
-			let { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
+			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
 				amt: price * amt,
 				userid: uuid
 			});
@@ -57,14 +57,17 @@ export async function POST({ request }) {
 			else console.log('user updating' + userData);
 
 			//needs to add/remove stock from porfolio, negative because we do - when buy
-			let { data: inventoryData, error: inventoryError } = await supabase.rpc('update_inventory', {
-				amt: -amt,
-				stockid: stockID,
-				userid: uuid
-			});
+			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
+				'update_inventory',
+				{
+					amt: -amt,
+					stockid: stockID,
+					userid: uuid
+				}
+			);
 			if (inventoryError) console.error(inventoryError);
 			else console.log(inventoryData);
-			let { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
+			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
 				amt: -amt,
 				stockid: stockID
 			});

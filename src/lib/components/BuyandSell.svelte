@@ -19,7 +19,7 @@
 	let confirmation = $state(false);
 	async function updateStockAndBal(uuid: string, stockID: number, amt: number) {
 		confirmation = false;
-		const response = await fetch('/request_api', {
+		const response = await fetch('/api/trade', {
 			method: 'POST',
 			body: JSON.stringify({
 				uuid,
