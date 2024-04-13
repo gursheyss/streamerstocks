@@ -71,7 +71,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 	const session = await safeGetSession();
 	let userBalance: number | null = null;
 
-	if (session) {
+	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
 			.select('balance')
