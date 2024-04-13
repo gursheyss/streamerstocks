@@ -4,11 +4,6 @@
 		netWorth: number;
 	}
 
-	interface History {
-		date: string;
-		balance: number;
-	}
-
 	let { balance, netWorth }: Props = $props();
 </script>
 

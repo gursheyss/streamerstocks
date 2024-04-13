@@ -20,11 +20,12 @@
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
-	let snapshotBalance = 0;
-	if (userBalance != null) {
-		snapshotBalance = userBalance;
-	}
+
 	function calcNW(x: InventoryItem[]): number {
+		let snapshotBalance = 0;
+		if (userBalance != null) {
+			snapshotBalance = userBalance;
+		}
 		let total = 0;
 		if (snapshotBalance != 0) {
 			total = snapshotBalance;
@@ -185,7 +186,7 @@
 					uuid={data.session.user.id}
 					stockID={Number(marketData[0].id)}
 					currentPrice={Number(currentPrice)}
-					userBalance="{userBalance},"
+					{userBalance}
 					{ticker}
 				/>
 			{/if}
