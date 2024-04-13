@@ -127,10 +127,6 @@
 							<MiniChart stockData={item.history} />
 						</div>
 					</div>
-
-					<div class="w-24 h-24 mx-auto">
-						<MiniChart stockData={item.history} />
-					</div>
 				</div>
 			</a>
 		{/each}
