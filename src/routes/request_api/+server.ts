@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
-import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
-const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
+import { SUPABASE_SERVICE_KEY } from '$env/static/private';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_KEY)
 // /api/ POST
 
 export async function POST({ request }) {
