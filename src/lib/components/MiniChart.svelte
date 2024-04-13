@@ -24,7 +24,7 @@
 		const prices = downsampledData.map((data) => data.price);
 		const minPrice = Math.min(...prices);
 		const maxPrice = Math.max(...prices);
-		const padding = (maxPrice - minPrice) * 0.1;
+		const padding = maxPrice - minPrice;
 
 		chart = new Chart(ctx, {
 			type: 'line',
@@ -55,12 +55,15 @@
 			},
 			options: {
 				responsive: true,
-				animation: false,
+				animation: {
+					duration: 1000,
+					easing: 'easeInOutQuad'
+				},
 				scales: {
 					y: {
 						display: false,
-						min: minPrice - padding,
-						max: maxPrice + padding
+						min: minPrice,
+						max: maxPrice
 					}
 				},
 				plugins: {
@@ -77,7 +80,7 @@
 		const prices = downsampledData.map((data) => data.price);
 		const minPrice = Math.min(...prices);
 		const maxPrice = Math.max(...prices);
-		const padding = (maxPrice - minPrice) * 0.1; // Add 10% padding
+		const padding = maxPrice - minPrice; // Add 10% padding
 
 		chart.data.labels = downsampledData.map(() => '');
 		chart.data.datasets[0].data = downsampledData.map((data) => data.price);
@@ -96,11 +99,11 @@
 				return gradient;
 			}
 		};
-		chart.options.scales.y.min = minPrice - padding;
-		chart.options.scales.y.max = maxPrice + padding;
+		chart.options.scales.y.min = minPrice;
+		chart.options.scales.y.max = maxPrice;
 
 		chart.resize();
-		chart.update('none');
+		chart.update(); // Update the chart with animations
 	}
 
 	$effect(() => {
