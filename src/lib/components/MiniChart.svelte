@@ -19,6 +19,9 @@
 	});
 
 	function createChart(ctx: CanvasRenderingContext2D) {
+		if (!Array.isArray(stockData) || stockData.length === 0) {
+			return;
+		}
 		try {
 			const startPrice = stockData[0].price;
 			const endPrice = stockData[stockData.length - 1].price;
@@ -75,6 +78,9 @@
 	}
 
 	function updateChart() {
+		if (!Array.isArray(stockData) || stockData.length === 0) {
+			return;
+		}
 		const startPrice = stockData[0].price;
 		const endPrice = stockData[stockData.length - 1].price;
 		const priceChange = endPrice - startPrice;
