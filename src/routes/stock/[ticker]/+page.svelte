@@ -166,14 +166,28 @@
 				return item.history;
 		}
 
-		return item.history.filter((entry) => entry.timestamp >= filterTimestamp);
+		const filteredHistory = item.history.filter((entry) => entry.timestamp >= filterTimestamp);
+
+		// If the filtered history is empty, include the most recent data point
+		if (filteredHistory.length === 0 && item.history.length > 0) {
+			return [item.history[item.history.length - 1]];
+		}
+
+		return filteredHistory;
 	}
 
 	let filteredMarketData = $derived(
-		marketData.map((item) => ({
-			...item,
-			history: getFilteredHistory(item, selectedDateRange)
-		}))
+		marketData.map((item) => {
+			const filteredHistory = getFilteredHistory(item, selectedDateRange);
+			const beginningPrice = filteredHistory[0]?.price || 0;
+			const currentPrice = filteredHistory.slice(-1)[0]?.price || 0;
+			return {
+				...item,
+				history: filteredHistory,
+				beginningPrice,
+				currentPrice
+			};
+		})
 	);
 </script>
 
@@ -190,22 +204,33 @@
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${Number(currentPrice).toLocaleString(undefined, {
+					${Number(filteredMarketData[0].currentPrice).toLocaleString(undefined, {
 						minimumFractionDigits: 2,
 						maximumFractionDigits: 2
 					})}
 					<span
-						class={percentageChange > 0
+						class={filteredMarketData[0].currentPrice > filteredMarketData[0].beginningPrice
 							? 'text-green-500'
-							: percentageChange < 0
+							: filteredMarketData[0].currentPrice < filteredMarketData[0].beginningPrice
 								? 'text-red-500'
 								: 'text-gray-500'}
 					>
-						({percentageChange !== 0
-							? percentageChange > 0
+						({((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
+							filteredMarketData[0].beginningPrice) *
+							100 !==
+						0
+							? ((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
+									filteredMarketData[0].beginningPrice) *
+									100 >
+								0
 								? '+'
 								: ''
-							: ''}{percentageChange.toFixed(2)}%)
+							: ''}
+						{(
+							((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
+								filteredMarketData[0].beginningPrice) *
+							100
+						).toFixed(2)}%)
 					</span>
 				</div>
 			</div>
