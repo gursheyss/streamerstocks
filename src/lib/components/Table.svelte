@@ -18,7 +18,7 @@
 			<a
 				href={`/stock/${item.ticker}`}
 				data-sveltekit-preload-data
-				class="text-white font-bold flex justify-between px-10 items-center hover:bg-lightgray bg-gray2 rounded"
+				class="text-white font-bold flex justify-between px-6 sm:px-10 items-center hover:bg-lightgray bg-gray2 rounded"
 			>
 				<div class="flex-grow">
 					<div class="flex flex-col sm:flex-row">
