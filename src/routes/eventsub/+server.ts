@@ -1,0 +1,88 @@
+import { PUBLIC_TWITCH_EVENTSUB_SECRET } from '$env/static/public';
+import crypto from 'crypto';
+
+// Notification request headers
+const TWITCH_MESSAGE_ID = 'Twitch-Eventsub-Message-Id'.toLowerCase();
+const TWITCH_MESSAGE_TIMESTAMP = 'Twitch-Eventsub-Message-Timestamp'.toLowerCase();
+const TWITCH_MESSAGE_SIGNATURE = 'Twitch-Eventsub-Message-Signature'.toLowerCase();
+const MESSAGE_TYPE = 'Twitch-Eventsub-Message-Type'.toLowerCase();
+
+// Prepend this string to the HMAC that's created from the message
+const HMAC_PREFIX = 'sha256=';
+
+
+/** @type {import('./$types').RequestHandler} */
+export async function POST({ request, locals: { supabase } }) {
+
+    const addChannelPointsToBalance = async (amt_weeniebucks:number, user_id:string) => {
+        console.log(await supabase.from('auth.users').select('*').limit(10));
+    }
+
+    const secret = getSecret();
+    const message = await getHmacMessage(request);
+    const hmac = HMAC_PREFIX + getHmac(secret, message);
+
+    if (await verifyMessage(hmac, request.headers.get(TWITCH_MESSAGE_SIGNATURE) as string)) {
+        console.log("signature match");
+
+        const notification = await request.json();
+        if (request.headers.get(MESSAGE_TYPE) === 'notification') {
+            if (notification.subscription.type === 'channel.channel_points_custom_reward_redemption.add') {
+                addChannelPointsToBalance(notification.event.reward.cost/10, notification.event.user_id);
+            }
+            return new Response(null, {status: 204});
+        }
+        else if (request.headers.get(MESSAGE_TYPE) === 'webhook_callback_verification') {
+            return new Response(notification.challenge, {
+                status: 200,
+                headers: {
+                    'Content-Type': 'text/plain'
+                }
+            });
+        }
+        else if (request.headers.get(MESSAGE_TYPE) === 'revocation') {
+            console.log(`${notification.subscription.type} has been revoked`);
+            console.log(`Reason: ${notification.subscription.status}`);
+            console.log(`condition: ${JSON.stringify(notification.subscription.condition)}`);
+            return new Response(null, {status: 204});
+        }
+        else {
+            console.log(`Unknown message type: ${request.headers.get(MESSAGE_TYPE)}`);
+            return new Response(null, {status: 204});
+        }
+    }
+    else {
+        console.log("403");
+        return new Response(null, {status: 403});
+    }
+}
+
+function getSecret() : string {
+    console.log("EVENT SUB SECRET: " + PUBLIC_TWITCH_EVENTSUB_SECRET);
+    return PUBLIC_TWITCH_EVENTSUB_SECRET as string;
+}
+
+// Build the message used to get the HMAC.
+async function getHmacMessage(request: Request): Promise<string> {
+    const newRequest = request.clone();
+    return (newRequest.headers.get(TWITCH_MESSAGE_ID)! + 
+        newRequest.headers.get(TWITCH_MESSAGE_TIMESTAMP)! + 
+        (await newRequest.text()));
+}
+
+// Get the HMAC.
+function getHmac(secret:string, message:string): string {
+    return crypto.createHmac('sha256', secret)
+    .update(message)
+    .digest('hex');
+}
+
+// Verify whether our hash matches the hash that Twitch passed in the header.
+async function verifyMessage(hmac: string, verifySignature: string | null): Promise<boolean> {
+    if (verifySignature === null) {
+        return false;
+    }
+    console.log("hmac: " + hmac);
+    console.log("verifySignature: " + verifySignature);
+    return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(verifySignature));
+}
