@@ -15,7 +15,15 @@ const HMAC_PREFIX = 'sha256=';
 export async function POST({ request, locals: { supabase } }) {
 
     const addChannelPointsToBalance = async (amt_weeniebucks:number, user_id:string) => {
-        console.log(await supabase.from('auth.users').select('*').limit(10));
+        console.log("Attempting to add " + amt_weeniebucks + " weeniebucks to user " + user_id)
+        const { data: userData, error: userError } = await supabase.from('profiles').select('balance').eq('user_id', user_id);
+        if (userError || userData === undefined) console.error("User does not have a bopstock account.");
+        else {
+            userData[0]['balance'] += amt_weeniebucks;
+            console.log(userData)
+            const { data: updateData, error: updateError } = await supabase.from('profiles').update(userData[0]).eq('user_id', user_id).select();
+            if (updateError) console.error("Failed to update user balance.");
+        }
     }
 
     const secret = getSecret();
