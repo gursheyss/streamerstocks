@@ -68,7 +68,7 @@ export async function POST({ request }) {
             if (inventoryError) console.error(inventoryError);
             else console.log(inventoryData);
             let { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
-                amt: amt,
+                amt: -amt,
                 stockid: stockID
             });
             if (stockError) console.error(stockError);

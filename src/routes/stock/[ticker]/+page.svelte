@@ -145,7 +145,7 @@
 				<Chart stockData={marketData[0].history} />
 			</div>
 			{#if data.session && userBalance !== null && netWorth != null}
-				<Portfolio balance={userBalance } {netWorth}/>
+				<Portfolio balance={userBalance} {netWorth}/>
 			{/if}
 			{#if data.session && userBalance !== null}
 				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)} currentPrice = {Number(currentPrice)} userBalance = {userBalance}, ticker = {ticker}/>
