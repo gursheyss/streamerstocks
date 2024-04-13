@@ -4,6 +4,7 @@
 
 	let {
 		uuid,
+		currentPrice,
 		stockID,
 		ticker
 	}: { uuid: string; stockID: number; currentPrice: number; userBalance: number; ticker: string } =
@@ -34,32 +35,43 @@
 	}
 </script>
 
-<div class="flex justify-center items-center gap-4">
-	<input
-		class="w-56 border border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
-		bind:value={amount}
-		placeholder="Enter # of Stocks"
-		on:input={handleInput}
-		required
-	/>
-	<button
-		class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
-		on:click={() => updateStockAndBal(uuid, stockID, -Number(amount))}
-	>
-		<span
-			class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0"
+<div class="flex flex-col justify-center items-center gap-4 font-inter">
+	<div class="flex justify-center items-center gap-4">
+		<input
+			class="w-56 border border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
+			bind:value={amount}
+			placeholder="Enter # of Stocks"
+			on:input={handleInput}
+			required
+		/>
+		<button
+			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
+			on:click={() => updateStockAndBal(uuid, stockID, -Number(amount))}
 		>
-			Buy
-		</span>
-	</button>
-	<button
-		class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
-		on:click={() => updateStockAndBal(uuid, stockID, Number(amount))}
-	>
-		<span
-			class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0"
+			<span
+				class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0"
+			>
+				Buy
+			</span>
+		</button>
+		<button
+			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
+			on:click={() => updateStockAndBal(uuid, stockID, Number(amount))}
 		>
-			Sell
-		</span>
-	</button>
+			<span
+				class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0"
+			>
+				Sell
+			</span>
+		</button>
+	</div>
+	<div class="h-4">
+		{#if amount}
+			<p class="text-sm text-gray-400">
+				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
+					currentPrice * Number(amount)
+				).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+			</p>
+		{/if}
+	</div>
 </div>
