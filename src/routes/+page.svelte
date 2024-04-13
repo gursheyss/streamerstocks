@@ -11,10 +11,14 @@
 	let marketData = $state<MarketItem[]>(data.marketData);
 	let userBalance = $state<number | null>(data.userBalance);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
+	let snapshotBalance = 0;
+	if (userBalance != null) {
+		snapshotBalance = userBalance;
+	}
 	function calcNW(x: InventoryItem[]): number {
 		let total = 0;
-		if (userBalance != null) {
-			total = userBalance;
+		if (snapshotBalance != 0) {
+			total = snapshotBalance;
 		}
   		x.forEach(element => {
 			total += element.quantity * element.market.price;
@@ -61,29 +65,29 @@
 					.subscribe()
 			: null;
 
-		const networthSubscription = data.session 
-			? supabase
-					.channel('networth')
-					.on(
-					'postgres_changes',
-					{
-						event: 'UPDATE',
-						schema: 'public',
-						table: 'inventory',
-						filter: `user_id=eq.${data.session.user.id}`
-					},
-					(payload: any) => {
-						const{new: newData} = payload;
-						inventoryData = newData
+		// const networthSubscription = data.session 
+		// 	? supabase
+		// 			.channel('networth')
+		// 			.on(
+		// 			'postgres_changes',
+		// 			{
+		// 				event: '*',
+		// 				schema: 'public',
+		// 				table: 'inventory',
+		// 				filter: `user_id=eq.${data.session.user.id}`
+		// 			},
+		// 			(payload: any) => {
+		// 				const{new: newData} = payload;
+		// 				inventoryData = newData;
 
-					})
-					.subscribe()
-			: null;
+		// 			})
+		// 			.subscribe()
+		// 	: null;
 
 		return () => {
 			marketSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
-			networthSubscription?.unsubscribe();
+			// networthSubscription?.unsubscribe();
 		};
 	});
 </script>
@@ -92,7 +96,7 @@
 	Buying and selling is disabled until the boplympics
 </div>
 {#if data.session && userBalance !== null && inventoryData != null}
-	<Portfolio balance={userBalance} netWorth = {calcNW(inventoryData)} />
+	<Portfolio balance={userBalance} netWorth = {calcNW(inventoryData)}/>
 {/if}
 
 <Table {marketData} />

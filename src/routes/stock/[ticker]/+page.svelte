@@ -6,6 +6,7 @@
 	import Portfolio from '$lib/components/Portfolio.svelte';
 	import type { MarketItem } from '$lib/types';
 	import type { Comment } from '$lib/types';
+	import type { InventoryItem } from '$lib/types';
 
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
@@ -14,12 +15,25 @@
 	let marketData: MarketItem[] = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
-	let netWorth = $state<number | null>(data.netWorth);
 
 	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
-
+	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
+	let snapshotBalance = 0;
+	if (userBalance != null) {
+		snapshotBalance = userBalance;
+	}
+	function calcNW(x: InventoryItem[]): number {
+		let total = 0;
+		if (snapshotBalance != 0) {
+			total = snapshotBalance;
+		}
+  		x.forEach(element => {
+			total += element.quantity * element.market.price;
+		});
+		return total;
+	}
 	$effect(() => {
 		const marketSubscription = supabase
 			.channel('market')
@@ -163,8 +177,8 @@
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
 				<Chart stockData={marketData[0].history} />
 			</div>
-			{#if data.session && userBalance !== null && netWorth != null}
-				<Portfolio balance={userBalance} {netWorth}/>
+			{#if data.session && userBalance !== null && inventoryData != null}
+				<Portfolio balance={userBalance} netWorth ={calcNW(inventoryData)}/>
 			{/if}
 			{#if data.session && userBalance !== null}
 				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)} currentPrice = {Number(currentPrice)} userBalance = {userBalance}, ticker = {ticker}/>

@@ -14,21 +14,19 @@
 	let marketData: MarketItem[] = [];
 
 	let userBalance = $state<number | null>(null);
+	let netWorth = $state(0);
 	let userInventory = $state<InventoryItem[]>([]);
-	let netWorth = $state<number | null>(null);
-	async function calculatePortfolioValue(supabase, userId, marketData) {
-		const { data: trades, error } = await supabase.from('trades').select('*').eq('user_id', userId);
-
-		if (error) {
-			console.error('Error fetching trades:', error);
-			return 0;
+	function calcNW(x: InventoryItem[], snapshotBalance: number): number {
+		let total = 0;
+		if (snapshotBalance != 0) {
+			total = snapshotBalance;
 		}
-
-		return trades.reduce((acc, trade) => {
-			const marketItem = marketData.find((item) => item.id === trade.stock_id);
-			return acc + (marketItem?.price ?? 0) * trade.purchase_volume;
-		}, 0);
+  		x.forEach(element => {
+			total += element.quantity * element.market.price;
+		});
+		return total;
 	}
+
 	onMount(async () => {
 		// Fetch user balance only if data.session exists
 			const { data: initialData, error } = await supabase
@@ -76,10 +74,10 @@
 			} else {
 				marketData = initialData as MarketItem[];
 			}
-			netWorth =
-				(await calculatePortfolioValue(supabase, data.session.user.id, marketData)) + userBalance;
+			if (profileData != null) {
+				netWorth = calcNW(userInventory, profileData?.balance);
+			}
 		}
-		
 		
 	});
 
@@ -109,8 +107,8 @@
 	});
 </script>
 
-{#if data.session && userBalance !== null && netWorth != null}
-	<Portfolio balance={userBalance} {netWorth}/>
+{#if data.session && userBalance !== null && userInventory != null}
+	<Portfolio balance={userBalance} netWorth = {netWorth}/>
 {/if}
 
 <Inventory inventoryData={userInventory} />

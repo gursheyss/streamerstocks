@@ -1,5 +1,5 @@
 import type { Comment, MarketItem } from '$lib/types';
-
+import type { InventoryItem } from '$lib/types';
 export const actions = {
 	submitComment: async ({ locals: { supabase, getSession }, request }) => {
 		// get form data
@@ -30,6 +30,7 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 	const { data: initialData } = await supabase.from('market').select('*').ilike('ticker', ticker);
 	let netWorth: number | null = null;
 	const marketData = initialData as MarketItem[];
+	let userInventory: InventoryItem[] | null = null;
 	
 	const { data: commentsData, error: commentsError } = await supabase
 		.from('comments')
@@ -81,9 +82,6 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 			console.error('Error fetching user profile:', profileError);
 		} else {
 			userBalance = profileData?.balance ?? null;
-			// Calculate net worth here
-			netWorth =
-				(await calculatePortfolioValue(supabase, session.user.id, marketData)) + userBalance;
 		}
 	}
 	if (session) {
@@ -99,26 +97,40 @@ export const load = async ({ params, locals: { supabase, getSession } }) => {
 			userBalance = profileData?.balance ?? null;
 		}
 	}
-	
+	if (session) {
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('balance')
+			.eq('id', session.user.id)
+			.single();
+
+		if (profileError) {
+			console.error('Error fetching user profile:', profileError);
+		} else {
+			userBalance = profileData?.balance ?? null;
+		}
+		let { data: inventoryData, error: inventoryError } = await supabase
+				.from('inventory')
+				.select(`
+					*,
+					market (
+						*
+					)
+				`)
+				.gte('quantity', 1)
+				.eq('user_id', session.user.id);
+			if (inventoryError) {
+				console.error('Error fetching user inventory:', inventoryError);
+			} else {
+				userInventory = inventoryData as InventoryItem[];
+			}
+	}
 
 	return {
 		marketData,
 		comments,
 		userBalance,
-		netWorth
+		userInventory
 	};
 };
-// Helper function to calculate the portfolio value
-async function calculatePortfolioValue(supabase, userId, marketData) {
-	const { data: trades, error } = await supabase.from('trades').select('*').eq('user_id', userId);
 
-	if (error) {
-		console.error('Error fetching trades:', error);
-		return 0;
-	}
-
-	return trades.reduce((acc, trade) => {
-		const marketItem = marketData.find((item) => item.id === trade.stock_id);
-		return acc + (marketItem?.price ?? 0) * trade.purchase_volume;
-	}, 0);
-}
