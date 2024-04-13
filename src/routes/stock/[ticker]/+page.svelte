@@ -22,13 +22,19 @@
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 
 	function calcNW(x: InventoryItem[]): number {
-		let total = userBalance || 0;
+		let snapshotBalance = 0;
+		if (userBalance != null) {
+			snapshotBalance = userBalance;
+		}
+		let total = 0;
+		if (snapshotBalance != 0) {
+			total = snapshotBalance;
+		}
 		x.forEach((element) => {
 			total += element.quantity * element.market.price;
 		});
 		return total;
 	}
-
 	$effect(() => {
 		const marketSubscription = supabase
 			.channel('market')
