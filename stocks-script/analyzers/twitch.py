@@ -2,7 +2,8 @@ from os import getenv
 
 import select
 import socket
-import signal
+import threading
+import time
 
 from analyzers.analyze import get_sentiment
 
@@ -16,8 +17,6 @@ print("Connected to Twitch chat")
 # Ignore the welcome messages
 sock.recv(1024).decode('utf-8')
 
-def handler(signum, frame):
-    raise Exception("Twitch analysis timeout")
 
 def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -> dict:
     sentiment = {}
@@ -29,11 +28,12 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
         batch = ""
         batch_size = 0
 
-        # Register the signal function handler
-        signal.signal(signal.SIGALRM, handler)
+        def stop_loop():
+            time.sleep(360)  # If stuck analyzing for 6 minutes, stop
+            raise Exception("Twitch chat analysis timed out")
 
-        # Define a timeout for your function
-        signal.alarm(360)
+        stop_thread = threading.Thread(target=stop_loop)
+        stop_thread.start()
         
         while batch_size < max_batch_size:
             ready = select.select([sock], [], [], 1.0)  # Wait for 1 second
@@ -53,4 +53,5 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
     except Exception as e:
         print(e)
     finally:
+        stop_thread.join()
         return sentiment
