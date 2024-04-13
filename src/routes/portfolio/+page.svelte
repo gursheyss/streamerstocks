@@ -80,6 +80,7 @@
 				(await calculatePortfolioValue(supabase, data.session.user.id, marketData)) + userBalance;
 		}
 		
+		
 	});
 
 	$effect(() => {

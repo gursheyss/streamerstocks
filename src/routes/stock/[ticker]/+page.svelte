@@ -104,10 +104,29 @@
 				}
 			)
 			.subscribe();
+			const profileSubscription = data.session
+			? supabase
+					.channel('profiles')
+					.on(
+						'postgres_changes',
+						{
+							event: 'UPDATE',
+							schema: 'public',
+							table: 'profiles',
+							filter: `id=eq.${data.session.user.id}`
+						},
+						(payload: any) => {
+							const { new: newData } = payload;
+							userBalance = newData.balance;
+						}
+					)
+					.subscribe()
+			: null;
 
 		return () => {
 			marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
+			profileSubscription?.unsubscribe();
 		};
 	});
 </script>
