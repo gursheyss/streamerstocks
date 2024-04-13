@@ -28,7 +28,10 @@
 				</div>
 				<div class="flex-shrink-0 flex items-center space-x-4">
 					<div class="text-right">
-						${item.price.toFixed(2).toLocaleString()}
+						${Number(item.price).toLocaleString(undefined, {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2
+						})}
 					</div>
 					<div class="text-right">
 						{#if calculatedPercentageChange > 0}

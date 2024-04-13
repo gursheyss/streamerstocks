@@ -158,7 +158,10 @@
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${currentPrice.toFixed(2)}
+					${Number(currentPrice).toLocaleString(undefined, {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					})}
 					<span
 						class={percentageChange > 0
 							? 'text-green-500'
