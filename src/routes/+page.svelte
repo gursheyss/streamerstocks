@@ -92,9 +92,6 @@
 	});
 </script>
 
-<div class="bg-red-700 text-white justify-center flex p-4 text-inter font-bold">
-	Buying and selling is disabled until the boplympics
-</div>
 {#if data.session && userBalance !== null && inventoryData != null}
 	<Portfolio balance={userBalance} netWorth = {calcNW(inventoryData)}/>
 {/if}
