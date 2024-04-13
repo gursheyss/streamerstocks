@@ -74,7 +74,7 @@ BEGIN
       user_net_worth.user_id,
       user_net_worth.username,
       user_net_worth.avatar_url,
-      CAST(user_net_worth.net_worth AS numeric) - (3000 + (SELECT COALESCE(SUM(CAST(amount_redeemed AS numeric)), 0) 
+      CAST(user_net_worth.net_worth AS numeric) - (10000 + (SELECT COALESCE(SUM(CAST(amount_redeemed AS numeric)), 0) 
                                            FROM profiles 
                                            WHERE id = user_net_worth.user_id)) AS pnl;
   END LOOP;
