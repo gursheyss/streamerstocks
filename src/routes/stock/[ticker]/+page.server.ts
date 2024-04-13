@@ -1,9 +1,9 @@
 import type { Comment, MarketItem } from '$lib/types';
-
+import type { InventoryItem } from '$lib/types';
 export const actions = {
-	submitComment: async ({ locals: { supabase, getSession }, request }) => {
+	submitComment: async ({ locals: { supabase, safeGetSession }, request }) => {
 		// get form data
-		const session = await getSession();
+		const session = await safeGetSession();
 		if (!session) {
 			return { status: 401, body: { message: 'Unauthorized' } };
 		}
@@ -24,12 +24,13 @@ export const actions = {
 	}
 };
 
-export const load = async ({ params, locals: { supabase } }) => {
+export const load = async ({ params, locals: { supabase, safeGetSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
 	const { data: initialData } = await supabase.from('market').select('*').ilike('ticker', ticker);
-
+	let netWorth: number | null = null;
 	const marketData = initialData as MarketItem[];
+	let userInventory: InventoryItem[] | null = null;
 
 	const { data: commentsData, error: commentsError } = await supabase
 		.from('comments')
@@ -67,8 +68,70 @@ export const load = async ({ params, locals: { supabase } }) => {
 		comments = [...comments, ...newCommentsToAdd];
 	}
 
+	const session = await safeGetSession();
+	let userBalance: number | null = null;
+
+	if (session.user) {
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('balance')
+			.eq('id', session.user.id)
+			.single();
+
+		if (profileError) {
+			console.error('Error fetching user profile:', profileError);
+		} else {
+			userBalance = profileData?.balance ?? null;
+		}
+	}
+	if (session.user) {
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('balance')
+			.eq('id', session.user.id)
+			.single();
+
+		if (profileError) {
+			console.error('Error fetching user balance:', profileError);
+		} else {
+			userBalance = profileData?.balance ?? null;
+		}
+	}
+	if (session.user) {
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('balance')
+			.eq('id', session.user.id)
+			.single();
+
+		if (profileError) {
+			console.error('Error fetching user profile:', profileError);
+		} else {
+			userBalance = profileData?.balance ?? null;
+		}
+		const { data: inventoryData, error: inventoryError } = await supabase
+			.from('inventory')
+			.select(
+				`
+					*,
+					market (
+						*
+					)
+				`
+			)
+			.gte('quantity', 1)
+			.eq('user_id', session.user.id);
+		if (inventoryError) {
+			console.error('Error fetching user inventory:', inventoryError);
+		} else {
+			userInventory = inventoryData as InventoryItem[];
+		}
+	}
+
 	return {
 		marketData,
-		comments
+		comments,
+		userBalance,
+		userInventory
 	};
 };
