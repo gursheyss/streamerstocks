@@ -54,13 +54,13 @@
 					<tr class="text-white font-bold">
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
-						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
+						<!-- Will add back once trade history is implemented. -->
+						<!-- <th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
 							# of Trades {@html getSortIcon()}
+						</th> -->
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('pnl')}>
+							PnL {@html getSortIcon()}
 						</th>
-						<!-- Need to fix PnL calculation-->
-						<!-- <th class="text-left py-2 cursor-pointer" on:click={() => sortData('pnl')}>
-                            PnL {@html getSortIcon()}
-                        </th> -->
 						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('net_worth')}>
 							Networth {@html getSortIcon()}
 						</th>
@@ -80,11 +80,11 @@
 								/>
 								<span>{leaderboardItem.username}</span>
 							</td>
-							<td class="py-4 items-center">
+							<!-- Will add back once trade history is implemented. -->
+							<!-- <td class="py-4 items-center">
 								<span>{leaderboardItem.trade_count}</span>
-							</td>
-							<!-- Need to fix PnL calculation-->
-							<!---
+							</td> -->
+
 							<td class="py-4 items-center">
 								<span
 									class={leaderboardItem.pnl > 0
@@ -97,7 +97,6 @@
 									${leaderboardItem.pnl?.toFixed(2)}
 								</span>
 							</td>
-                            -->
 							<td class="py-4 items-center">
 								<span class="text-white">${leaderboardItem.net_worth.toFixed(2)}</span>
 							</td>
