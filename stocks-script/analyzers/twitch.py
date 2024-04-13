@@ -2,6 +2,7 @@ from os import getenv
 
 import select
 import socket
+import signal
 
 from analyzers.analyze import get_sentiment
 
@@ -15,6 +16,9 @@ print("Connected to Twitch chat")
 # Ignore the welcome messages
 sock.recv(1024).decode('utf-8')
 
+def handler(signum, frame):
+    raise Exception("Twitch analysis timeout")
+
 def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -> dict:
     sentiment = {}
     for person in analysis_group:
@@ -24,14 +28,21 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
         '''Analyze chat messages over a period of time for sentiment towards a group of people in JSON format'''
         batch = ""
         batch_size = 0
+
+        # Register the signal function handler
+        signal.signal(signal.SIGALRM, handler)
+
+        # Define a timeout for your function
+        signal.alarm(360)
         
         while batch_size < max_batch_size:
             ready = select.select([sock], [], [], 1.0)  # Wait for 1 second
             if ready[0]:    # If there is data to read
                 resp = sock.recv(1024).decode('utf-8', 'ignore')
                 if ' #jasontheween :' in resp:
-                    resp = resp[resp.index(' #jasontheween :') + 16:].strip().lower()
-                    if any(keyword in resp.split(' ') for keyword in keywords):
+                    resp = resp[resp.rindex(' #jasontheween :') + 16:].strip().lower()
+                    len_resp = len(resp)
+                    if (4 < len_resp < 30) and any(keyword in resp.split(' ') for keyword in keywords):
                         batch += f'- {resp}\n'
                         batch_size += 1
                         print(f"Message added to batch: {resp}")

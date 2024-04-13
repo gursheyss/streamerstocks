@@ -108,7 +108,7 @@ def update_by_chat_loop(max_batch_size:int=50) -> None:
                 sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
-                update_prices(sentiment, scalar=1)
+                update_prices(sentiment, scalar=0.5)
             time.sleep(1)
         except:
             send_error_message("Error analyzing Twitch chat")
