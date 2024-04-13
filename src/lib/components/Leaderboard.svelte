@@ -106,7 +106,7 @@
 				</tbody>
 			</table>
 		</div>
-		{#if numRows > 10}
+		{#if leaderboardData.length > 10}
 			<div class="flex justify-center mt-4">
 				<button class="flex text-white font-bold" on:click={() => (numRows += 10)}>
 					Load More
