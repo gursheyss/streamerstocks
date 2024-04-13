@@ -144,7 +144,7 @@
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
 				<Chart stockData={marketData[0].history} />
 			</div>
-			{#if data.session && userBalance !== null}
+			{#if data.session && userBalance !== null && netWorth != null}
 				<Portfolio balance={userBalance } {netWorth}/>
 			{/if}
 			{#if data.session && userBalance !== null}
