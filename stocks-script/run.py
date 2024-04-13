@@ -46,17 +46,18 @@ name_stock_mapping = {
     "Yugi": "yugi",
     "Ba": "ba",
     "Malik": "malik",
-    "Arky": "arky"
+    "Arky": "arky",
+    "Nosiiree": "nosiiree",
 }
 # List of users to analyze sentiment for
-analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
+analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
 # Cache of stock prices, used to check if the price has changed
 stock_price_cache = {}
 # Whether Jason is online, determines whether to analyze Twitch chat or Reddit
 jason_online = False
 
 # Supabase client
-client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("PUBLIC_SUPABASE_ANON_KEY"))
+client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_SERVICE_KEY"))
 
 def update_prices(delta_sentiment:dict, scalar:float=1.0) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
@@ -96,7 +97,7 @@ def save_prices_to_history() -> None:
             
     client.table('market').upsert(response).execute()
 
-def update_by_chat_loop(max_batch_size:int=40) -> None:
+def update_by_chat_loop(max_batch_size:int=50) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
     print("Starting Twitch chat analysis loop\n******************************\n")
     while True:
@@ -126,7 +127,7 @@ def update_by_reddit_loop(update_interval_seconds:int=600) -> None:
                     delta_sentiment = {}
                     for key in set(previous_sentiment.keys()):
                         delta_sentiment[key.replace("_sentiment", "_delta")] = current_sentiment[key] - previous_sentiment[key]
-                    update_prices(delta_sentiment, scalar=0.5792) # Funny number to make numbers seem more random
+                    update_prices(delta_sentiment, scalar=0.1047) # Funny number to make numbers seem more random
                     previous_sentiment = dict(current_sentiment)
             time.sleep(1)
         except:
@@ -148,7 +149,7 @@ def check_if_jason_online() -> None:
         except:
             send_error_message("Error checking if Jason is online")
 
-def save_history_loop(decay_rate:float=0.002, save_interval_seconds:int=60) -> None:
+def save_history_loop(decay_rate:float=0.005, save_interval_seconds:int=60) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
