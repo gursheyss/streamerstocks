@@ -1,3 +1,4 @@
+import random
 import time
 from os import getenv
 import threading
@@ -66,7 +67,11 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
     send_market_update(response, delta_sentiment, scalar)
     for row in response:
         if row['name'] in name_stock_mapping:
-            row['price'] += (scalar * (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100)))
+            percent_delta = (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100))
+            if percent_delta != 0:
+                row['price'] += (scalar * percent_delta)
+            else:
+                row['price'] += row['price'] * random.uniform(-0.01, 0.01)
     client.table('market').upsert(response).execute()
 
 def save_prices_to_history(decay_rate:float) -> None:
