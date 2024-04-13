@@ -179,16 +179,17 @@
 				<Chart stockData={marketData[0].history} />
 			</div>
 			{#if data.session && userBalance !== null && inventoryData != null}
-				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
-			{/if}
-			{#if data.session && userBalance !== null}
-				<BuyandSell
-					uuid={data.session.user.id}
-					stockID={Number(marketData[0].id)}
-					currentPrice={Number(currentPrice)}
-					{userBalance}
-					{ticker}
-				/>
+				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)}>
+					{#if data.session && userBalance !== null}
+						<BuyandSell
+							uuid={data.session.user.id}
+							stockID={Number(marketData[0].id)}
+							currentPrice={Number(currentPrice)}
+							{userBalance}
+							{ticker}
+						/>
+					{/if}
+				</Portfolio>
 			{/if}
 			<Comments {comments} currentId={marketData[0].id} />
 		</div>
