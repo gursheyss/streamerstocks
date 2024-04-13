@@ -84,7 +84,7 @@ def save_prices_to_history(decay_rate:float) -> None:
     for row in response:
         row['history'].append({
             'timestamp': current_timestamp,
-            'price': row['price'] * (1 - decay_rate)
+            'price': row['price'] * (1 - decay_rate) + (row['price'] * random.uniform(-0.01, 0.01)) # decay with randomness function
         })
     client.table('market').upsert(response).execute()
 
