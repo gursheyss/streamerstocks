@@ -48,7 +48,8 @@ export async function POST({ request }) {
 			});
 			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
 				amt: price * amt,
-				userid: uuid
+				userid: uuid,
+				stock_quantity: amt
 			});
 			if (userError) console.error(userError);
 			else console.log('user updating' + userData);
