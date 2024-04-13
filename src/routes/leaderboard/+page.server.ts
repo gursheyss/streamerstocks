@@ -1,65 +1,50 @@
-import type { Trade } from '$lib/types.ts';
-
-// Helper function to calculate total valuation
-async function calculateTotalValuation(trades: Trade[], currentPrices: Record<number, number>) {
-	const total = trades.reduce((acc, trade) => {
-		const currentPrice = currentPrices[trade.stock_id];
-		if (trade.status === 'bought' && currentPrice) {
-			return acc + (currentPrice - trade.bought_price) * trade.purchase_volume;
-		}
-		return acc;
-	}, 0);
-
-	return total;
-}
-
-async function getCurrentMarketPrices(supabase: {
-	from: (arg0: string) => {
-		(): any;
-		new (): any;
-		select: {
-			(arg0: string): PromiseLike<{ data: any; error: any }> | { data: any; error: any };
-			new (): any;
-		};
-	};
-}) {
-	const { data, error } = await supabase.from('market').select('id, price');
-
+export const load = async ({ locals }) => {
+	const { data, error } = await locals.supabase.rpc('calculate_pnl_with_networth');
 	if (error) {
-		console.error('Error fetching market prices:', error);
-		return {};
+		console.error('Error fetching PnL:', error);
+		return { leaderboard: [] };
 	}
-	const marketPrices = data.reduce(
-		(prices: { [x: string]: any }, stock: { id: string | number; price: any }) => {
-			prices[stock.id] = stock.price;
-			return prices;
-		},
-		{}
-	);
 
-	return marketPrices;
-}
-
-export const load = async ({ locals: { supabase } }) => {
-	const currentMarketPrices = await getCurrentMarketPrices(supabase);
-	const { data: profiles } = await supabase.from('profiles').select('*').order('balance', { ascending: false }).limit(100);
-	const { data: trades } = await supabase.from('trades').select('*');
-
-	// Add total valuation to each profile
-	const profilesWithValuation = await Promise.all(
-		profiles.map(async (profile: { id: any }) => {
-			const userTrades = trades
-				? trades.filter((trade: { user_id: any }) => trade.user_id === profile.id)
-				: [];
-			// Await the calculation of total valuation here
-			const totalValuation = await calculateTotalValuation(userTrades, currentMarketPrices);
-			return { ...profile, totalValuation };
-		})
-	);
-
-	profilesWithValuation.sort(
-		(a: { totalValuation: number }, b: { totalValuation: number }) => b.totalValuation - a.totalValuation
-	);
-
-	return { marketData: profilesWithValuation };
+	return { marketData: data };
 };
+
+// TODO: FIX PNL FUNCTION.
+/*
+
+SQL function calculate_pnl_with_networth():
+
+DROP FUNCTION IF EXISTS calculate_pnl_with_networth;
+
+CREATE OR REPLACE FUNCTION calculate_pnl_with_networth()
+RETURNS TABLE (
+  user_id uuid,
+  username text,
+  avatar_url text,
+  pnl numeric,
+  net_worth numeric,
+  trade_count bigint
+) AS $$
+BEGIN
+  RETURN QUERY
+    SELECT
+      p.id AS user_id,
+      p.username,
+      p.avatar_url,
+      COALESCE(SUM((CASE 
+                        WHEN t.status = 'sold' THEN t.sale_volume * CAST(t.sold_price AS numeric)
+                        ELSE CAST(m.price AS numeric) * t.purchase_volume
+                    END) - (CAST(t.bought_price AS numeric) * t.purchase_volume)), 0) AS pnl,
+      CAST(p.balance AS numeric) + COALESCE(SUM((CASE 
+                                                    WHEN t.status = 'sold' THEN t.sale_volume * CAST(t.sold_price AS numeric)
+                                                    ELSE CAST(m.price AS numeric) * t.purchase_volume
+                                                END)), 0) AS net_worth,
+      COUNT(t."trade id") AS trade_count
+    FROM profiles p
+    LEFT JOIN trades t ON t.user_id = p.id AND (t.status = 'bought' OR t.status = 'sold')
+    LEFT JOIN market m ON m.id = t.stock_id
+    GROUP BY p.id
+    HAVING COUNT(t."trade id") > 0
+END; $$ LANGUAGE plpgsql;
+
+
+*/

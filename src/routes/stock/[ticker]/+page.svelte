@@ -2,17 +2,39 @@
 	import { page } from '$app/stores';
 	import Chart from '$lib/components/Chart.svelte';
 	import Comments from '$lib/components/Comments.svelte';
+	import BuyandSell from '$lib/components/BuyandSell.svelte';
+	import Portfolio from '$lib/components/Portfolio.svelte';
 	import type { MarketItem, MarketItemHistory } from '$lib/types';
 	import type { Comment } from '$lib/types';
+	import type { InventoryItem } from '$lib/types';
 
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
+	let selectedDateRange = $state('12 hour');
 
 	let marketData: MarketItem[] = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
-	let selectedDateRange = $state('12 hour');
+	let userBalance = $state<number | null>(data.userBalance);
 
+	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
+	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
+	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
+	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
+	let snapshotBalance = 0;
+	if (userBalance != null) {
+		snapshotBalance = userBalance;
+	}
+	function calcNW(x: InventoryItem[]): number {
+		let total = 0;
+		if (snapshotBalance != 0) {
+			total = snapshotBalance;
+		}
+		x.forEach((element) => {
+			total += element.quantity * element.market.price;
+		});
+		return total;
+	}
 	$effect(() => {
 		const marketSubscription = supabase
 			.channel('market')
@@ -97,10 +119,29 @@
 				}
 			)
 			.subscribe();
+		const profileSubscription = data.session
+			? supabase
+					.channel('profiles')
+					.on(
+						'postgres_changes',
+						{
+							event: 'UPDATE',
+							schema: 'public',
+							table: 'profiles',
+							filter: `id=eq.${data.session.user.id}`
+						},
+						(payload: any) => {
+							const { new: newData } = payload;
+							userBalance = newData.balance;
+						}
+					)
+					.subscribe()
+			: null;
 
 		return () => {
 			marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
+			profileSubscription?.unsubscribe();
 		};
 	});
 
@@ -134,10 +175,6 @@
 			history: getFilteredHistory(item, selectedDateRange)
 		}))
 	);
-
-	let currentPrice = $derived(filteredMarketData[0]?.history?.slice(-1)[0]?.price || 0);
-	let beginningPrice = $derived(filteredMarketData[0]?.history?.[0]?.price || 0);
-	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 </script>
 
 <svelte:head>
@@ -153,7 +190,10 @@
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${currentPrice.toFixed(2)}
+					${Number(currentPrice).toLocaleString(undefined, {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					})}
 					<span
 						class={percentageChange > 0
 							? 'text-green-500'
@@ -182,7 +222,20 @@
 					</select>
 				</div>
 			</div>
-			<Comments {comments} currentId={filteredMarketData[0].id} />
+			{#if data.session && userBalance !== null && inventoryData != null}
+				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)}>
+					{#if data.session && userBalance !== null}
+						<BuyandSell
+							uuid={data.session.user.id}
+							stockID={Number(marketData[0].id)}
+							currentPrice={Number(currentPrice)}
+							{userBalance}
+							{ticker}
+						/>
+					{/if}
+				</Portfolio>
+			{/if}
+			<Comments {comments} currentId={marketData[0].id} />
 		</div>
 	</div>
 {/if}
