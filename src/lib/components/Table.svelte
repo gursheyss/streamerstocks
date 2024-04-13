@@ -12,7 +12,7 @@
 
 	let selectedDateRange = $state('12 hour');
 	let selectedFilter = $state('Price');
-	let selectedFilterType = $state('Descending');
+	let selectedFilterType = $state('High to Low');
 
 	function getFilteredHistory(item: MarketItem, dateRange: string): MarketItemHistory[] {
 		const currentTimestamp = Math.floor(Date.now() / 1000); // Convert to seconds
@@ -45,13 +45,13 @@
 			}))
 			.sort((a, b) => {
 				if (selectedFilter === 'Price') {
-					return selectedFilterType === 'Ascending' ? a.price - b.price : b.price - a.price;
+					return selectedFilterType === 'Low to High' ? a.price - b.price : b.price - a.price;
 				} else if (selectedFilter === 'Name') {
-					return selectedFilterType === 'Ascending'
+					return selectedFilterType === 'Low to High'
 						? a.name.localeCompare(b.name)
 						: b.name.localeCompare(a.name);
 				} else if (selectedFilter === 'Percentage Change') {
-					return selectedFilterType === 'Ascending'
+					return selectedFilterType === 'Low to High'
 						? a.percentageChange - b.percentageChange
 						: b.percentageChange - a.percentageChange;
 				}
@@ -67,7 +67,7 @@
 		<div
 			class="flex flex-col sm:flex-row sm:space-x-2 items-center justify-end space-y-2 sm:space-y-0"
 		>
-			<select class="select w-full sm:max-w-[150px]" bind:value={selectedDateRange}>
+			<select class="select w-full sm:max-w-[120px]" bind:value={selectedDateRange}>
 				<option disabled selected>Select Date Range</option>
 				<option>1 hour</option>
 				<option>12 hour</option>
@@ -75,7 +75,7 @@
 				<option>7 days</option>
 				<option>All</option>
 			</select>
-			<select class="select w-full sm:max-w-[250px]" bind:value={selectedFilter}>
+			<select class="select w-full sm:max-w-[200px]" bind:value={selectedFilter}>
 				<option disabled selected>Select Filter</option>
 				<option>Price</option>
 				<option>Name</option>
@@ -83,8 +83,8 @@
 			</select>
 			<select class="select w-full sm:max-w-[150px]" bind:value={selectedFilterType}>
 				<option disabled selected>Select Filter Type</option>
-				<option>Ascending</option>
-				<option>Descending</option>
+				<option>Low to High</option>
+				<option>High to Low</option>
 			</select>
 		</div>
 
