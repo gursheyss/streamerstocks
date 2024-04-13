@@ -54,9 +54,9 @@
 					<tr class="text-white font-bold">
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
-						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
+						<!-- <th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
 							# of Trades {@html getSortIcon()}
-						</th>
+						</th> -->
 						<!-- Need to fix PnL calculation-->
 						<!-- <th class="text-left py-2 cursor-pointer" on:click={() => sortData('pnl')}>
                             PnL {@html getSortIcon()}
@@ -80,9 +80,9 @@
 								/>
 								<span>{leaderboardItem.username}</span>
 							</td>
-							<td class="py-4 items-center">
+							<!-- <td class="py-4 items-center">
 								<span>{leaderboardItem.trade_count}</span>
-							</td>
+							</td> -->
 							<!-- Need to fix PnL calculation-->
 							<!---
 							<td class="py-4 items-center">
