@@ -45,7 +45,7 @@
 						</span>
 					</div>
 				</div>
-				<p class="text-gray-300 pt-2">{comment.comment}</p>
+				<p class="text-gray-300 pt-2 overflow-auto break-words">{comment.comment}</p>
 			</div>
 		{/each}
 	</div>
