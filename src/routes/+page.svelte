@@ -91,6 +91,11 @@
 	});
 </script>
 
+<div class="bg-green-600 text-white text-center py-2 mb-4">
+	<!-- New div -->
+	The market is now open, click on a stock to buy/sell
+</div>
+
 {#if data.session && userBalance !== null && inventoryData != null}
 	<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 {/if}
