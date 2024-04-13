@@ -54,6 +54,7 @@
 				},
 				options: {
 					responsive: true,
+
 					scales: {
 						y: {
 							min: minPrice,
@@ -135,6 +136,17 @@
 		const maxPrice = Math.max(...prices);
 		const padding = (maxPrice - minPrice) * 0.1; // Add 10% padding
 
+		// Ensure the chart's canvas context is available
+		if (chart.ctx) {
+			const { ctx, chartArea } = chart;
+			const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+			gradient.addColorStop(0, gradientColor);
+			gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+			// Apply the new gradient
+			chart.data.datasets[0].fill = { target: 'origin', above: gradient };
+		}
+
 		chart.data.labels = stockData.map((data) =>
 			new Date(data.timestamp * 1000).toLocaleTimeString()
 		);
@@ -145,7 +157,11 @@
 		chart.options.scales.y.max = maxPrice + padding;
 
 		chart.resize();
-		chart.update('none');
+
+		chart.update({
+			duration: 100, // Customize the duration of the animation
+			easing: 'easeInOutQuad' // Customize the easing function
+		});
 	}
 
 	$effect(() => {
