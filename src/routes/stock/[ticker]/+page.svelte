@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import Chart from '$lib/components/Chart.svelte';
 	import Comments from '$lib/components/Comments.svelte';
-	import BuyandSell from '$lib/components/BuyandSell.svelte'
+	import BuyandSell from '$lib/components/BuyandSell.svelte';
 	import Portfolio from '$lib/components/Portfolio.svelte';
 	import type { MarketItem } from '$lib/types';
 	import type { Comment } from '$lib/types';
@@ -29,7 +29,7 @@
 		if (snapshotBalance != 0) {
 			total = snapshotBalance;
 		}
-  		x.forEach(element => {
+		x.forEach((element) => {
 			total += element.quantity * element.market.price;
 		});
 		return total;
@@ -118,7 +118,7 @@
 				}
 			)
 			.subscribe();
-			const profileSubscription = data.session
+		const profileSubscription = data.session
 			? supabase
 					.channel('profiles')
 					.on(
@@ -178,10 +178,16 @@
 				<Chart stockData={marketData[0].history} />
 			</div>
 			{#if data.session && userBalance !== null && inventoryData != null}
-				<Portfolio balance={userBalance} netWorth ={calcNW(inventoryData)}/>
+				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 			{/if}
 			{#if data.session && userBalance !== null}
-				<BuyandSell uuid = {data.session.user.id} stockID = {Number(marketData[0].id)} currentPrice = {Number(currentPrice)} userBalance = {userBalance}, ticker = {ticker}/>
+				<BuyandSell
+					uuid={data.session.user.id}
+					stockID={Number(marketData[0].id)}
+					currentPrice={Number(currentPrice)}
+					userBalance="{userBalance},"
+					{ticker}
+				/>
 			{/if}
 			<Comments {comments} currentId={marketData[0].id} />
 		</div>

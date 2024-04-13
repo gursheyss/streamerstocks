@@ -20,7 +20,7 @@
 		if (snapshotBalance != 0) {
 			total = snapshotBalance;
 		}
-  		x.forEach(element => {
+		x.forEach((element) => {
 			total += element.quantity * element.market.price;
 		});
 		return total;
@@ -65,7 +65,7 @@
 					.subscribe()
 			: null;
 
-		// const networthSubscription = data.session 
+		// const networthSubscription = data.session
 		// 	? supabase
 		// 			.channel('networth')
 		// 			.on(
@@ -93,7 +93,7 @@
 </script>
 
 {#if data.session && userBalance !== null && inventoryData != null}
-	<Portfolio balance={userBalance} netWorth = {calcNW(inventoryData)}/>
+	<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 {/if}
 
 <Table {marketData} />

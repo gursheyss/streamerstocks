@@ -21,59 +21,57 @@
 	function createChart(ctx: CanvasRenderingContext2D) {
 		try {
 			const startPrice = stockData[0].price;
-		const endPrice = stockData[stockData.length - 1].price;
-		const priceChange = endPrice - startPrice;
-		const isIncreasing = priceChange > 0;
-		const gradientColor = isIncreasing
-			? 'rgba(0, 255, 0, 0.2)'
-			: priceChange < 0
-				? 'rgba(255, 0, 0, 0.5)'
-				: 'rgba(128, 128, 128, 0.2)';
-		const chartData = stockData.length === 1 ? [stockData[0], stockData[0]] : stockData;
-		const lineColor = isIncreasing ? 'green' : priceChange < 0 ? 'red' : 'gray';
+			const endPrice = stockData[stockData.length - 1].price;
+			const priceChange = endPrice - startPrice;
+			const isIncreasing = priceChange > 0;
+			const gradientColor = isIncreasing
+				? 'rgba(0, 255, 0, 0.2)'
+				: priceChange < 0
+					? 'rgba(255, 0, 0, 0.5)'
+					: 'rgba(128, 128, 128, 0.2)';
+			const chartData = stockData.length === 1 ? [stockData[0], stockData[0]] : stockData;
+			const lineColor = isIncreasing ? 'green' : priceChange < 0 ? 'red' : 'gray';
 
-		chart = new Chart(ctx, {
-			type: 'line',
-			data: {
-				labels: chartData.map(() => ''),
-				datasets: [
-					{
-						data: chartData.map((data) => data.price),
-						borderColor: lineColor,
-						fill: {
-							target: 'origin',
-							above: (context: any) => {
-								const chart = context.chart;
-								const { ctx, chartArea } = chart;
-								if (!chartArea) {
-									return null;
+			chart = new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: chartData.map(() => ''),
+					datasets: [
+						{
+							data: chartData.map((data) => data.price),
+							borderColor: lineColor,
+							fill: {
+								target: 'origin',
+								above: (context: any) => {
+									const chart = context.chart;
+									const { ctx, chartArea } = chart;
+									if (!chartArea) {
+										return null;
+									}
+									const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+									gradient.addColorStop(0, gradientColor);
+									gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+									return gradient;
 								}
-								const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-								gradient.addColorStop(0, gradientColor);
-								gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-								return gradient;
-							}
-						},
-						tension: 0.1,
-						pointRadius: 0
-					}
-				]
-			},
-			options: {
-				responsive: true,
-				scales: {
-					x: { display: false },
-					y: { display: false }
+							},
+							tension: 0.1,
+							pointRadius: 0
+						}
+					]
 				},
-				plugins: {
-					legend: { display: false },
-					tooltip: { enabled: false }
+				options: {
+					responsive: true,
+					scales: {
+						x: { display: false },
+						y: { display: false }
+					},
+					plugins: {
+						legend: { display: false },
+						tooltip: { enabled: false }
+					}
 				}
-			}
-		});
-		} catch (error) {
-			
-		}
+			});
+		} catch (error) {}
 	}
 
 	function updateChart() {
