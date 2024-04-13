@@ -1,4 +1,5 @@
 import { PUBLIC_TWITCH_EVENTSUB_SECRET } from '$env/static/public';
+import { supabase } from '$lib/server/supabase';
 import crypto from 'crypto';
 
 // Notification request headers
@@ -12,7 +13,7 @@ const HMAC_PREFIX = 'sha256=';
 
 
 /** @type {import('./$types').RequestHandler} */
-export async function POST({ request, locals: { supabase } }) {
+export async function POST({ request }) {
 
     const addChannelPointsToBalance = async (amt_weeniebucks:number, user_id:string) => {
         console.log("Attempting to add " + amt_weeniebucks + " weeniebucks to user " + user_id)
@@ -35,7 +36,10 @@ export async function POST({ request, locals: { supabase } }) {
 
         const notification = await request.json();
         if (request.headers.get(MESSAGE_TYPE) === 'notification') {
-            if (notification.subscription.type === 'channel.channel_points_custom_reward_redemption.add') {
+            if (
+                notification.subscription.type === 'channel.channel_points_custom_reward_redemption.add'
+                // && notification.event.reward.id === 'THE ID FOR THE REWARD WE LISTENING FOR'
+            ) {
                 addChannelPointsToBalance(notification.event.reward.cost/10, notification.event.user_id);
             }
             return new Response(null, {status: 204});
