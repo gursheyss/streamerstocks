@@ -41,9 +41,9 @@
 			soldQuantity = amt;
 		}
 	}
-	function handleInput(event) {
-		// Remove non-numeric characters from the input
-		amount = event.target.value.replace(/\D/g, '');
+	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+		let inputElement = event.currentTarget;
+		amount = inputElement.value.replace(/\D/g, '');
 	}
 	function reset() {
 		buySuccess = false;
