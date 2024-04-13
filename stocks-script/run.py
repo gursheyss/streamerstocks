@@ -51,8 +51,7 @@ name_stock_mapping = {
 }
 # List of users to analyze sentiment for
 analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
-# Cache of stock prices, used to check if the price has changed
-stock_price_cache = {}
+
 # Whether Jason is online, determines whether to analyze Twitch chat or Reddit
 jason_online = False
 
@@ -70,7 +69,7 @@ def update_prices(delta_sentiment:dict, scalar:float=1.0) -> None:
             row['price'] += (scalar * (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100)))
     client.table('market').upsert(response).execute()
 
-def save_prices_to_history() -> None:
+def save_prices_to_history(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
     print('SAVING PRICES')
     response = client.table('market').select('*').execute()
@@ -78,23 +77,10 @@ def save_prices_to_history() -> None:
     current_timestamp = int(datetime.now().timestamp())
     # Update the history of each stock
     for row in response:
-        # If stock is in cache
-        if row['id'] in stock_price_cache:
-            # If the stock price has changed, update the history
-            if row['price'] != stock_price_cache[row['id']]:
-                stock_price_cache[row['id']] = row['price']
-                row['history'].append({
-                    'timestamp': current_timestamp,
-                    'price': row['price']
-                })
-        # If stock is not in cache, add it to the cache and update the history
-        else:
-            stock_price_cache[row['id']] = row['price']
-            row['history'].append({
-                'timestamp': current_timestamp,
-                'price': row['price']
-            })
-            
+        row['history'].append({
+            'timestamp': current_timestamp,
+            'price': row['price'] - decay_rate
+        })
     client.table('market').upsert(response).execute()
 
 def update_by_chat_loop(max_batch_size:int=50) -> None:
@@ -105,7 +91,7 @@ def update_by_chat_loop(max_batch_size:int=50) -> None:
             if jason_online:
                 print("Analyzing chat:")
                 # Spend half the time analyzing chat, and the other half updating prices
-                sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb']), analysis_group=analysis_group)
+                sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb', 'dat', 'landon', 'tobi']), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
                 update_prices(sentiment, scalar=0.5)
@@ -158,8 +144,7 @@ def save_history_loop(decay_rate:float=0.005, save_interval_seconds:int=60) -> N
         try:
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
-                update_prices(decay_delta, scalar=decay_rate)
-                save_prices_to_history()
+                save_prices_to_history(decay_rate)
             time.sleep(1)
         except:
             send_error_message("Error saving history")
