@@ -42,7 +42,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					} as MarketItem);
 				}
 				marketData = initMarketData;
-				await redis.set('marketData', JSON.stringify(initMarketData), 'EX', 60);
+				await redis.set('marketData', JSON.stringify(initMarketData), 'EX', 60 * 5);
 			}
 		}
 	}

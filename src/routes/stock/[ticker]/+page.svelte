@@ -154,12 +154,12 @@
 			case '12 hour':
 				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
 				break;
-			case '24 hour':
-				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
-				break;
-			case '7 days':
-				filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
-				break;
+			// case '24 hour':
+			// 	filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
+			// 	break;
+			// case '7 days':
+			// 	filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
+			// 	break;
 			default:
 				return item.history;
 		}
@@ -231,9 +231,9 @@
 						<option disabled selected>Select Date Range</option>
 						<option>1 hour</option>
 						<option>12 hour</option>
-						<option>24 hour</option>
+						<!-- <option>24 hour</option>
 						<option>7 days</option>
-						<option>All</option>
+						<option>All</option> -->
 					</select>
 				</div>
 			</div>
