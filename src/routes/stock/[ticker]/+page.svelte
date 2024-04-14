@@ -36,32 +36,32 @@
 		return total;
 	}
 	$effect(() => {
-		const marketSubscription = supabase
-			.channel('market')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'market'
-				},
-				(payload: any) => {
-					const { new: newData, old: oldData } = payload;
-					if (newData.ticker !== ticker && oldData.ticker !== ticker) {
-						return;
-					}
-					if (payload.eventType === 'INSERT') {
-						marketData = [...marketData, newData as MarketItem];
-					} else if (payload.eventType === 'UPDATE') {
-						marketData = marketData.map((item) =>
-							item.id === newData.id ? (newData as MarketItem) : item
-						);
-					} else if (payload.eventType === 'DELETE') {
-						marketData = marketData.filter((item) => item.id !== oldData.id);
-					}
-				}
-			)
-			.subscribe();
+		// const marketSubscription = supabase
+		// 	.channel('market')
+		// 	.on(
+		// 		'postgres_changes',
+		// 		{
+		// 			event: '*',
+		// 			schema: 'public',
+		// 			table: 'market'
+		// 		},
+		// 		(payload: any) => {
+		// 			const { new: newData, old: oldData } = payload;
+		// 			if (newData.ticker !== ticker && oldData.ticker !== ticker) {
+		// 				return;
+		// 			}
+		// 			if (payload.eventType === 'INSERT') {
+		// 				marketData = [...marketData, newData as MarketItem];
+		// 			} else if (payload.eventType === 'UPDATE') {
+		// 				marketData = marketData.map((item) =>
+		// 					item.id === newData.id ? (newData as MarketItem) : item
+		// 				);
+		// 			} else if (payload.eventType === 'DELETE') {
+		// 				marketData = marketData.filter((item) => item.id !== oldData.id);
+		// 			}
+		// 		}
+		// 	)
+		// 	.subscribe();
 
 		const commentsSubscription = supabase
 			.channel('comments')
@@ -139,7 +139,7 @@
 			: null;
 
 		return () => {
-			marketSubscription.unsubscribe();
+			// marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 		};
