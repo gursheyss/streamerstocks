@@ -1,8 +1,10 @@
+import cron from 'node-cron';
 import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
 
 // Helper function to load initial leaderboard data into Redis
 async function initializeLeaderboard() {
+	console.log('Initializing leaderboard...');
 	const { data: netWorthData, error: netWorthError } = await supabase.rpc('calculate_net_worth');
 	if (netWorthError) {
 		console.error('Failed to fetch net worth data:', netWorthError);
@@ -20,33 +22,49 @@ async function initializeLeaderboard() {
 		console.error('Failed to fetch trade count data:', tradeCountError);
 		return;
 	}
+	// // Clear previous leaderboard data
+	await redis.del('leaderboard');
+
 	// Populate Redis sorted set with net worth data
-	for (const user of netWorthData) {
-		const cleaned_user_id = user.user_id.replace('user:', '');
-		const pnlItem = pnlData.find((p) => p.user_id === user.user_id);
-		const tradeCountItem = tradeCountData.find((t) => t.user_id === user.user_id);
+	const updates = netWorthData.map(
+		async (user: { user_id: any; username: any; avatar_url: any; net_worth: string }) => {
+			const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === user.user_id);
+			const tradeCountItem = tradeCountData.find(
+				(t: { user_id: any }) => t.user_id === user.user_id
+			);
 
-		await redis.hmset(`${user.user_id}`, {
-			net_worth: parseFloat(user.net_worth).toFixed(2),
-			pnl: pnlItem ? parseFloat(pnlItem.pnl).toFixed(2) : '0',
-			trade_count: tradeCountItem ? tradeCountItem.trade_count : '0'
-		});
+			await redis.hmset(`user:${user.user_id}`, {
+				username: user.username, // Assume these fields are included in the RPC response
+				avatar_url: user.avatar_url,
+				net_worth: parseFloat(user.net_worth).toFixed(2),
+				pnl: pnlItem ? parseFloat(pnlItem.pnl).toFixed(2) : '0',
+				trade_count: tradeCountItem ? tradeCountItem.trade_count.toString() : '0'
+			});
 
-		// Add user to the sorted set by net worth
-		await redis.zadd('leaderboard', parseFloat(user.net_worth).toFixed(2), cleaned_user_id);
-	}
+			// Add user to the sorted set by net worth
+			await redis.zadd('leaderboard', parseFloat(user.net_worth).toFixed(2), `${user.user_id}`);
+		}
+	);
+	await Promise.all(updates);
+	console.log('Leaderboard initialized successfully!');
 }
+// Schedule leaderboard initialization to run every night at 00:00
+cron.schedule(
+	'0 0 * * *',
+	() => {
+		initializeLeaderboard();
+	},
+	{
+		scheduled: true,
+		timezone: 'America/New_York'
+	}
+);
 
 export const load = async ({ locals }) => {
 	try {
-		// Initialize leaderboard data in Redis if not already present
-		const isInitialized = await redis.exists('leaderboard');
-		if (!isInitialized) {
-			await initializeLeaderboard();
-		}
-
 		// Fetch leaderboard data from Redis
-		const leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 9);
+		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 9);
+
 		const formattedData = await Promise.all(
 			leaderboardUserIds.map(async (userId) => {
 				const userDetails = await redis.hgetall(`user:${userId}`);
@@ -62,7 +80,7 @@ export const load = async ({ locals }) => {
 			})
 		);
 
-		console.log('Formatted leaderboard data:', formattedData);
+		// console.log('Formatted leaderboard data:', formattedData);
 		return { leaderboardData: formattedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);

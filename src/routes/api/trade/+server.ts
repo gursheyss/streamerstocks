@@ -1,4 +1,5 @@
 import { supabase } from '$lib/server/supabase';
+import { redis } from '$lib/server/redis';
 // /api/ POST
 
 export async function POST({ request }) {
@@ -87,6 +88,9 @@ export async function POST({ request }) {
 			const { error: tradeError } = await supabase.from('trades').insert([trade]);
 			if (tradeError) console.error('Error recording trade:', tradeError);
 
+			// Update metrics in Redis
+			await updateUserMetrics(uuid); // Update user metrics after transaction
+
 			found = true;
 		}
 	}
@@ -96,4 +100,63 @@ export async function POST({ request }) {
 			'Content-Type': 'application/json'
 		}
 	});
+}
+
+// Helper function to update user net worth, PnL, and trade count in Redis
+async function updateUserMetrics(userId: any) {
+	try {
+		// Fetch the current balance, PnL, and trade count details from your database
+		const { data: userDetails, error: userDetailsError } = await supabase
+			.from('profiles')
+			.select('balance, amount_redeemed')
+			.eq('id', userId)
+			.single();
+
+		if (userDetailsError) throw new Error('Failed to fetch user details');
+
+		const { data: inventoryData, error: inventoryError } = await supabase
+			.from('inventory')
+			.select(
+				`
+                quantity,
+                market:stock_id (price)
+            `
+			)
+			.eq('user_id', userId);
+
+		if (inventoryError) throw new Error('Failed to fetch inventory details');
+
+		const { data: tradeData, error: tradeDataError } = await supabase
+			.from('trades')
+			.select(
+				`
+                *,
+                (CASE WHEN status = 'bought' THEN quantity * bought_price ELSE quantity * sold_price END) as transaction_amount
+            `
+			)
+			.eq('user_id', userId);
+
+		if (tradeDataError) throw new Error('Failed to fetch trade details');
+
+		// Calculate net worth and PnL
+		const netWorth =
+			userDetails.balance +
+			inventoryData.reduce((acc, item) => acc + item.quantity * item.market.price, 0);
+		const pnl = netWorth - (10000 + userDetails.amount_redeemed); // Assuming 10000 is the initial balance or some baseline
+		const tradeCount = tradeData.length;
+
+		// Update Redis hash for detailed metrics
+		await redis.hmset(`user:${userId}`, {
+			net_worth: netWorth.toFixed(2),
+			pnl: pnl.toFixed(2),
+			trade_count: tradeCount.toString()
+		});
+
+		// Update the leaderboard sorted set by net worth
+		await redis.zadd('leaderboard', parseFloat(netWorth).toFixed(2), userId);
+
+		console.log(`Metrics updated for user: ${userId}`);
+	} catch (error) {
+		console.error('Failed to update user metrics:', error);
+	}
 }

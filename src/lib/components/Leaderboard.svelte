@@ -4,27 +4,27 @@
 
 	export let numRows: number;
 	export let fetchLeaderboardData: () => Promise<
-		({ rank: number } & Profile & { pnl?: number; net_worth?: number; trade_count: number })[]
+		(Profile & { rank?: number; pnl?: number; net_worth?: number; trade_count: number })[]
 	>;
-
-	let leaderboardData: ({ rank: number } & Profile & {
-			pnl?: number;
-			net_worth?: number;
-			trade_count: number;
-		})[] = [];
+	let leaderboardData: (Profile & {
+		rank?: number;
+		pnl?: number;
+		net_worth?: number;
+		trade_count: number;
+	})[] = [];
 	let loading = true;
 	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
-
 	onMount(async () => {
+		console.log('Fetching leaderboard data...');
+		loading = true;
 		try {
 			leaderboardData = await fetchLeaderboardData();
 			sortData();
-			loading = false;
 		} catch (error) {
 			console.error('Failed to fetch leaderboard data:', error);
-			loading = false;
 		}
+		loading = false;
 	});
 	function sortData(column = sortColumn) {
 		if (column === sortColumn) {
