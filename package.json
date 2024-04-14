@@ -39,6 +39,7 @@
     "@supabase/ssr": "^0.3.0",
     "@sveltejs/adapter-vercel": "^5.2.0",
     "@types/chart.js": "^2.9.41",
+    "@vercel/speed-insights": "^1.0.10",
     "chart.js": "^4.4.2",
     "date-fns": "^3.6.0",
     "ioredis": "^5.3.2",
