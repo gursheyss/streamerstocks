@@ -89,7 +89,7 @@ def send_market_update(old_prices:list, new_prices:dict):
     description = "The market has been updated. Here are the changes: \n\n"
     for i in range(len(old_prices)):
         if abs(old_prices[i]['price'] - new_prices[i]['price']) > 0.1:
-            description += f"{name_id_mapping[old_prices['stock_id']]}: {old_prices[i]['price']} -> {new_prices[i]['price']}\n"
+            description += f"{name_id_mapping[old_prices[i]['stock_id']]}: {old_prices[i]['price']} -> {new_prices[i]['price']}\n"
 
     if description != "The market has been updated. Here are the changes: \n\n":
         embed = Embed(

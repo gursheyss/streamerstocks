@@ -1,3 +1,4 @@
+import copy
 import random
 import time
 from os import getenv
@@ -103,9 +104,8 @@ client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_S
 def update_prices(delta_sentiment:dict, scalar:float) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
-    response = client.rpc('get_most_recent_prices').execute()
-    response = list(response.data)
-    new_prices = list(response)
+    response = list(client.rpc('get_most_recent_prices').execute().data)
+    new_prices = copy.deepcopy(response)
     for row in new_prices:
         if row['stock_id'] in name_id_mapping:
             percent_delta = (delta_sentiment.get(name_id_mapping[row['stock_id']] + '_delta', 0) * (row['price']/100))
@@ -113,6 +113,8 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
                 row['price'] += (scalar * percent_delta)
             else:
                 row['price'] += row['price'] * random.uniform(-0.01, 0.01)
+    print(response)
+    print(new_prices)
     send_market_update(response, new_prices)
     client.table('market_prices').insert(new_prices).execute()
 
