@@ -73,14 +73,14 @@ export const load = async ({ locals }) => {
 					user_id: userId,
 					username: userDetails.username,
 					avatar_url: userDetails.avatar_url,
-					net_worth: userDetails.net_worth,
-					pnl: userDetails.pnl,
+					net_worth: Number(userDetails.net_worth),
+					pnl: Number(userDetails.pnl),
 					trade_count: parseInt(userDetails.trade_count, 10)
 				};
 			})
 		);
 
-		console.log('Formatted leaderboard data:', formattedData);
+		// console.log('Formatted leaderboard data:', formattedData);
 		return { leaderboardData: formattedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);

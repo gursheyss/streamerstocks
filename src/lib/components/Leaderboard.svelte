@@ -9,6 +9,8 @@
 	let loading = true;
 	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
+
+	console.log('before onMount');
 	onMount(async () => {
 		console.log('Fetching leaderboard data...');
 		loading = true;
@@ -50,7 +52,9 @@
 			<table class="w-full border-b border-gray-700">
 				<thead>
 					<tr class="text-white font-bold">
-						<th class="text-left py-2">Rank</th>
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('rank')}>
+							Rank {@html getSortIcon()}</th
+						>
 						<th class="text-left py-2">User</th>
 						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
 							# of Trades {@html getSortIcon()}
@@ -67,7 +71,7 @@
 					{#each leaderboardData.slice(0, numRows) as leaderboardItem, index}
 						<tr class="text-white font-bold items-center">
 							<td class="py-4 items-center">
-								<span>{index + 1}</span>
+								<span>{leaderboardItem.rank}</span>
 							</td>
 							<td class="py-4 flex items-center">
 								<img

@@ -28,8 +28,8 @@ export interface Profile {
 	user_id: string;
 	username: string;
 	avatar_url: string;
-	net_worth: string;
-	pnl: string;
+	net_worth: number;
+	pnl: number;
 	trade_count: number;
 }
 
