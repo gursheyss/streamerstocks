@@ -3,6 +3,7 @@
 	import type { MarketItem } from '$lib/types.js';
 	import type { InventoryItem } from '$lib/types';
 	import Portfolio from '$lib/components/Portfolio.svelte';
+	
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);

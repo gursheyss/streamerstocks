@@ -1,6 +1,7 @@
 import type { MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 import { supabase } from '$lib/server/supabase';
+import { redis } from '$lib/server/redis';
 
 export const actions = {
 	signOut: async ({ locals: { supabase } }) => {
@@ -13,22 +14,39 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
-	const { data: initialData } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image');
+	const { data: initialData, error:initError } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image');
+	if(initError) {
+		console.error(initError);
+	}
 	let marketData: MarketItem[] = [];
-	// redo in db function
-	for (let i = 0; i < initialData.length; i+=1) {
-		let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(100)
-		if (marketHistory != null && initialData != null) {
-			marketData.push({
-				...initialData[i],
-				price: marketHistory[0].price,
-				history: marketHistory.reverse(),
-				low: 0,
-				high: 0,
-				volume: 0
-			} as MarketItem);
+	const cachedMarketData = await redis.get('marketData');
+	if (cachedMarketData) {
+		marketData = JSON.parse(cachedMarketData)
+	}
+	else {
+		for (let i = 0; i < initialData.length; i+=1) {
+			let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(100)
+			if(marketError) {
+				console.error("error fetching marketData", marketError);
+			}
+			else {
+				let initMarketData: MarketItem[] = [];
+				if (marketHistory != null && initialData != null) {
+					initMarketData.push({
+						...initMarketData[i],
+						price: marketHistory[0].price,
+						history: marketHistory.reverse(),
+						low: 0,
+						high: 0,
+						volume: 0
+					} as MarketItem);
+				}
+				marketData = initMarketData;
+				await redis.set('marketData', JSON.stringify(initMarketData));
+			}
 		}
 	}
+	// redo in db function
 	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
