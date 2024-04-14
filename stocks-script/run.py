@@ -77,16 +77,7 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
 def save_prices_to_history(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
     print('SAVING PRICES')
-    response = client.table('market').select('*').execute()
-    response = response.data
-    current_timestamp = int(datetime.now().timestamp())
-    # Update the history of each stock
-    for row in response:
-        row['history'].append({
-            'timestamp': current_timestamp,
-            'price': row['price'] * (1 - decay_rate) + (row['price'] * random.uniform(-0.01, 0.01)) # decay with randomness function
-        })
-    client.table('market').upsert(response).execute()
+    client.rpc('save_prices_to_history', {'decay_rate': decay_rate}).execute()
 
 def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
@@ -150,9 +141,10 @@ def save_history_loop(save_interval_seconds:int, decay_rate:float) -> None:
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
                 save_prices_to_history(decay_rate)
-            time.sleep(1)
         except:
             send_error_message("Error saving history")
+        finally:
+            time.sleep(1)
 
 if __name__ == "__main__":
     print("Starting the market mover....")
