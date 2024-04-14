@@ -102,6 +102,16 @@
 						class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
 						href="/portfolio">Portfolio</a
 					>
+				{/if}
+				<a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+					href="/leaderboard">Leaderboard</a
+				>
+				<a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+					href="/about">About</a
+				>
+				{#if username}
 					<form action="?/signOut" method="POST" use:enhance>
 						<button
 							class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block w-full text-left px-3 py-2 rounded-md text-base font-medium"
@@ -111,10 +121,6 @@
 						</button>
 					</form>
 				{/if}
-				<a
-					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-					href="/leaderboard">Leaderboard</a
-				>
 			</div>
 		</div>
 	{/if}
