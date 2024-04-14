@@ -14,16 +14,16 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
-	const { data: initialData, error:initError } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image');
-	if(initError) {
-		console.error(initError);
-	}
 	let marketData: MarketItem[] = [];
 	const cachedMarketData = await redis.get('marketData');
 	if (cachedMarketData) {
 		marketData = JSON.parse(cachedMarketData)
 	}
 	else {
+		const { data: initialData, error:initError } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image');
+		if(initError) {
+			console.error(initError);
+		}
 		for (let i = 0; i < initialData.length; i+=1) {
 			let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(100)
 			if(marketError) {
@@ -42,7 +42,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					} as MarketItem);
 				}
 				marketData = initMarketData;
-				await redis.set('marketData', JSON.stringify(initMarketData));
+				await redis.set('marketData', JSON.stringify(initMarketData), 'EX', 60);
 			}
 		}
 	}
