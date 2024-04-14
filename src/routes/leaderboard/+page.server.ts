@@ -80,7 +80,7 @@ export const load = async ({ locals }) => {
 			})
 		);
 
-		// console.log('Formatted leaderboard data:', formattedData);
+		console.log('Formatted leaderboard data:', formattedData);
 		return { leaderboardData: formattedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);

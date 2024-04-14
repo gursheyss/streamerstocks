@@ -3,15 +3,9 @@
 	import { onMount } from 'svelte';
 
 	export let numRows: number;
-	export let fetchLeaderboardData: () => Promise<
-		(Profile & { rank?: number; pnl?: number; net_worth?: number; trade_count: number })[]
-	>;
-	let leaderboardData: (Profile & {
-		rank?: number;
-		pnl?: number;
-		net_worth?: number;
-		trade_count: number;
-	})[] = [];
+	export let fetchLeaderboardData: () => Promise<Profile[]>;
+
+	let leaderboardData: Profile[] = [];
 	let loading = true;
 	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
