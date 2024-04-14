@@ -17,7 +17,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	let marketData: MarketItem[] = [];
 	// redo in db function
 	for (let i = 0; i < initialData.length; i+=1) {
-		let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false })
+		let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(100)
 		if (marketHistory != null && initialData != null) {
 			marketData.push({
 				...initialData[i],

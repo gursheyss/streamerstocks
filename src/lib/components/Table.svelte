@@ -64,7 +64,7 @@
 
 <div class="rounded-lg shadow-lg font-inter">
 	<div class="w-full flex flex-col space-y-2">
-		<div
+		<!-- <div
 			class="flex flex-col sm:flex-row sm:space-x-2 items-center justify-end space-y-2 sm:space-y-0"
 		>
 			<select class="select w-full sm:max-w-[120px]" bind:value={selectedDateRange}>
@@ -86,7 +86,7 @@
 				<option>Low to High</option>
 				<option>High to Low</option>
 			</select>
-		</div>
+		</div> -->
 
 		{#each filteredMarketHistory as item}
 			<a

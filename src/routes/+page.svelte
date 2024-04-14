@@ -31,8 +31,6 @@
 			.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'market_prices' }, (payload: any) => {
 				const { new: newData, old: oldData } = payload;
 				if (payload.eventType === 'INSERT') {
-					// New record inserted
-					// use a map instead
 					for (let i = 0; i < marketData.length; i+=1) {
 						if (marketData[i].id == newData.stock_id) {
 							marketData[i].history.push(newData);
