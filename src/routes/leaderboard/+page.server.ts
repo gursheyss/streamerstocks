@@ -24,7 +24,7 @@ export const load = async ({ locals }) => {
 				trade_count: tradeCountItem ? tradeCountItem.trade_count : null
 			};
 		});
-		console.log('combinedData:', combinedData);
+
 		return { leaderboardData: combinedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);
