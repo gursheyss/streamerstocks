@@ -50,6 +50,47 @@ name_stock_mapping = {
     "Arky": "arky",
     "Nosiiree": "nosiiree",
 }
+
+name_id_mapping = {
+    35: "vsbtobi",
+    14: "effy",
+    37: "ba",
+    6: "emily",
+    24: "sunny",
+    9: "ybg",
+    5: "baybeerae",
+    2: "mira",
+    30: "kc",
+    17: "joymei",
+    7: "jess",
+    34: "vsbdat",
+    40: "arky",
+    21: "kailey",
+    36: "yugi",
+    42: "nosiiree",
+    39: "malik",
+    23: "sa",
+    20: "alex",
+    26: "ellen",
+    10: "santi",
+    22: "a2guapo",
+    28: "jason",
+    11: "selena",
+    25: "aliyah",
+    13: "giaan",
+    27: "kaichu",
+    8: "raph",
+    16: "prod",
+    33: "vsblandon",
+    12: "keli",
+    29: "jdab",
+    4: "jes",
+    15: "mariah",
+    3: "alyssa",
+    18: "ron",
+    19: "irene"
+}
+
 # List of users to analyze sentiment for
 analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
 
@@ -62,17 +103,18 @@ client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_S
 def update_prices(delta_sentiment:dict, scalar:float) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
-    response = client.table('market').select('*').execute()
+    response = client.rpc('get_most_recent_prices').execute()
     response = list(response.data)
-    send_market_update(response, delta_sentiment, scalar)
-    for row in response:
-        if row['name'] in name_stock_mapping:
-            percent_delta = (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100))
+    new_prices = list(response)
+    for row in new_prices:
+        if row['stock_id'] in name_id_mapping:
+            percent_delta = (delta_sentiment.get(name_id_mapping[row['stock_id']] + '_delta', 0) * (row['price']/100))
             if percent_delta != 0:
                 row['price'] += (scalar * percent_delta)
             else:
                 row['price'] += row['price'] * random.uniform(-0.01, 0.01)
-    client.table('market').upsert(response).execute()
+    send_market_update(response, new_prices)
+    client.table('market_prices').insert(new_prices).execute()
 
 def decay_and_save_prices(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
