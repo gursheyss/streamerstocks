@@ -1,27 +1,34 @@
 import type { MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
+import { supabase } from '$lib/server/supabase';
+
 export const actions = {
 	signOut: async ({ locals: { supabase } }) => {
 		await supabase.auth.signOut();
 	}
 };
 
-export const load = async ({ locals: { supabase, safeGetSession } }) => {
+export const load = async ({ locals: { safeGetSession } }) => {
 	const session = await safeGetSession();
-	let marketData: MarketItem[] = [];
+	
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
-
-	const { data: initialData, error } = await supabase
-		.from('market')
-		.select('*')
-		.order('price', { ascending: false });
-	if (error) {
-		console.error('Error fetching initial data:', error);
-	} else {
-		marketData = initialData as MarketItem[];
+	const { data: initialData } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image');
+	let marketData: MarketItem[] = [];
+	// redo in db function
+	for (let i = 0; i < initialData.length; i+=1) {
+		let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false })
+		if (marketHistory != null && initialData != null) {
+			marketData.push({
+				...initialData[i],
+				price: marketHistory[0].price,
+				history: marketHistory.reverse(),
+				low: 0,
+				high: 0,
+				volume: 0
+			} as MarketItem);
+		}
 	}
-
 	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')

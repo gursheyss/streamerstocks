@@ -1,7 +1,9 @@
 import type { Comment, MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
+import { supabase } from '$lib/server/supabase';
+
 export const actions = {
-	submitComment: async ({ locals: { supabase, safeGetSession }, request }) => {
+	submitComment: async ({ locals: { safeGetSession }, request }) => {
 		// get form data
 		const session = await safeGetSession();
 		if (!session) {
@@ -24,12 +26,22 @@ export const actions = {
 	}
 };
 
-export const load = async ({ params, locals: { supabase, safeGetSession } }) => {
+export const load = async ({ params, locals: { safeGetSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
-	const { data: initialData } = await supabase.from('market').select('*').ilike('ticker', ticker);
+	const { data: initialData } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image').ilike('ticker', ticker);
 	let netWorth: number | null = null;
-	const marketData = initialData as MarketItem[];
+	let marketData: MarketItem | null = null;
+	let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[0].id).order('timestamp', { ascending: false })
+	if (marketHistory != null && initialData != null) {
+		marketData = {
+			...initialData[0],
+			history: marketHistory.reverse(),
+			low: 0,
+			high: 0,
+			volume: 0
+		} as MarketItem;
+	}
 	let userInventory: InventoryItem[] | null = null;
 
 	const { data: commentsData, error: commentsError } = await supabase
@@ -46,7 +58,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 					)
 				`
 		)
-		.eq('stock_id', marketData[0].id)
+		.eq('stock_id', marketData.id)
 		.order('id', { ascending: false });
 
 	if (commentsError) {

@@ -13,12 +13,12 @@
 	let { supabase } = $derived(data);
 	let selectedDateRange = $state('12 hour');
 
-	let marketData: MarketItem[] = $state(data.marketData);
+	let marketData: MarketItem | null= $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
 
-	let currentPrice = $derived(marketData[0]?.history?.slice(-1)[0]?.price || 0);
-	let beginningPrice = $derived(marketData[0]?.history?.[0]?.price || 0);
+	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
+	let beginningPrice = $derived(marketData?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 	let snapshotBalance = 0;
@@ -36,32 +36,30 @@
 		return total;
 	}
 	$effect(() => {
-		// const marketSubscription = supabase
-		// 	.channel('market')
-		// 	.on(
-		// 		'postgres_changes',
-		// 		{
-		// 			event: '*',
-		// 			schema: 'public',
-		// 			table: 'market'
-		// 		},
-		// 		(payload: any) => {
-		// 			const { new: newData, old: oldData } = payload;
-		// 			if (newData.ticker !== ticker && oldData.ticker !== ticker) {
-		// 				return;
-		// 			}
-		// 			if (payload.eventType === 'INSERT') {
-		// 				marketData = [...marketData, newData as MarketItem];
-		// 			} else if (payload.eventType === 'UPDATE') {
-		// 				marketData = marketData.map((item) =>
-		// 					item.id === newData.id ? (newData as MarketItem) : item
-		// 				);
-		// 			} else if (payload.eventType === 'DELETE') {
-		// 				marketData = marketData.filter((item) => item.id !== oldData.id);
-		// 			}
-		// 		}
-		// 	)
-		// 	.subscribe();
+		const marketSubscription = supabase
+			.channel('market_prices')
+			.on(
+				'postgres_changes',
+				{
+					event: 'INSERT',
+					schema: 'public',
+					table: 'market_prices'
+				},
+				(payload: any) => {
+					console.log('postgres_changes event triggered', payload);
+					const { new: newData, old: oldData } = payload;
+					if (newData.stock_id !== marketData.id && oldData.stock_id !== marketData.id) {
+						return;
+					}
+					if (payload.eventType === 'INSERT') {
+						marketData = {
+							...marketData,
+							history: [...marketData.history, newData]
+						};
+					}
+				}
+			)
+			.subscribe();
 
 		const commentsSubscription = supabase
 			.channel('comments')
@@ -139,7 +137,7 @@
 			: null;
 
 		return () => {
-			// marketSubscription.unsubscribe();
+			marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 		};
@@ -176,66 +174,58 @@
 		return filteredHistory;
 	}
 
-	let filteredMarketData = $derived(
-		marketData.map((item) => {
-			const filteredHistory = getFilteredHistory(item, selectedDateRange);
-			const beginningPrice = filteredHistory[0]?.price || 0;
-			const currentPrice = filteredHistory.slice(-1)[0]?.price || 0;
-			return {
-				...item,
-				history: filteredHistory,
-				beginningPrice,
-				currentPrice
-			};
-		})
-	);
+	const filteredMarketHistory = $derived(getFilteredHistory(marketData, selectedDateRange));
+	let filteredmarketData = $derived({
+		...marketData,
+		history: filteredMarketHistory,
+		beginningPrice: beginningPrice,
+		currentPrice: currentPrice
+	});
+
+	
 </script>
 
 <svelte:head>
-	<title>${marketData[0]?.ticker} - {marketData[0]?.name}</title>
+	<title>${marketData?.ticker} - {marketData?.name}</title>
 </svelte:head>
 
-{#if filteredMarketData[0] && filteredMarketData[0].history}
+{#if filteredmarketData && filteredmarketData.history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
 		<div class="container mx-auto px-4 pt-8">
 			<div class="flex justify-between items-center">
 				<h1 class="text-4xl font-bold">
-					{filteredMarketData[0].name}
+					{filteredmarketData.name}
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${Number(filteredMarketData[0].currentPrice).toLocaleString(undefined, {
+					${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
 						minimumFractionDigits: 2,
 						maximumFractionDigits: 2
 					})}
 					<span
-						class={filteredMarketData[0].currentPrice > filteredMarketData[0].beginningPrice
+						class={filteredmarketData.currentPrice > filteredmarketData.beginningPrice
 							? 'text-green-500'
-							: filteredMarketData[0].currentPrice < filteredMarketData[0].beginningPrice
+							: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
 								? 'text-red-500'
 								: 'text-gray-500'}
 					>
-						({((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
-							filteredMarketData[0].beginningPrice) *
+						({((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+							filteredmarketData.beginningPrice) *
 							100 !==
 						0
-							? ((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
-									filteredMarketData[0].beginningPrice) *
+							? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+									filteredmarketData.beginningPrice) *
 									100 >
 								0
 								? '+'
 								: ''
 							: ''}
-						{(
-							((filteredMarketData[0].currentPrice - filteredMarketData[0].beginningPrice) /
-								filteredMarketData[0].beginningPrice) *
-							100
-						).toFixed(2)}%)
+						{percentageChange.toFixed(2)}%)
 					</span>
 				</div>
 			</div>
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
-				<Chart stockData={filteredMarketData[0].history} />
+				<Chart stockData={filteredmarketData.history} />
 				<div class="justify-end flex">
 					<select class="select max-w-[200px" bind:value={selectedDateRange}>
 						<option disabled selected>Select Date Range</option>
@@ -252,7 +242,7 @@
 					{#if data.session && userBalance !== null}
 						<BuyandSell
 							uuid={data.session.user.id}
-							stockID={Number(marketData[0].id)}
+							stockID={Number(marketData.id)}
 							currentPrice={Number(currentPrice)}
 							{userBalance}
 							{ticker}
@@ -260,7 +250,7 @@
 					{/if}
 				</Portfolio>
 			{/if}
-			<Comments {comments} currentId={marketData[0].id} />
+			<Comments {comments} currentId={marketData.id} />
 		</div>
 	</div>
 {/if}

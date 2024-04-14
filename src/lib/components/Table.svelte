@@ -41,7 +41,7 @@
 			.map((item) => ({
 				...item,
 				history: getFilteredHistory(item, selectedDateRange),
-				percentageChange: calculatePercentageChange(getFilteredHistory(item, selectedDateRange))
+				percentageChange: calculatePercentageChange(getFilteredHistory(item, selectedDateRange))	// easily optimized idk why you gotta filter
 			}))
 			.sort((a, b) => {
 				if (selectedFilter === 'Price') {
