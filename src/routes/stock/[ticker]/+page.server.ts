@@ -57,7 +57,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 		marketData = initialData as MarketItem[];
 
 		// Cache the market data
-		await redis.set(marketCacheKey, JSON.stringify(marketData));
+		await redis.set(marketCacheKey, JSON.stringify(marketData), 'EX', 60 * 5);
 	}
 
 	// Check if comments are already cached
