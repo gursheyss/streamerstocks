@@ -113,8 +113,7 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
                 row['price'] += (scalar * percent_delta)
             else:
                 row['price'] += row['price'] * random.uniform(-0.01, 0.01)
-    print(response)
-    print(new_prices)
+            row['timestamp'] = int(time.time())
     send_market_update(response, new_prices)
     client.table('market_prices').insert(new_prices).execute()
 
