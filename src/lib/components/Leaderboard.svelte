@@ -4,10 +4,14 @@
 
 	export let numRows: number;
 	export let fetchLeaderboardData: () => Promise<
-		(Profile & { pnl?: number; net_worth?: number; trade_count: number })[]
+		({ rank: number } & Profile & { pnl?: number; net_worth?: number; trade_count: number })[]
 	>;
 
-	let leaderboardData: (Profile & { pnl?: number; net_worth?: number; trade_count: number })[] = [];
+	let leaderboardData: ({ rank: number } & Profile & {
+			pnl?: number;
+			net_worth?: number;
+			trade_count: number;
+		})[] = [];
 	let loading = true;
 	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
