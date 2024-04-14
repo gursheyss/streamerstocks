@@ -15,7 +15,7 @@
 	onMount(() => {
 		const ctx = chartRef.getContext('2d');
 		if (ctx) {
-			downsampledData = downsampleData(stockData, 100); // Downsample data to 100 points
+			downsampledData = stockData;
 			createChart(ctx);
 		}
 	});
