@@ -54,10 +54,9 @@
 					<tr class="text-white font-bold">
 						<th class="text-left py-2">Rank</th>
 						<th class="text-left py-2">User</th>
-						<!-- Will add back once trade history is implemented. -->
-						<!-- <th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
 							# of Trades {@html getSortIcon()}
-						</th> -->
+						</th>
 						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('pnl')}>
 							PnL {@html getSortIcon()}
 						</th>
@@ -80,11 +79,9 @@
 								/>
 								<span>{leaderboardItem.username}</span>
 							</td>
-							<!-- Will add back once trade history is implemented. -->
-							<!-- <td class="py-4 items-center">
+							<td class="py-4 items-center">
 								<span>{leaderboardItem.trade_count}</span>
-							</td> -->
-
+							</td>
 							<td class="py-4 items-center">
 								<span
 									class={leaderboardItem.pnl > 0
