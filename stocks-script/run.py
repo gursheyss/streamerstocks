@@ -74,10 +74,10 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
                 row['price'] += row['price'] * random.uniform(-0.01, 0.01)
     client.table('market').upsert(response).execute()
 
-def save_prices_to_history(decay_rate:float) -> None:
+def decay_and_save_prices(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
     print('SAVING PRICES')
-    client.rpc('save_prices_to_history', {'decay_rate': decay_rate}).execute()
+    client.rpc('decay_and_save_prices', {'decay_rate': decay_rate}).execute()
 
 def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
@@ -131,7 +131,7 @@ def check_if_jason_online() -> None:
         except:
             send_error_message("Error checking if Jason is online")
 
-def save_history_loop(save_interval_seconds:int, decay_rate:float) -> None:
+def decay_and_save_loop(save_interval_seconds:int, decay_rate:float) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
@@ -140,7 +140,7 @@ def save_history_loop(save_interval_seconds:int, decay_rate:float) -> None:
         try:
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
-                save_prices_to_history(decay_rate)
+                decay_and_save_prices(decay_rate)
         except:
             send_error_message("Error saving history")
         finally:
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     online_thread = threading.Thread(target=check_if_jason_online)
     chat_update_thread = threading.Thread(target=update_by_chat_loop, kwargs={'max_batch_size': 50, 'scalar': 0.4812})
     reddit_update_thread = threading.Thread(target=update_by_reddit_loop, kwargs={'update_interval_seconds': 600, 'scalar': 0.2047})
-    save_thread = threading.Thread(target=save_history_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
+    save_thread = threading.Thread(target=decay_and_save_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
 
     online_thread.start()
     chat_update_thread.start()
