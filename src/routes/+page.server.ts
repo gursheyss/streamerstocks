@@ -41,6 +41,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 		} else {
 			userBalance = profileData?.balance ?? null;
 		}
+		// This is fetching the history from market table too but once we delete that column, should be chill
 		let { data: inventoryData, error: inventoryError } = await supabase
 			.from('inventory')
 			.select(
