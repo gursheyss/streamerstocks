@@ -13,7 +13,16 @@ export const actions = {
 		const comment = data.get('comment');
 		const stockId = data.get('currentId');
 		console.log(comment, stockId);
-		const userId = session?.user.id;
+		const userId = session?.user?.id;
+
+		if (!/\w/.test(String(comment))) {
+			return {
+				status: 400,
+				body: {
+					message: 'Invalid comment. Comment must contain at least one alphanumeric character.'
+				}
+			};
+		}
 
 		await supabase.from('comments').insert([
 			{
@@ -23,7 +32,6 @@ export const actions = {
 			}
 		]);
 
-		// Invalidate the cache for the stock
 		const cacheKey = `comments:${stockId}`;
 		await redis.del(cacheKey);
 	}
