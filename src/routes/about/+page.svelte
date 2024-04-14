@@ -18,7 +18,7 @@
 	/>
 	<AboutCard
 		title={'How it works'}
-		description={"BopStocks simulates the stock market and assigns values to people based on a complex algorithm based on two main factors:\n\n \
+		description={"BopStocks simulates the stock market using a complex algorithm based on two main factors:\n\n \
             1. The supply and demand of their stock\n \
             2. The community's perception of them \n\n \
             So if someone is blackballed, their stock price may drop drastically. Conversely, if a person \
