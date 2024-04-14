@@ -61,7 +61,7 @@
 							PnL {@html getSortIcon()}
 						</th>
 						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('net_worth')}>
-							Balance {@html getSortIcon()}
+							Leaderboard {@html getSortIcon()}
 						</th>
 					</tr>
 				</thead>
