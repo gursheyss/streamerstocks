@@ -102,7 +102,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 			comments = [...comments, ...newCommentsToAdd];
 
 			// Cache the comments
-			await redis.set(cacheKey, JSON.stringify(comments));
+			await redis.set(cacheKey, JSON.stringify(comments), 'EX', 60 * 5);
 		}
 	}
 
