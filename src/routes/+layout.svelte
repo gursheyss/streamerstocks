@@ -2,6 +2,7 @@
 	import '../app.pcss';
 	import { invalidate, invalidateAll } from '$app/navigation';
 	import Header from '$lib/components/Header.svelte';
+	import { Toaster, toast } from 'svelte-sonner';
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
@@ -30,6 +31,7 @@
 	profilePicture={data.session?.user.user_metadata.avatar_url}
 	username={data.session?.user.user_metadata.nickname}
 />
+<Toaster richColors theme="dark" />
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 	<slot />
 </div>

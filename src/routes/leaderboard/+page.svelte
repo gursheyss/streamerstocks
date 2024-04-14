@@ -6,7 +6,7 @@
 </script>
 
 {#if data}
-	<Leaderboard {numRows} fetchLeaderboardData={() => Promise.resolve(data.marketData)} />
+	<Leaderboard {numRows} fetchLeaderboardData={() => Promise.resolve(data.leaderboardData)} />
 {:else}
 	<div>Loading leaderboard data...</div>
 {/if}

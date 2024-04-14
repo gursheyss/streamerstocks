@@ -53,14 +53,26 @@
 					]
 				},
 				options: {
+					animation: {
+						duration: 1000, // duration of the animation in milliseconds
+						easing: 'linear' // easing function to use
+					},
 					responsive: true,
+
 					scales: {
 						y: {
 							min: minPrice,
 							max: maxPrice,
 							ticks: {
 								stepSize: 1,
-								callback: (value: number) => value.toFixed(0)
+								callback: (tickValue: number | string) => {
+									if (typeof tickValue === 'number') {
+										return tickValue.toFixed(0);
+									}
+									return tickValue;
+								},
+								autoSkip: false,
+								maxTicksLimit: 5
 							},
 							grid: {
 								color: 'rgba(255, 255, 255, 0.1)',
@@ -105,6 +117,7 @@
 			});
 			window.addEventListener('resize', updateChart);
 			updateChart();
+			chart.resize();
 		}
 	});
 
@@ -123,23 +136,66 @@
 
 	function updateChart() {
 		const isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
-		const gradientColor = isIncreasing ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.5)';
+		const isStraightLine =
+			stockData.length === 1 || stockData.every((data) => data.price === stockData[0].price);
+		const gradientColor = isStraightLine
+			? 'rgba(128, 128, 128, 0.2)'
+			: isIncreasing
+				? 'rgba(0, 255, 0, 0.2)'
+				: 'rgba(255, 0, 0, 0.5)';
+
 		const prices = stockData.map((data) => data.price);
 		const minPrice = Math.min(...prices);
 		const maxPrice = Math.max(...prices);
-		const padding = (maxPrice - minPrice) * 0.1; // Add 10% padding
 
-		chart.data.labels = stockData.map((data) =>
-			new Date(data.timestamp * 1000).toLocaleTimeString()
-		);
+		// Add a small buffer to the min and max prices if they are equal
+		const buffer = 0.1;
+		const yMin = minPrice === maxPrice ? minPrice - buffer : minPrice;
+		const yMax = minPrice === maxPrice ? maxPrice + buffer : maxPrice;
 
-		chart.data.datasets[0].data = stockData.map((data) => data.price);
-		chart.data.datasets[0].borderColor = isIncreasing ? 'green' : 'red';
-		chart.options.scales.y.min = minPrice - padding;
-		chart.options.scales.y.max = maxPrice + padding;
+		const padding = (yMax - yMin) * 0.1; // Add 10% padding
 
-		chart.update('none');
+		// Ensure the chart's canvas context is available
+		if (chart.ctx) {
+			const { ctx, chartArea } = chart;
+			const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+			gradient.addColorStop(0, gradientColor);
+			gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+			// Apply the new gradient
+			chart.data.datasets[0].fill = { target: 'origin', above: gradient };
+		}
+
+		// Handle the case when there is only one data point
+		if (stockData.length === 1) {
+			const timestamp = stockData[0].timestamp;
+			const price = stockData[0].price;
+			chart.data.labels = [
+				new Date(timestamp * 1000 - 60000).toLocaleTimeString(), // Add an artificial timestamp 1 minute before
+				new Date(timestamp * 1000).toLocaleTimeString()
+			];
+			chart.data.datasets[0].data = [price, price]; // Duplicate the price for both timestamps
+		} else {
+			chart.data.labels = stockData.map((data) =>
+				new Date(data.timestamp * 1000).toLocaleTimeString()
+			);
+			chart.data.datasets[0].data = stockData.map((data) => data.price);
+		}
+
+		chart.data.datasets[0].borderColor = isStraightLine ? 'grey' : isIncreasing ? 'green' : 'red';
+		chart.options.scales.y.min = yMin - padding;
+		chart.options.scales.y.max = yMax + padding;
+
+		chart.resize();
+
+		chart.update();
 	}
+
+	$effect(() => {
+		if (stockData) {
+			updateChart();
+		}
+	});
 </script>
 
 <div class="container mx-auto mt-8">

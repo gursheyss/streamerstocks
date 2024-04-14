@@ -22,7 +22,7 @@ export const load = async ({ locals: { supabase, safeGetSession } }) => {
 		marketData = initialData as MarketItem[];
 	}
 
-	if (session) {
+	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
 			.select('balance')

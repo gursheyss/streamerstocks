@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import Portfolio from '$lib/components/Portfolio.svelte';
 	import type { InventoryItem } from '$lib/types';
 	import Inventory from '$lib/components/Inventory.svelte';
 	import type { MarketItem } from '$lib/types.js';
-    
+
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
 	let uuid: string = '';
@@ -21,7 +21,7 @@
 		if (snapshotBalance != 0) {
 			total = snapshotBalance;
 		}
-  		x.forEach(element => {
+		x.forEach((element) => {
 			total += element.quantity * element.market.price;
 		});
 		return total;
@@ -29,7 +29,7 @@
 
 	onMount(async () => {
 		// Fetch user balance only if data.session exists
-			const { data: initialData, error } = await supabase
+		const { data: initialData, error } = await supabase
 			.from('market')
 			.select('*')
 			.order('price', { ascending: false });
@@ -52,12 +52,14 @@
 
 			let { data: inventoryData, error: inventoryError } = await supabase
 				.from('inventory')
-				.select(`
+				.select(
+					`
 					*,
 					market (
 						*
 					)
-				`)
+				`
+				)
 				.gte('quantity', 1)
 				.eq('user_id', data.session.user.id);
 			if (inventoryError) {
@@ -78,7 +80,6 @@
 				netWorth = calcNW(userInventory, profileData?.balance);
 			}
 		}
-		
 	});
 
 	$effect(() => {
@@ -108,7 +109,7 @@
 </script>
 
 {#if data.session && userBalance !== null && userInventory != null}
-	<Portfolio balance={userBalance} netWorth = {netWorth}/>
+	<Portfolio balance={userBalance} {netWorth} />
 {/if}
 
 <Inventory inventoryData={userInventory} />

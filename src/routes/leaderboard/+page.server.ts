@@ -1,50 +1,106 @@
 export const load = async ({ locals }) => {
-	const { data, error } = await locals.supabase.rpc('calculate_pnl_with_networth');
-	if (error) {
-		console.error('Error fetching PnL:', error);
-		return { leaderboard: [] };
-	}
+	try {
+		const { data: netWorthData, error: netWorthError } =
+			await locals.supabase.rpc('calculate_net_worth');
+		if (netWorthError) throw netWorthError;
 
-	return { marketData: data };
+		const { data: pnlData, error: pnlError } = await locals.supabase.rpc('calculate_pnl');
+		if (pnlError) throw pnlError;
+
+		const { data: tradeCountData, error: tradeCountError } =
+			await locals.supabase.rpc('calculate_trade_count');
+		if (tradeCountError) throw tradeCountError;
+
+		// Combine data based on user_id
+		const combinedData = netWorthData.map((netWorthItem: { user_id: any }) => {
+			const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === netWorthItem.user_id);
+			const tradeCountItem = tradeCountData.find(
+				(t: { user_id: any }) => t.user_id === netWorthItem.user_id
+			);
+
+			return {
+				...netWorthItem,
+				pnl: pnlItem ? pnlItem.pnl : null,
+				trade_count: tradeCountItem ? tradeCountItem.trade_count : null
+			};
+		});
+
+		return { leaderboardData: combinedData };
+	} catch (error) {
+		console.error('Error fetching leaderboard data:', error);
+		return { leaderboardData: [] };
+	}
 };
 
-// TODO: FIX PNL FUNCTION.
 /*
-
-SQL function calculate_pnl_with_networth():
-
-DROP FUNCTION IF EXISTS calculate_pnl_with_networth;
-
-CREATE OR REPLACE FUNCTION calculate_pnl_with_networth()
+CREATE OR REPLACE FUNCTION calculate_net_worth()
 RETURNS TABLE (
   user_id uuid,
   username text,
   avatar_url text,
-  pnl numeric,
-  net_worth numeric,
+  net_worth numeric
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    p.id,
+    p.username,
+    p.avatar_url,
+    CAST(p.balance AS numeric) + COALESCE((SELECT SUM(CAST(quantity AS numeric) * CAST(m.price AS numeric))
+                          FROM inventory i
+                          JOIN market m ON m.id = i.stock_id
+                          WHERE i.user_id = p.id), 0) AS net_worth
+  FROM profiles p;
+END; $$
+LANGUAGE plpgsql STABLE;
+
+*/
+
+/*
+CREATE OR REPLACE FUNCTION calculate_pnl()
+RETURNS TABLE (
+  user_id uuid,
+  username text,
+  avatar_url text,
+  pnl numeric
+) AS $$
+DECLARE
+  user_net_worth RECORD;
+BEGIN
+  FOR user_net_worth IN SELECT * FROM calculate_net_worth()
+  LOOP
+    RETURN QUERY
+    SELECT 
+      user_net_worth.user_id,
+      user_net_worth.username,
+      user_net_worth.avatar_url,
+      CAST(user_net_worth.net_worth AS numeric) - (10000 + (SELECT COALESCE(SUM(CAST(amount_redeemed AS numeric)), 0) 
+                                           FROM profiles 
+                                           WHERE id = user_net_worth.user_id)) AS pnl;
+  END LOOP;
+END; $$
+LANGUAGE plpgsql STABLE;
+*.
+
+/*
+CREATE OR REPLACE FUNCTION calculate_trade_count()
+RETURNS TABLE (
+  user_id uuid,
+  username text,
+  avatar_url text,
   trade_count bigint
 ) AS $$
 BEGIN
   RETURN QUERY
-    SELECT
-      p.id AS user_id,
-      p.username,
-      p.avatar_url,
-      COALESCE(SUM((CASE 
-                        WHEN t.status = 'sold' THEN t.sale_volume * CAST(t.sold_price AS numeric)
-                        ELSE CAST(m.price AS numeric) * t.purchase_volume
-                    END) - (CAST(t.bought_price AS numeric) * t.purchase_volume)), 0) AS pnl,
-      CAST(p.balance AS numeric) + COALESCE(SUM((CASE 
-                                                    WHEN t.status = 'sold' THEN t.sale_volume * CAST(t.sold_price AS numeric)
-                                                    ELSE CAST(m.price AS numeric) * t.purchase_volume
-                                                END)), 0) AS net_worth,
-      COUNT(t."trade id") AS trade_count
-    FROM profiles p
-    LEFT JOIN trades t ON t.user_id = p.id AND (t.status = 'bought' OR t.status = 'sold')
-    LEFT JOIN market m ON m.id = t.stock_id
-    GROUP BY p.id
-    HAVING COUNT(t."trade id") > 0
-END; $$ LANGUAGE plpgsql;
-
+  SELECT 
+    p.id,
+    p.username,
+    p.avatar_url,
+    COALESCE((SELECT COUNT(*)
+              FROM trades t
+              WHERE t.user_id = p.id), 0) AS trade_count
+  FROM profiles p;
+END; $$
+LANGUAGE plpgsql STABLE;
 
 */

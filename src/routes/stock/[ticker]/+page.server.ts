@@ -71,7 +71,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 	const session = await safeGetSession();
 	let userBalance: number | null = null;
 
-	if (session) {
+	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
 			.select('balance')
@@ -84,7 +84,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 			userBalance = profileData?.balance ?? null;
 		}
 	}
-	if (session) {
+	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
 			.select('balance')
@@ -97,7 +97,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 			userBalance = profileData?.balance ?? null;
 		}
 	}
-	if (session) {
+	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
 			.from('profiles')
 			.select('balance')
@@ -109,7 +109,7 @@ export const load = async ({ params, locals: { supabase, safeGetSession } }) => 
 		} else {
 			userBalance = profileData?.balance ?? null;
 		}
-		let { data: inventoryData, error: inventoryError } = await supabase
+		const { data: inventoryData, error: inventoryError } = await supabase
 			.from('inventory')
 			.select(
 				`

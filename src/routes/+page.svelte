@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import Table from '$lib/components/Table.svelte';
 	import type { MarketItem } from '$lib/types.js';
 	import type { InventoryItem } from '$lib/types';
@@ -20,7 +19,7 @@
 		if (snapshotBalance != 0) {
 			total = snapshotBalance;
 		}
-  		x.forEach(element => {
+		x.forEach((element) => {
 			total += element.quantity * element.market.price;
 		});
 		return total;
@@ -65,7 +64,7 @@
 					.subscribe()
 			: null;
 
-		// const networthSubscription = data.session 
+		// const networthSubscription = data.session
 		// 	? supabase
 		// 			.channel('networth')
 		// 			.on(
@@ -92,8 +91,13 @@
 	});
 </script>
 
+<div class="bg-green-600 text-white text-center py-2 mb-4">
+	<!-- New div -->
+	The market is now open, click on a stock to buy/sell
+</div>
+
 {#if data.session && userBalance !== null && inventoryData != null}
-	<Portfolio balance={userBalance} netWorth = {calcNW(inventoryData)}/>
+	<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 {/if}
 
 <Table {marketData} />
