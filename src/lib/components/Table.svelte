@@ -89,7 +89,6 @@
 		</div>
 
 		{#each filteredMarketHistory as item}
-			{@const calculatedPercentageChange = calculatePercentageChange(item.history)}
 			<a
 				href={`/stock/${item.ticker}`}
 				data-sveltekit-preload-data
@@ -103,28 +102,16 @@
 				</div>
 
 				<div class="flex-shrink-0 flex items-center space-x-4">
-					<div class="text-right">
-						${Number(item.price).toLocaleString(undefined, {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2
-						})}
-					</div>
-					<div class="text-right">
-						{#if calculatedPercentageChange > 0}
-							<span class="text-green-500">
-								+{calculatedPercentageChange.toFixed(2)}%
-							</span>
-						{:else if calculatedPercentageChange < 0}
-							<span class="text-red-500">
-								{calculatedPercentageChange.toFixed(2)}%
-							</span>
-						{:else}
-							<span class="text-gray-400">0%</span>
-						{/if}
-					</div>
-					<div>
-						<div class="w-24 h-24 mx-auto">
-							<MiniChart stockData={item.history} />
+					<div class="text-right flex flex-col sm:flex-row space-x-4 sm:space-x-8">
+						<div class="order-2 sm:order-1">${item.price.toFixed(2).toLocaleString()}</div>
+						<div class="order-1 sm:order-2">
+							{#if item.percentageChange > 0}
+								<span class="text-green-500">+{item.percentageChange.toFixed(2)}%</span>
+							{:else if item.percentageChange < 0}
+								<span class="text-red-500">{item.percentageChange.toFixed(2)}%</span>
+							{:else}
+								<span class="text-gray-400">0%</span>
+							{/if}
 						</div>
 					</div>
 

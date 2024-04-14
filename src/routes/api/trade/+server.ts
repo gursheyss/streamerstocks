@@ -48,7 +48,8 @@ export async function POST({ request }) {
 			});
 			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
 				amt: price * amt,
-				userid: uuid
+				userid: uuid,
+				stock_quantity: amt
 			});
 			if (userError) console.error(userError);
 			else console.log('user updating' + userData);
@@ -68,8 +69,24 @@ export async function POST({ request }) {
 				amt: -amt,
 				stockid: stockID
 			});
+
 			if (stockError) console.error(stockError);
 			else console.log('stock updating:' + stockData);
+
+			// Record the trade
+			const trade = {
+				user_id: uuid,
+				stock_id: stockID,
+				bought_price: amt < 0 ? price : null,
+				purchase_volume: amt < 0 ? Math.abs(amt) : null,
+				sold_price: amt > 0 ? price : null,
+				sale_volume: amt > 0 ? amt : null,
+				date_purchased: new Date().toISOString(),
+				status: amt < 0 ? 'bought' : 'sold'
+			};
+			const { error: tradeError } = await supabase.from('trades').insert([trade]);
+			if (tradeError) console.error('Error recording trade:', tradeError);
+
 			found = true;
 		}
 	}
