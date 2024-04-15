@@ -24,10 +24,13 @@ export interface Comment {
 	comment: string;
 }
 export interface Profile {
-	id: string;
+	rank?: number;
+	user_id: string;
 	username: string;
 	avatar_url: string;
-	balance: number;
+	net_worth: number;
+	pnl: number;
+	trade_count: number;
 }
 
 export interface Trade {
