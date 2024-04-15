@@ -16,7 +16,6 @@
 	let marketData: MarketItem | null= $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
-
 	let currentPrice = $state(data.marketPrice || 0);
 	let beginningPrice = $derived(marketData?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
@@ -217,10 +216,7 @@
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${Number(currentPrice).toLocaleString(undefined, {
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2
-					})}
+					${Number(currentPrice).toFixed(2)}
 					<span
 						class={filteredmarketData.currentPrice > filteredmarketData.beginningPrice
 							? 'text-green-500'
