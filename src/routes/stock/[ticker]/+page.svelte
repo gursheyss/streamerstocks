@@ -148,6 +148,7 @@
 						(payload: any) => {
 							const { new: newData } = payload;
 							currentPrice = newData.price;
+							console.log(currentPrice)
 						}
 					)
 					.subscribe()
