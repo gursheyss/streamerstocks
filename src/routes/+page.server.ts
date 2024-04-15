@@ -10,6 +10,18 @@ export const actions = {
 };
 
 export const load = async ({ locals: { safeGetSession } }) => {
+	let testobjmarket: MarketItem = {
+		id: "",
+		name: "",
+		ticker: "",
+		price: 0,
+		low: 0,
+		high: 0,
+		market_cap: 0,
+		volume: 0,
+		image: "",
+		history: []
+	};
 	const session = await safeGetSession();
 	
 	let userBalance: number | null = null;
@@ -17,6 +29,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	let marketData: MarketItem[] = [];
 
 	const cachedMarketData = await redis.get('marketData');
+	// add more conditions for validation
 	if (cachedMarketData) {
 		marketData = JSON.parse(cachedMarketData)
 	}
@@ -29,11 +42,12 @@ export const load = async ({ locals: { safeGetSession } }) => {
 			let initMarketData: MarketItem[] = [];
 			for (let i = 0; i < initialData.length; i+=1) {
 				const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
-				if (cachedIndivMarketData != "" && cachedIndivMarketData != null) {
+				//todo:: add more validatino for conditions 
+				if (cachedIndivMarketData != null && JSON.parse(cachedIndivMarketData).history.length == 0) {
 					const marketItem = JSON.parse(cachedIndivMarketData);
 					initMarketData.push({
 						...marketItem,
-						history: marketItem.history.slice(0, 60)
+						history: marketItem.history
 					});
 				}
 				else {
