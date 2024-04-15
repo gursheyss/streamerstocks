@@ -28,7 +28,7 @@
 		document.title = 'BopStocks';
 		const marketSubscription = supabase
 			.channel('market')
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'market' }, (payload: any) => {
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'market_prices' }, (payload: any) => {
 				const { new: newData, old: oldData } = payload;
 				if (payload.eventType === 'INSERT') {
 					// New record inserted
