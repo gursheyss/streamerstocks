@@ -44,7 +44,7 @@
 	<div class="flex mt-16 justify-center h-screen">Fetching data...</div>
 {:else}
 	<div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
-		<div class="flex justify-center items-center mb-4 m-2">
+		<div class="flex justify-center items-center mb-2 m-2 mt-4">
 			<h2 class="text-xl font-bold text-white">Leaderboard</h2>
 		</div>
 		<p class=" text-xs text-center text-gray-400 italic">Updates every 5 minutes</p>
@@ -104,7 +104,7 @@
 				</tbody>
 			</table>
 		</div>
-		{#if leaderboardData.length > 10}
+		{#if numRows < leaderboardData.length}
 			<div class="flex justify-center mt-4">
 				<button class="flex text-white font-bold" on:click={() => (numRows += 10)}>
 					Load More

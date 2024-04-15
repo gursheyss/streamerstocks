@@ -64,7 +64,7 @@ export const load = async ({ locals }) => {
 	try {
 		// Fetch leaderboard data from Redis
 		// await initializeLeaderboard();
-		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 19);
+		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 29);
 
 		const formattedData = await Promise.all(
 			leaderboardUserIds.map(async (userId) => {
