@@ -14,7 +14,7 @@
 
 	onMount(() => {
 		const ctx = chartRef.getContext('2d');
-		if (ctx) {
+		if (ctx && stockData) {
 			downsampledData = stockData;
 			createChart(ctx);
 		}
@@ -75,12 +75,16 @@
 	}
 
 	function updateChart() {
+		if (!downsampledData) {
+			return; // fixes breaks when updating too fast
+		}
+
 		const isIncreasing =
 			downsampledData[downsampledData.length - 1].price > downsampledData[0].price;
 		const prices = downsampledData.map((data) => data.price);
 		const minPrice = Math.min(...prices);
 		const maxPrice = Math.max(...prices);
-		const padding = maxPrice - minPrice; // Add 10% padding
+		const padding = maxPrice - minPrice;
 
 		chart.data.labels = downsampledData.map(() => '');
 		chart.data.datasets[0].data = downsampledData.map((data) => data.price);
@@ -99,6 +103,7 @@
 				return gradient;
 			}
 		};
+
 		chart.options.scales.y.min = minPrice;
 		chart.options.scales.y.max = maxPrice;
 

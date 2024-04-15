@@ -26,24 +26,6 @@
 	}
 	$effect(() => {
 		document.title = 'BopStocks';
-		const marketSubscription = supabase
-			.channel('market')
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'market' }, (payload: any) => {
-				const { new: newData, old: oldData } = payload;
-				if (payload.eventType === 'INSERT') {
-					// New record inserted
-					marketData = [...marketData, newData as MarketItem];
-				} else if (payload.eventType === 'UPDATE') {
-					// Record updated
-					marketData = marketData.map((item) =>
-						item.id === newData.id ? (newData as MarketItem) : item
-					);
-				} else if (payload.eventType === 'DELETE') {
-					// Record deleted
-					marketData = marketData.filter((item) => item.id !== oldData.id);
-				}
-			})
-			.subscribe();
 
 		const profileSubscription = data.session
 			? supabase
@@ -84,7 +66,6 @@
 		// 	: null;
 
 		return () => {
-			marketSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 			// networthSubscription?.unsubscribe();
 		};

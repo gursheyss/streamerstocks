@@ -39,7 +39,9 @@
 						alt="Avatar"
 					/>
 					<div>
-						<span class="font-semibold">{comment.username}</span>
+						<a href={`/portfolio/${comment.username}`}
+							><span class="font-semibold">{comment.username}</span></a
+						>
 						<span class="text-gray-400 text-sm ml-2">
 							{formatDistanceToNow(parseISO(comment.created_at))} ago
 						</span>
