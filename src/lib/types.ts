@@ -52,3 +52,7 @@ export interface InventoryItem {
 	quantity: number;
 	market: MarketItem;
 }
+
+export interface NewsItem{
+	message: string
+}
