@@ -1,4 +1,4 @@
-import { PUBLIC_TWITCH_EVENTSUB_SECRET } from '$env/static/public';
+import { TWITCH_EVENTSUB_SECRET } from '$env/static/private';
 import { supabase } from '$lib/server/supabase';
 import crypto from 'crypto';
 
@@ -77,7 +77,7 @@ export async function POST({ request }) {
 }
 
 function getSecret() : string {
-    return PUBLIC_TWITCH_EVENTSUB_SECRET as string;
+    return TWITCH_EVENTSUB_SECRET as string;
 }
 
 // Build the message used to get the HMAC.
