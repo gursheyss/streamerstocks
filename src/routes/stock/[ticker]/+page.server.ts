@@ -1,6 +1,7 @@
 import type { Comment, MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 import { supabase } from '$lib/server/supabase';
+import { redis } from '$lib/server/redis';
 
 export const actions = {
 	submitComment: async ({ locals: { safeGetSession }, request }) => {
@@ -29,18 +30,36 @@ export const actions = {
 export const load = async ({ params, locals: { safeGetSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
-	const { data: initialData } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image').ilike('ticker', ticker);
+	const { data: initialData, error: initialError } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image').ilike('ticker', ticker);
+	if (initialError) {
+		console.error("initial data error", initialError);
+	}
 	let netWorth: number | null = null;
 	let marketData: MarketItem | null = null;
 	let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[0].id).order('timestamp', { ascending: false })
-	if (marketHistory != null && initialData != null) {
-		marketData = {
-			...initialData[0],
-			history: marketHistory.reverse(),
-			low: 0,
-			high: 0,
-			volume: 0
-		} as MarketItem;
+	if (marketError != null) {
+		console.error("error fetching marketdata", marketError);
+	}
+	if (initialData != null) {
+		const cachedMarketData = await redis.get('marketData'+initialData[0].id);
+		if (cachedMarketData) {
+			marketData = JSON.parse(cachedMarketData);
+		}
+		else {
+			if (marketHistory != null && initialData != null) {
+				marketData = {
+					...initialData[0],
+					history: marketHistory.reverse(),
+					low: 0,
+					high: 0,
+					volume: 0
+				} as MarketItem;
+			}
+			if (marketData != null) {
+				await redis.set('marketData'+initialData[0].id, JSON.stringify(marketData), 'EX', 60 * 5);
+			}
+
+		}
 	}
 	let userInventory: InventoryItem[] | null = null;
 
