@@ -20,30 +20,41 @@ export const load = async ({ locals: { safeGetSession } }) => {
 		marketData = JSON.parse(cachedMarketData)
 	}
 	else {
-		const { data: initialData, error:initError } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image');
-		if(initError) {
+		const { data: initialData, error:initError } = await supabase.from('market').select('*');
+		if(initError || initialData === undefined) {
 			console.error(initError);
 		}
-		for (let i = 0; i < initialData.length; i+=1) {
-			let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(100)
-			if(marketError) {
-				console.error("error fetching marketData", marketError);
-			}
-			else {
-				let initMarketData: MarketItem[] = [];
-				if (marketHistory != null && initialData != null) {
+		else {
+			let initMarketData: MarketItem[] = [];
+			for (let i = 0; i < initialData.length; i+=1) {
+				const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
+				if (cachedIndivMarketData) {
+					const marketItem = JSON.parse(cachedIndivMarketData);
 					initMarketData.push({
-						...initMarketData[i],
-						price: marketHistory[0].price,
-						history: marketHistory.reverse(),
-						low: 0,
-						high: 0,
-						volume: 0
-					} as MarketItem);
+						...marketItem,
+						history: marketItem.history.slice(0, 60)
+					});
 				}
-				marketData = initMarketData;
-				await redis.set('marketData', JSON.stringify(initMarketData), 'EX', 60 * 5);
+				else {
+					let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(60);
+					if(marketError) {
+						console.error("error fetching marketData", marketError);
+					}
+					else {
+						if (marketHistory != null && initialData != null) {
+							initMarketData.push({
+								...initialData[i],
+								history: marketHistory.reverse(),
+								low: 0,
+								high: 0,
+								volume: 0
+							} as MarketItem);
+						}
+						marketData = initMarketData;
+					}
+				}
 			}
+			await redis.set('marketData', JSON.stringify(marketData), 'EX', 60 * 5);
 		}
 	}
 	// redo in db function

@@ -16,9 +16,6 @@
 	let marketData: MarketItem | null= $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
-	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
-	let beginningPrice = $derived(marketData?.history?.[0]?.price || 0);
-	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 	let snapshotBalance = 0;
 	if (userBalance != null) {
@@ -194,6 +191,9 @@
 	}
 
 	const filteredMarketHistory = $derived(getFilteredHistory(marketData, selectedDateRange));
+	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
+	let beginningPrice = $derived(filteredMarketHistory[0]?.price || 0);
+	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let filteredmarketData = $derived({
 		...marketData,
 		history: filteredMarketHistory,
