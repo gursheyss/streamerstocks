@@ -11,9 +11,11 @@
 		<tbody>
 			{#each inventoryData as item}
 				<tr class="text-white font-bold items-center">
-					<td class="py-4 items-center">
-						<span>{item.market.name}</span>
-						<span class="text-gray-400 ml-2">${item.market.ticker}</span>
+					<td class="py-4 items-center hover:underline">
+						<a href={`/stock/${item.market.ticker}`}>
+							<span>{item.market.name}</span>
+							<span class="no-underline text-gray-400 ml-2">${item.market.ticker}</span>
+						</a>
 					</td>
 					<td class="py-4 text-right"
 						>{item.quantity} <span class="text-gray-400 ml-1">Shares</span></td
