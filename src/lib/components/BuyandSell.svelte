@@ -40,7 +40,7 @@
 <div class="flex flex-col justify-center items-center gap-4 font-inter">
 	<div class="flex justify-center items-center gap-4">
 		<input
-			class="w-56 border border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
+			class="w-32 sm:w-56 border border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
 			bind:value={amount}
 			placeholder="Enter # of Stocks"
 			on:input={handleInput}

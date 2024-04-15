@@ -7,8 +7,8 @@
 	let { balance, netWorth }: Props = $props();
 </script>
 
-<div class="bg-gray rounded-lg p-6 font-inter">
-	<div class="flex items-center justify-between">
+<div class="bg-gray rounded-lg sm:p-6 font-inter">
+	<div class="flex flex-col md:flex-row items-start md:items-center justify-between">
 		<div>
 			<p class="text-2xl font-bold text-white mb-2">
 				Networth: ${Number(netWorth).toLocaleString(undefined, {
@@ -23,6 +23,8 @@
 				})}
 			</h3>
 		</div>
-		<slot />
+		<div class="mt-4 md:mt-0">
+			<slot />
+		</div>
 	</div>
 </div>
