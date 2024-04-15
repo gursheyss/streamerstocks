@@ -222,17 +222,17 @@
 						maximumFractionDigits: 2
 					})}
 					<span
-						class={currentPrice > filteredmarketData.beginningPrice
+						class={filteredmarketData.currentPrice > filteredmarketData.beginningPrice
 							? 'text-green-500'
-							: currentPrice < filteredmarketData.beginningPrice
+							: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
 								? 'text-red-500'
 								: 'text-gray-500'}
 					>
-						({((currentPrice - filteredmarketData.beginningPrice) /
+						({((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
 							filteredmarketData.beginningPrice) *
 							100 !==
 						0
-							? ((currentPrice - filteredmarketData.beginningPrice) /
+							? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
 									filteredmarketData.beginningPrice) *
 									100 >
 								0
