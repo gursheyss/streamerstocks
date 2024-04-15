@@ -50,6 +50,7 @@ name_stock_mapping = {
     "Arky": "arky",
     "Nosiiree": "nosiiree",
 }
+
 # List of users to analyze sentiment for
 analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
 
@@ -62,8 +63,7 @@ client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_S
 def update_prices(delta_sentiment:dict, scalar:float) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
-    response = client.table('market').select('*').execute()
-    response = list(response.data)
+    response = list(client.table('market').select('id,name,price').execute().data)
     send_market_update(response, delta_sentiment, scalar)
     for row in response:
         if row['name'] in name_stock_mapping:
@@ -77,7 +77,7 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
 def save_prices_to_history(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
     print('SAVING PRICES')
-    client.rpc('save_prices_to_history', {'decay_rate': decay_rate}).execute()
+    client.rpc('decay_and_save_snapshots', {'decay_rate': decay_rate}).execute()
 
 def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
@@ -131,7 +131,7 @@ def check_if_jason_online() -> None:
         except:
             send_error_message("Error checking if Jason is online")
 
-def save_history_loop(save_interval_seconds:int, decay_rate:float) -> None:
+def save_snapshot_loop(save_interval_seconds:int, decay_rate:float) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     online_thread = threading.Thread(target=check_if_jason_online)
     chat_update_thread = threading.Thread(target=update_by_chat_loop, kwargs={'max_batch_size': 50, 'scalar': 0.4812})
     reddit_update_thread = threading.Thread(target=update_by_reddit_loop, kwargs={'update_interval_seconds': 600, 'scalar': 0.2047})
-    save_thread = threading.Thread(target=save_history_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
+    save_thread = threading.Thread(target=save_snapshot_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
 
     online_thread.start()
     chat_update_thread.start()
