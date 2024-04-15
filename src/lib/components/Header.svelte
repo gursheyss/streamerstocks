@@ -38,7 +38,7 @@
 		</div>
 
 		<div class="hidden md:block">
-			<div class="ml-10 flex items-baseline space-x-4">
+			<div class="flex items-baseline space-x-4">
 				<!-- Navigation Links -->
 				<a class="text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm font-medium" href="/"
 					>Home</a
@@ -67,7 +67,7 @@
 				<form action="?/signOut" method="POST" use:enhance class="hidden md:block">
 					<button
 						id="SignOutButton"
-						class="bg-white text-black px-4 py-2 rounded font-bold font-inter"
+						class="bg-white text-black px-4 py-2 rounded font-bold font-inter whitespace-nowrap"
 						type="submit"
 					>
 						Sign out
