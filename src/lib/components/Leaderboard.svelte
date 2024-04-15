@@ -108,15 +108,11 @@
 													? 'text-red-400'
 													: 'text-gray-400'}
 										>
-											{leaderboardItem.pnl >= 0 ? '+' : ''}${leaderboardItem.pnl?.toLocaleString(
-												'en-US'
-											)}
+											{leaderboardItem.pnl >= 0 ? '+' : ''}${leaderboardItem.pnl?.toFixed(2)}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="text-white"
-											>${leaderboardItem.net_worth.toLocaleString('en-US')}</span
-										>
+										<span class="text-white">${leaderboardItem.net_worth.toFixed(2)}</span>
 									</td>
 								</tr>
 							{/each}
