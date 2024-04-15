@@ -34,9 +34,9 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 	if (initialError) {
 		console.error("initial data error", initialError);
 	}
-	let netWorth: number | null = null;
 	let marketData: MarketItem | null = null;
 	let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[0].id).order('timestamp', { ascending: false })
+	let marketPrice: number | null = null;
 	if (marketError != null) {
 		console.error("error fetching marketdata", marketError);
 	}
@@ -157,12 +157,23 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		} else {
 			userInventory = inventoryData as InventoryItem[];
 		}
+		const { data: stockPriceData, error: stockPriceError } = await supabase
+			.from('market')
+			.select('price')
+			.eq('id', marketData.id);
+		if (stockPriceError) {
+			console.error('Error fetching stock price:', stockPriceError);
+		} else {
+			marketPrice = stockPriceData[0].price;
+		}
+
 	}
 
 	return {
 		marketData,
 		comments,
 		userBalance,
-		userInventory
+		userInventory,
+		marketPrice
 	};
 };
