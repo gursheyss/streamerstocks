@@ -5,7 +5,7 @@
 	let numRows = 10;
 </script>
 
-{#if data}
+{#if data?.leaderboardData}
 	<Leaderboard {numRows} fetchLeaderboardData={() => Promise.resolve(data.leaderboardData)} />
 {:else}
 	<div>Loading leaderboard data...</div>

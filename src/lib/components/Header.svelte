@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SupabaseClient } from '@supabase/supabase-js';
-	import { page } from '$app/stores';
 
 	let {
 		supabase,
@@ -13,7 +12,9 @@
 	async function signInWithTwitch() {
 		await supabase.auth.signInWithOAuth({
 			provider: 'twitch',
-			options: { redirectTo: `${window.location.origin}/auth/callback` }
+			options: {
+				redirectTo: `${window.location.origin}/auth/callback`
+			}
 		});
 	}
 
@@ -27,7 +28,7 @@
 <header class="py-4">
 	<div class="container mx-auto flex items-center justify-between px-4">
 		<div class="flex items-center">
-			<button class="text-white text-2xl mr-2 md:hidden" on:click={toggleMenu}>&#9776;</button>
+			<button class="text-white text-2xl mr-2 md:hidden" on:click={toggleMenu}> &#9776; </button>
 			<a href="/">
 				<div class="flex items-center">
 					<span class="text-white text-2xl mr-2">📈</span>
@@ -39,32 +40,22 @@
 		<div class="hidden md:block">
 			<div class="ml-10 flex items-baseline space-x-4">
 				<!-- Navigation Links -->
-				<a
-					class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-					href="/"
-					class:text-white={$page.url.pathname === '/'}>Home</a
+				<a class="text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm font-medium" href="/"
+					>Home</a
 				>
 				{#if username}
 					<a
-						class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-						href="/portfolio"
-						class:text-white={$page.url.pathname === '/portfolio'}>Portfolio</a
+						class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+						href="/portfolio">Portfolio</a
 					>
 				{/if}
 				<a
-					class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-					href="/leaderboard"
-					class:text-white={$page.url.pathname === '/leaderboard'}>Leaderboard</a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="/leaderboard">Leaderboard</a
 				>
 				<a
-					class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-					href="/about"
-					class:text-white={$page.url.pathname === '/about'}>About</a
-				>
-				<a
-					class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-					href="https://forms.gle/t6rmVi7uCFU3qmbZ6"
-					target="_blank">Feedback</a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="/about">About</a
 				>
 			</div>
 		</div>
@@ -77,8 +68,10 @@
 					<button
 						id="SignOutButton"
 						class="bg-white text-black px-4 py-2 rounded font-bold font-inter"
-						type="submit">Sign out</button
+						type="submit"
 					>
+						Sign out
+					</button>
 				</form>
 			{:else}
 				<button
@@ -99,40 +92,33 @@
 
 	{#if showMenu}
 		<div class="md:hidden">
-			<div class="px-2 pt-2 pb-3 space-y-4">
+			<div class="px-2 pt-2 pb-3 space-y-1">
 				<a
-					class="text-gray-500 hover:text-white block px-3 rounded-md text-base font-medium"
-					href="/"
-					class:text-white={$page.url.pathname === '/'}>Home</a
+					class="text-gray-900 dark:text-white block px-3 py-2 rounded-md text-base font-medium"
+					href="/">Home</a
 				>
 				{#if username}
 					<a
-						class="text-gray-500 hover:text-white block px-3 rounded-md text-base font-medium"
-						href="/portfolio"
-						class:text-white={$page.url.pathname === '/portfolio'}>Portfolio</a
+						class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+						href="/portfolio">Portfolio</a
 					>
 				{/if}
 				<a
-					class="text-gray-500 hover:text-white block px-3 rounded-md text-base font-medium"
-					href="/leaderboard"
-					class:text-white={$page.url.pathname === '/leaderboard'}>Leaderboard</a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+					href="/leaderboard">Leaderboard</a
 				>
 				<a
-					class="text-gray-500 hover:text-white block px-3 rounded-md text-base font-medium"
-					href="/about"
-					class:text-white={$page.url.pathname === '/about'}>About</a
-				>
-				<a
-					class="text-gray-500 hover:text-white block px-3 rounded-md text-base font-medium"
-					href="https://forms.gle/t6rmVi7uCFU3qmbZ6"
-					target="_blank">Feedback</a
+					class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+					href="/about">About</a
 				>
 				{#if username}
 					<form action="?/signOut" method="POST" use:enhance>
 						<button
-							class="text-gray-500 hover:text-white block w-full text-left px-3 rounded-md text-base font-medium"
-							type="submit">Sign out</button
+							class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block w-full text-left px-3 py-2 rounded-md text-base font-medium"
+							type="submit"
 						>
+							Sign out
+						</button>
 					</form>
 				{/if}
 			</div>

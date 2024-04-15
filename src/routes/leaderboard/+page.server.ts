@@ -1,44 +1,87 @@
+import cron from 'node-cron';
 import { redis } from '$lib/server/redis';
+import { supabase } from '$lib/server/supabase';
+
+// Helper function to load initial leaderboard data into Redis
+async function initializeLeaderboard() {
+	console.log('Initializing leaderboard...');
+	const { data: netWorthData, error: netWorthError } = await supabase.rpc('calculate_net_worth');
+	if (netWorthError) {
+		console.error('Failed to fetch net worth data:', netWorthError);
+		return;
+	}
+	const { data: pnlData, error: pnlError } = await supabase.rpc('calculate_pnl');
+	if (pnlError) {
+		console.error('Failed to fetch PnL data:', pnlError);
+		return;
+	}
+
+	const { data: tradeCountData, error: tradeCountError } =
+		await supabase.rpc('calculate_trade_count');
+	if (tradeCountError) {
+		console.error('Failed to fetch trade count data:', tradeCountError);
+		return;
+	}
+	// // Clear previous leaderboard data
+	await redis.del('leaderboard');
+
+	// Populate Redis sorted set with net worth data
+	const updates = netWorthData.map(
+		async (user: { user_id: any; username: any; avatar_url: any; net_worth: string }) => {
+			const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === user.user_id);
+			const tradeCountItem = tradeCountData.find(
+				(t: { user_id: any }) => t.user_id === user.user_id
+			);
+
+			await redis.hmset(`${user.user_id}`, {
+				username: user.username, // Assume these fields are included in the RPC response
+				avatar_url: user.avatar_url,
+				net_worth: parseFloat(user.net_worth).toFixed(2),
+				pnl: pnlItem ? parseFloat(pnlItem.pnl).toFixed(2) : '0',
+				trade_count: tradeCountItem ? tradeCountItem.trade_count.toString() : '0'
+			});
+
+			// Add user to the sorted set by net worth
+			await redis.zadd('leaderboard', parseFloat(user.net_worth).toFixed(2), `${user.user_id}`);
+		}
+	);
+	await Promise.all(updates);
+	console.log('Leaderboard initialized successfully!');
+}
+// Updates leaderboard every 5 minutes
+cron.schedule(
+	'*/5 * * * *',
+	() => {
+		initializeLeaderboard();
+	},
+	{
+		scheduled: true,
+		timezone: 'America/New_York'
+	}
+);
 
 export const load = async ({ locals }) => {
 	try {
-		let combinedData;
+		// Fetch leaderboard data from Redis
+		// await initializeLeaderboard();
+		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 29);
 
-		// Try to load combinedData from Redis cache
-		const cachedCombinedData = await redis.get('combinedData');
-		if (cachedCombinedData) {
-			combinedData = JSON.parse(cachedCombinedData);
-		} else {
-			const { data: netWorthData, error: netWorthError } =
-				await locals.supabase.rpc('calculate_net_worth');
-			if (netWorthError) throw netWorthError;
-
-			const { data: pnlData, error: pnlError } = await locals.supabase.rpc('calculate_pnl');
-			if (pnlError) throw pnlError;
-
-			const { data: tradeCountData, error: tradeCountError } =
-				await locals.supabase.rpc('calculate_trade_count');
-			if (tradeCountError) throw tradeCountError;
-
-			// Combine data based on user_id
-			combinedData = netWorthData.map((netWorthItem: { user_id: any }) => {
-				const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === netWorthItem.user_id);
-				const tradeCountItem = tradeCountData.find(
-					(t: { user_id: any }) => t.user_id === netWorthItem.user_id
-				);
-
+		const formattedData = await Promise.all(
+			leaderboardUserIds.map(async (userId) => {
+				const userDetails = await redis.hgetall(`${userId}`);
 				return {
-					...netWorthItem,
-					pnl: pnlItem ? pnlItem.pnl : null,
-					trade_count: tradeCountItem ? tradeCountItem.trade_count : null
+					rank: leaderboardUserIds.indexOf(userId) + 1,
+					username: userDetails.username,
+					avatar_url: userDetails.avatar_url,
+					net_worth: Number(userDetails.net_worth),
+					pnl: Number(userDetails.pnl),
+					trade_count: parseInt(userDetails.trade_count, 10)
 				};
-			});
+			})
+		);
 
-			// Set the data in Redis cache with a 10-minute expiration
-			await redis.set('combinedData', JSON.stringify(combinedData), 'EX', 600);
-		}
-
-		return { leaderboardData: combinedData };
+		// console.log('Formatted leaderboard data:', formattedData);
+		return { leaderboardData: formattedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);
 		return { leaderboardData: [] };

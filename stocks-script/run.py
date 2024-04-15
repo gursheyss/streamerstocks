@@ -1,4 +1,3 @@
-import copy
 import random
 import time
 from os import getenv
@@ -75,7 +74,7 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
                 row['price'] += row['price'] * random.uniform(-0.01, 0.01)
     client.table('market').upsert(response).execute()
 
-def decay_and_save_prices(decay_rate:float) -> None:
+def save_prices_to_history(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
     print('SAVING PRICES')
     client.rpc('decay_and_save_snapshots', {'decay_rate': decay_rate}).execute()
@@ -141,7 +140,7 @@ def save_snapshot_loop(save_interval_seconds:int, decay_rate:float) -> None:
         try:
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
-                decay_and_save_prices(decay_rate)
+                save_prices_to_history(decay_rate)
         except:
             send_error_message("Error saving history")
         finally:

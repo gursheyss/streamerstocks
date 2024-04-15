@@ -3,24 +3,23 @@
 	import { onMount } from 'svelte';
 
 	export let numRows: number;
-	export let fetchLeaderboardData: () => Promise<
-		(Profile & { pnl?: number; net_worth?: number; trade_count: number })[]
-	>;
+	export let fetchLeaderboardData: () => Promise<Profile[]>;
 
-	let leaderboardData: (Profile & { pnl?: number; net_worth?: number; trade_count: number })[] = [];
+	let leaderboardData: Profile[] = [];
 	let loading = true;
 	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
 
 	onMount(async () => {
+		console.log('Fetching leaderboard data...');
+		loading = true;
 		try {
 			leaderboardData = await fetchLeaderboardData();
 			sortData();
-			loading = false;
 		} catch (error) {
 			console.error('Failed to fetch leaderboard data:', error);
-			loading = false;
 		}
+		loading = false;
 	});
 	function sortData(column = sortColumn) {
 		if (column === sortColumn) {
@@ -45,14 +44,17 @@
 	<div class="flex mt-16 justify-center h-screen">Fetching data...</div>
 {:else}
 	<div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
-		<div class="flex justify-center items-center mb-4 m-2">
+		<div class="flex justify-center items-center mb-2 m-2 mt-4">
 			<h2 class="text-xl font-bold text-white">Leaderboard</h2>
 		</div>
+		<p class=" text-xs text-center text-gray-400 italic">Updates every 5 minutes</p>
 		<div class="flex m-2">
 			<table class="w-full border-b border-gray-700">
 				<thead>
 					<tr class="text-white font-bold">
-						<th class="text-left py-2">Rank</th>
+						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('rank')}>
+							Rank {@html getSortIcon()}</th
+						>
 						<th class="text-left py-2">User</th>
 						<th class="text-left py-2 cursor-pointer" on:click={() => sortData('trade_count')}>
 							# of Trades {@html getSortIcon()}
@@ -69,7 +71,7 @@
 					{#each leaderboardData.slice(0, numRows) as leaderboardItem, index}
 						<tr class="text-white font-bold items-center">
 							<td class="py-4 items-center">
-								<span>{index + 1}</span>
+								<span>{leaderboardItem.rank}</span>
 							</td>
 							<td class="py-4 flex items-center">
 								<img
@@ -102,7 +104,7 @@
 				</tbody>
 			</table>
 		</div>
-		{#if leaderboardData.length > 10}
+		{#if numRows < leaderboardData.length}
 			<div class="flex justify-center mt-4">
 				<button class="flex text-white font-bold" on:click={() => (numRows += 10)}>
 					Load More

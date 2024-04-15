@@ -6,11 +6,6 @@
 
 	let { comments, currentId }: { comments: Comment[]; currentId: string } = $props();
 	let newComment = $state('');
-	let isValid = $state(false);
-
-	$effect(() => {
-		isValid = /\w/.test(newComment);
-	});
 </script>
 
 <div class="bg-gray2 p-6 rounded-lg shadow-md font-inter text-white">
@@ -29,7 +24,6 @@
 		<button
 			type="submit"
 			class="bg-lightgray text-white py-2 px-4 rounded-md transition-colors duration-300"
-			disabled={!isValid}
 		>
 			Submit
 		</button>

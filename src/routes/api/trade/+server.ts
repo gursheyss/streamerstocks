@@ -1,4 +1,5 @@
 import { supabase } from '$lib/server/supabase';
+import { redis } from '$lib/server/redis';
 // /api/ POST
 
 export async function POST({ request }) {
@@ -85,7 +86,16 @@ export async function POST({ request }) {
 				status: amt < 0 ? 'bought' : 'sold'
 			};
 			const { error: tradeError } = await supabase.from('trades').insert([trade]);
-			if (tradeError) console.error('Error recording trade:', tradeError);
+			if (tradeError) {
+				console.error('Error recording trade:', tradeError);
+				return new Response(JSON.stringify({ success: false }), {
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+			}
+			// Update metrics in Redis
+			await updateUserMetrics(uuid); // Update user metrics after transaction
 
 			found = true;
 		}
@@ -96,4 +106,76 @@ export async function POST({ request }) {
 			'Content-Type': 'application/json'
 		}
 	});
+}
+
+// Helper function to update user net worth, PnL, and trade count in Redis
+async function updateUserMetrics(userId: any) {
+	try {
+		// Fetch the current balance, PnL, and trade count details from your database
+		const { data: userDetails, error: userDetailsError } = await supabase
+			.from('profiles')
+			.select('balance, amount_redeemed')
+			.eq('id', userId)
+			.single();
+
+		if (userDetailsError) throw new Error('Failed to fetch user details');
+
+		const { data: inventoryData, error: inventoryError } = await supabase
+			.from('inventory')
+			.select(
+				`
+                quantity,
+                market:stock_id (price)
+            `
+			)
+			.eq('user_id', userId);
+
+		if (inventoryError) throw new Error('Failed to fetch inventory details');
+
+		const queryString = [
+			'*',
+			'(CASE',
+			"WHEN status = 'bought' THEN purchase_volume * bought_price",
+			"WHEN status = 'sold' THEN sale_volume * sold_price",
+			'END) as transaction_amount'
+		].join(' ');
+
+		console.log('Executing SQL:', queryString);
+
+		const { data: tradeData, error: tradeDataError } = await supabase
+			.from('trades')
+			.select(queryString)
+			.eq('user_id', userId);
+
+		if (tradeDataError) {
+			console.error('SQL Error:', tradeDataError.message);
+		} else {
+			console.log('SQL Data:', tradeData);
+		}
+
+		// Calculate net worth and PnL
+		const netWorth =
+			userDetails.balance +
+			inventoryData.reduce((acc, item) => acc + item.quantity * item.market.price, 0);
+		const pnl = netWorth - (10000 + userDetails.amount_redeemed); // Assuming 10000 is the initial balance or some baseline
+		const tradeCount = tradeData.length;
+		console.log('Net Worth:', netWorth, 'PnL:', pnl, 'Trade Count:', tradeCount);
+
+		// Update Redis hash for detailed metrics
+		await redis.hmset(`${userId}`, {
+			net_worth: netWorth.toFixed(2),
+			pnl: pnl.toFixed(2),
+			trade_count: tradeCount
+		});
+		console.log(
+			'redis hmset' + userId + ' ' + netWorth.toFixed(2) + ' ' + pnl.toFixed(2) + ' ' + tradeCount
+		);
+
+		// Update the leaderboard sorted set by net worth
+		await redis.zadd('leaderboard', netWorth.toFixed(2), userId);
+
+		console.log(`Metrics updated for user: ${userId}`);
+	} catch (error) {
+		console.error('Failed to update user metrics:', error);
+	}
 }

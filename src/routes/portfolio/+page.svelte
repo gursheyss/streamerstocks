@@ -31,12 +31,15 @@
 		// Fetch user balance only if data.session exists
 		const { data: initialData, error } = await supabase
 			.from('market')
-			.select('*')
-			.order('price', { ascending: false });
+			.select('id,name,ticker,price,low,high,market_cap,volume,image');
+
 		if (error) {
 			console.error('Error fetching initial data:', error);
 		} else {
-			marketData = initialData as MarketItem[];
+			marketData = {
+				...initialData[0],
+				history: []
+			};
 		}
 		if (data.session) {
 			let { data: profileData, error: profileError } = await supabase
@@ -66,15 +69,6 @@
 				console.error('Error fetching user inventory:', inventoryError);
 			} else {
 				userInventory = inventoryData as InventoryItem[];
-			}
-			const { data: initialData, error } = await supabase
-				.from('market')
-				.select('*')
-				.order('price', { ascending: false });
-			if (error) {
-				console.error('Error fetching initial data:', error);
-			} else {
-				marketData = initialData as MarketItem[];
 			}
 			if (profileData != null) {
 				netWorth = calcNW(userInventory, profileData?.balance);
