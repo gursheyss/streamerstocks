@@ -71,7 +71,6 @@ export const load = async ({ locals }) => {
 				const userDetails = await redis.hgetall(`${userId}`);
 				return {
 					rank: leaderboardUserIds.indexOf(userId) + 1,
-					user_id: userId,
 					username: userDetails.username,
 					avatar_url: userDetails.avatar_url,
 					net_worth: Number(userDetails.net_worth),
