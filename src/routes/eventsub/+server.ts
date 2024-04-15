@@ -41,7 +41,7 @@ export async function POST({ request }) {
         if (request.headers.get(MESSAGE_TYPE) === 'notification') {
             if (
                 notification.subscription.type === 'channel.channel_points_custom_reward_redemption.add'
-                // && notification.event.reward.id === 'ASK DANISH FOR THE ID FOR THE REWARD WE LISTENING FOR'
+                && notification.event.reward.title.toLowerCase().includes('Weeniebucks') // SHOULD CHANCE THIS TO check for reward id but thats later and i need to study
             ) {
                 addChannelPointsToBalance(notification.event.reward.cost/10, notification.event.user_id);
             }
