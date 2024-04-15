@@ -7,7 +7,7 @@
 	function calculatePercentageChange(history: MarketItemHistory[]): number {
 		let currentPrice = history[history.length - 1]?.price || 0;
 		let beginningPrice = history[0]?.price || 0;
-		console.log(currentPrice, beginningPrice);
+		// console.log(currentPrice, beginningPrice);
 		return ((currentPrice - beginningPrice) / beginningPrice) * 100;
 	}
 

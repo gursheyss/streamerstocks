@@ -128,9 +128,9 @@
 			const data = stockData[firstPoint.index];
 			// Display the data and vertical line on hover
 			// You can customize this based on your requirements
-			console.log(
-				`Price: ${data.price}, Date: ${new Date(data.timestamp * 1000).toLocaleDateString()}`
-			);
+			// console.log(
+			// 	`Price: ${data.price}, Date: ${new Date(data.timestamp * 1000).toLocaleDateString()}`
+			// );
 		}
 	}
 

@@ -64,7 +64,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 	const netWorth = calcNW(userInventory, userBalance);
 	const avatarUrl = userData?.avatar_url || null;
 
-	console.log(tradeHistory);
+	// console.log(tradeHistory);
 
 	return {
 		tradeHistory,

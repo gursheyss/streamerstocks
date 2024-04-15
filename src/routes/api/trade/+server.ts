@@ -3,15 +3,15 @@ import { redis } from '$lib/server/redis';
 // /api/ POST
 
 export async function POST({ request }) {
-	console.log('REQUEST' + request);
+	// console.log('REQUEST' + request);
 	const { uuid, amt, stockID } = await request.json();
-	console.log(uuid + ' ' + amt + ' ' + stockID);
+	// console.log(uuid + ' ' + amt + ' ' + stockID);
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
 		userid: uuid
 	});
 	if (balError) console.error(balError);
-	else console.log(bal);
+	// else console.log(bal);
 	//get stock data
 	const { data: initStockData, error: initStockError } = await supabase
 		.from('market')
@@ -27,7 +27,7 @@ export async function POST({ request }) {
 		}
 	);
 	if (createEntryError) console.error(createEntryError);
-	else console.log(createEntryData);
+	// else console.log(createEntryData);
 	//get user inventory for specific stock
 	const { data: inventoryData, error: inventoryError } = await supabase
 		.rpc('get_user_inventory', {
@@ -35,25 +35,25 @@ export async function POST({ request }) {
 		})
 		.eq('stock_id', stockID);
 	if (inventoryError) console.error(inventoryError);
-	else console.log(inventoryData[0]['quantity']);
+	// else console.log(inventoryData[0]['quantity']);
 
 	if (initStockData != null) {
 		const price = initStockData[0]['price'];
 		const currentQuantity = inventoryData[0]['quantity'];
 		//first condition is buy, second sell. - for buy, + for sell
 		if ((bal + price * amt >= 0 && amt < 0) || (amt > 0 && currentQuantity >= amt)) {
-			console.log('work');
-			console.log({
-				amt: price * amt,
-				userid: uuid
-			});
+			// console.log('work');
+			// console.log({
+			// 	amt: price * amt,
+			// 	userid: uuid
+			// });
 			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
 				amt: price * amt,
 				userid: uuid,
 				stock_quantity: amt
 			});
 			if (userError) console.error(userError);
-			else console.log('user updating' + userData);
+			// else console.log('user updating' + userData);
 
 			//needs to add/remove stock from porfolio, negative because we do - when buy
 			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
@@ -65,14 +65,14 @@ export async function POST({ request }) {
 				}
 			);
 			if (inventoryError) console.error(inventoryError);
-			else console.log(inventoryData);
+			// else console.log(inventoryData);
 			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
 				amt: -amt,
 				stockid: stockID
 			});
 
 			if (stockError) console.error(stockError);
-			else console.log('stock updating:' + stockData);
+			// else console.log('stock updating:' + stockData);
 
 			// Record the trade
 			const trade = {
@@ -140,7 +140,7 @@ async function updateUserMetrics(userId: any) {
 			'END) as transaction_amount'
 		].join(' ');
 
-		console.log('Executing SQL:', queryString);
+		// console.log('Executing SQL:', queryString);
 
 		const { data: tradeData, error: tradeDataError } = await supabase
 			.from('trades')
@@ -150,7 +150,8 @@ async function updateUserMetrics(userId: any) {
 		if (tradeDataError) {
 			console.error('SQL Error:', tradeDataError.message);
 		} else {
-			console.log('SQL Data:', tradeData);
+			console.log();
+			// console.log('SQL Data:', tradeData);
 		}
 
 		// Calculate net worth and PnL
@@ -159,7 +160,7 @@ async function updateUserMetrics(userId: any) {
 			inventoryData.reduce((acc, item) => acc + item.quantity * item.market.price, 0);
 		const pnl = netWorth - (10000 + userDetails.amount_redeemed); // Assuming 10000 is the initial balance or some baseline
 		const tradeCount = tradeData.length;
-		console.log('Net Worth:', netWorth, 'PnL:', pnl, 'Trade Count:', tradeCount);
+		// console.log('Net Worth:', netWorth, 'PnL:', pnl, 'Trade Count:', tradeCount);
 
 		// Update Redis hash for detailed metrics
 		await redis.hmset(`${userId}`, {
@@ -167,14 +168,14 @@ async function updateUserMetrics(userId: any) {
 			pnl: pnl.toFixed(2),
 			trade_count: tradeCount
 		});
-		console.log(
-			'redis hmset' + userId + ' ' + netWorth.toFixed(2) + ' ' + pnl.toFixed(2) + ' ' + tradeCount
-		);
+		// console.log(
+		// 	'redis hmset' + userId + ' ' + netWorth.toFixed(2) + ' ' + pnl.toFixed(2) + ' ' + tradeCount
+		// );
 
 		// Update the leaderboard sorted set by net worth
 		await redis.zadd('leaderboard', netWorth.toFixed(2), userId);
 
-		console.log(`Metrics updated for user: ${userId}`);
+		// console.log(`Metrics updated for user: ${userId}`);
 	} catch (error) {
 		console.error('Failed to update user metrics:', error);
 	}
