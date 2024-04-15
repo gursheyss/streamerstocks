@@ -16,7 +16,7 @@
 	let marketData: MarketItem | null= $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
-	let currentPrice = $state(data.marketPrice || 0);
+	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
 	let beginningPrice = $derived(marketData?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
@@ -134,31 +134,31 @@
 					)
 					.subscribe()
 			: null;
-		const marketBalanceSubscription = data.session
-			? supabase
-					.channel('individual_market_price')
-					.on(
-						'postgres_changes',
-						{
-							event: 'UPDATE',
-							schema: 'public',
-							table: 'market',
-							filter: `id=eq.${marketData?.id}`
-						},
-						(payload: any) => {
-							const { new: newData } = payload;
-							currentPrice = newData.price;
-							console.log(currentPrice)
-						}
-					)
-					.subscribe()
-			: null;
+		// const marketBalanceSubscription = data.session
+		// 	? supabase
+		// 			.channel('individual_market_price')
+		// 			.on(
+		// 				'postgres_changes',
+		// 				{
+		// 					event: 'UPDATE',
+		// 					schema: 'public',
+		// 					table: 'market',
+		// 					filter: `id=eq.${marketData?.id}`
+		// 				},
+		// 				(payload: any) => {
+		// 					const { new: newData } = payload;
+		// 					currentPrice = newData.price;
+		// 					console.log(currentPrice)
+		// 				}
+		// 			)
+		// 			.subscribe()
+		// 	: null;
 
 		return () => {
 			marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
-			marketBalanceSubscription?.unsubscribe();
+			// marketBalanceSubscription?.unsubscribe();
 		};
 	});
 
@@ -217,7 +217,10 @@
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
 				<div class="text-2xl">
-					${Number(currentPrice).toFixed(2)}
+					${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					})}
 					<span
 						class={filteredmarketData.currentPrice > filteredmarketData.beginningPrice
 							? 'text-green-500'
