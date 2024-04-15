@@ -10,18 +10,6 @@ export const actions = {
 };
 
 export const load = async ({ locals: { safeGetSession } }) => {
-	let testobjmarket: MarketItem = {
-		id: "",
-		name: "",
-		ticker: "",
-		price: 0,
-		low: 0,
-		high: 0,
-		market_cap: 0,
-		volume: 0,
-		image: "",
-		history: []
-	};
 	const session = await safeGetSession();
 	
 	let userBalance: number | null = null;
