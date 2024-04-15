@@ -21,7 +21,7 @@
 	}
 
 	let selectedFilter = $state('Price');
-	let selectedFilterType = $state('High to Low');
+	let selectedFilterType = $state('Descending');
 	let searchFilter = $state('');
 
 	let filteredMarketData = $derived(
@@ -42,13 +42,13 @@
 			})
 			.sort((a, b) => {
 				if (selectedFilter === 'Price') {
-					return selectedFilterType === 'Low to High' ? a.price - b.price : b.price - a.price;
+					return selectedFilterType === 'Ascending' ? a.price - b.price : b.price - a.price;
 				} else if (selectedFilter === 'Name') {
-					return selectedFilterType === 'Low to High'
+					return selectedFilterType === 'Ascending'
 						? a.name.localeCompare(b.name)
 						: b.name.localeCompare(a.name);
 				} else if (selectedFilter === 'Percentage Change') {
-					return selectedFilterType === 'Low to High'
+					return selectedFilterType === 'Ascending'
 						? a.percentageChange - b.percentageChange
 						: b.percentageChange - a.percentageChange;
 				}
@@ -71,8 +71,8 @@
 			</select>
 			<select class="select w-full sm:max-w-[150px]" bind:value={selectedFilterType}>
 				<option disabled selected>Select Filter Type</option>
-				<option>Low to High</option>
-				<option>High to Low</option>
+				<option>Ascending</option>
+				<option>Descending</option>
 			</select>
 		</div>
 		{#each filteredMarketData as item}
