@@ -15,13 +15,6 @@ export default {
 	},
 	plugins: [require('daisyui')],
 	daisyui: {
-		themes: [
-			{
-				dark: {
-					...require('daisyui/src/theming/themes')['dark'],
-					'base-100': 'hsl(200, 6%, 17%)'
-				}
-			}
-		]
+		themes: ['dark']
 	}
 };

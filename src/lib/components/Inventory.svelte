@@ -10,21 +10,20 @@
 
 <div class="bg-gray2 rounded-lg shadow-lg font-inter p-4">
 	<h2 class="text-xl font-bold text-white mb-4">Inventory</h2>
+
 	<table class="w-full border-gray-700">
 		<tbody>
 			{#each inventoryData as item}
 				<tr
-					class="text-white font-bold items-center hover:bg-lightgray cursor-pointer"
+					class="text-white font-bold items-center py-4 hover:bg-lightgray cursor-pointer"
 					on:click={() => handleRowClick(item.market.ticker)}
 				>
-					<td class="items-center py-4">
+					<td class="items-center">
 						<span>{item.market.name}</span>
 						<span class="text-gray-400 ml-2">${item.market.ticker}</span>
 					</td>
-					<td class="text-right py-4"
-						>{item.quantity} <span class="text-gray-400 ml-1">Shares</span></td
-					>
-					<td class="text-right py-4"
+					<td class="text-right">{item.quantity} <span class="text-gray-400 ml-1">Shares</span></td>
+					<td class="text-right"
 						>${(item.market.price * item.quantity).toFixed(2).toLocaleString()}</td
 					>
 				</tr>
