@@ -14,7 +14,7 @@
 
 	onMount(() => {
 		const ctx = chartRef.getContext('2d');
-		if (ctx) {
+		if (ctx && stockData) {
 			downsampledData = stockData;
 			createChart(ctx);
 		}
