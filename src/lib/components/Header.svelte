@@ -46,7 +46,7 @@
 				{#if username}
 					<a
 						class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-						href="/portfolio">Portfolio</a
+						href={`/portfolio/${username}`}>Portfolio</a
 					>
 				{/if}
 				<a
@@ -100,7 +100,7 @@
 				{#if username}
 					<a
 						class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-						href="/portfolio">Portfolio</a
+						href={`/portfolio/${username}`}>Portfolio</a
 					>
 				{/if}
 				<a
