@@ -7,7 +7,7 @@
 	let { balance, netWorth }: Props = $props();
 </script>
 
-<div class="bg-gray shadow-lg rounded-lg p-6 font-inter">
+<div class="bg-gray rounded-lg p-6 font-inter">
 	<div class="flex items-center justify-between">
 		<div>
 			<p class="text-2xl font-bold text-white mb-2">
