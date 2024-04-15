@@ -3,12 +3,11 @@
 	import type { MarketItem } from '$lib/types.js';
 	import type { InventoryItem } from '$lib/types';
 	import Portfolio from '$lib/components/Portfolio.svelte';
-	
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
 
-	let marketData = $state<MarketItem[] | null>(data.marketData);
+	let marketData = $state<MarketItem[]>(data.marketData);
 	let userBalance = $state<number | null>(data.userBalance);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 	let snapshotBalance = 0;
@@ -27,28 +26,24 @@
 	}
 	$effect(() => {
 		document.title = 'BopStocks';
-		const marketSubscription = marketData != null ? supabase
+		const marketSubscription = supabase
 			.channel('market')
-			.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'market_prices' }, (payload: any) => {
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'market' }, (payload: any) => {
 				const { new: newData, old: oldData } = payload;
 				if (payload.eventType === 'INSERT') {
-					for (let i = 0; i < marketData.length; i+=1) {
-						if (marketData[i].id == newData.stock_id) {
-							marketData[i].history.push(newData);
-						}
-					}
-					// updates dont happen and deletes dont happen often, stock price will be most recent element of array
-				// } else if (payload.eventType === 'UPDATE') {
-				// 	// Record updated
-				// 	marketData = marketData.map((item) =>
-				// 		item.id === newData.id ? (newData as MarketItem) : item
-				// 	);
-				// } else if (payload.eventType === 'DELETE') {
-				// 	// Record deleted
-				// 	marketData = marketData.filter((item) => item.id !== oldData.id);
-				// }
-			}})
-			.subscribe() : null;
+					// New record inserted
+					marketData = [...marketData, newData as MarketItem];
+				} else if (payload.eventType === 'UPDATE') {
+					// Record updated
+					marketData = marketData.map((item) =>
+						item.id === newData.id ? (newData as MarketItem) : item
+					);
+				} else if (payload.eventType === 'DELETE') {
+					// Record deleted
+					marketData = marketData.filter((item) => item.id !== oldData.id);
+				}
+			})
+			.subscribe();
 
 		const profileSubscription = data.session
 			? supabase
@@ -89,7 +84,7 @@
 		// 	: null;
 
 		return () => {
-			marketSubscription?.unsubscribe();
+			marketSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 			// networthSubscription?.unsubscribe();
 		};
@@ -105,7 +100,4 @@
 	<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 {/if}
 
-
-{#if marketData}
-	<Table {marketData} />
-{/if}
+<Table {marketData} />

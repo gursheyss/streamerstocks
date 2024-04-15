@@ -5,8 +5,9 @@
 	let { marketData }: { marketData: MarketItem[] } = $props();
 
 	function calculatePercentageChange(history: MarketItemHistory[]): number {
-		let currentPrice = history.slice(-1)[0]?.price || 0;
+		let currentPrice = history[history.length - 1]?.price || 0;
 		let beginningPrice = history[0]?.price || 0;
+		console.log(currentPrice, beginningPrice);
 		return ((currentPrice - beginningPrice) / beginningPrice) * 100;
 	}
 
@@ -36,13 +37,16 @@
 		return item.history.filter((entry) => entry.timestamp >= filterTimestamp);
 	}
 
-	let filteredMarketHistory = $derived(
+	let filteredMarketData = $derived(
 		marketData
-			.map((item) => ({
-				...item,
-				history: getFilteredHistory(item, selectedDateRange),
-				percentageChange: calculatePercentageChange(getFilteredHistory(item, selectedDateRange))	// easily optimized idk why you gotta filter
-			}))
+			.map((item) => {
+				const filteredHistory = getFilteredHistory(item, selectedDateRange);
+				return ({
+					...item,
+					history: filteredHistory,
+					percentageChange: calculatePercentageChange(filteredHistory)	// easily optimized idk why you gotta filter
+				});
+			})
 			.sort((a, b) => {
 				if (selectedFilter === 'Price') {
 					return selectedFilterType === 'Low to High' ? a.price - b.price : b.price - a.price;
@@ -59,7 +63,7 @@
 			})
 	);
 
-	$inspect(filteredMarketHistory);
+	$inspect(filteredMarketData);
 </script>
 
 <div class="rounded-lg shadow-lg font-inter">
@@ -88,7 +92,7 @@
 			</select>
 		</div> -->
 
-		{#each filteredMarketHistory as item}
+		{#each filteredMarketData as item}
 			<a
 				href={`/stock/${item.ticker}`}
 				data-sveltekit-preload-data
