@@ -49,7 +49,7 @@
 	<div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
 		<div class="flex flex-col items-center mb-4">
 			<h2 class="text-xl font-bold text-white">Leaderboard</h2>
-			<p class="text-xs text-gray-400 italic">Updates every 5 minutes</p>
+			<p class="text-xs text-gray-400 italic">Only displays the top 30 for now</p>
 		</div>
 		<div class="overflow-x-auto">
 			<div class="inline-block min-w-full">
