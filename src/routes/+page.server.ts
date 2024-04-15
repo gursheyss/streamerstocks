@@ -54,7 +54,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 							} as MarketItem);
 						}
 						marketData = initMarketData;
-						console.log(marketData);
+						// console.log(marketData);
 					}
 				}
 			}

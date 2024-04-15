@@ -7,7 +7,7 @@
 	let { data } = $props();
 </script>
 
-{#if data.session && data.userBalance !== null && data.userInventory != null}
+{#if data.userBalance !== null && data.userInventory != null}
 	<div class="flex items-center p-4">
 		<img src={data.avatarUrl} alt="User avatar" class="rounded-full w-16 h-16 mr-4" />
 		<div class="mr-4 text-lg font-bold">{$page.params.username}</div>

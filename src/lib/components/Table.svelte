@@ -5,80 +5,64 @@
 	let { marketData }: { marketData: MarketItem[] } = $props();
 
 	function calculatePercentageChange(history: MarketItemHistory[]): number {
+		if (!history || history.length === 0) {
+			return 0; // Return 0 if history is undefined or empty
+		}
+
 		let currentPrice = history[history.length - 1]?.price || 0;
 		let beginningPrice = history[0]?.price || 0;
 		console.log(currentPrice, beginningPrice);
+
+		if (beginningPrice === 0) {
+			return 0; // Return 0 if beginningPrice is 0 to avoid division by zero
+		}
+
 		return ((currentPrice - beginningPrice) / beginningPrice) * 100;
 	}
 
-	let selectedDateRange = $state('12 hour');
 	let selectedFilter = $state('Price');
-	let selectedFilterType = $state('High to Low');
-
-	function getFilteredHistory(item: MarketItem, dateRange: string): MarketItemHistory[] {
-		const currentTimestamp = Math.floor(Date.now() / 1000); // Convert to seconds
-		let filterTimestamp = 0;
-		switch (dateRange) {
-			case '1 hour':
-				filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
-				break;
-			case '12 hour':
-				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
-				break;
-			case '24 hour':
-				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
-				break;
-			case '7 days':
-				filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
-				break;
-			default:
-				return item.history;
-		}
-		return item.history.filter((entry) => entry.timestamp >= filterTimestamp);
-	}
+	let selectedFilterType = $state('Descending');
+	let searchFilter = $state('');
 
 	let filteredMarketData = $derived(
 		marketData
+			.filter((item) => {
+				// Apply search filter
+				const searchTerm = searchFilter.toLowerCase();
+				return (
+					item.name.toLowerCase().includes(searchTerm) ||
+					item.ticker.toLowerCase().includes(searchTerm)
+				);
+			})
 			.map((item) => {
-				const filteredHistory = getFilteredHistory(item, selectedDateRange);
-				return ({
+				return {
 					...item,
-					history: filteredHistory,
-					percentageChange: calculatePercentageChange(filteredHistory)	// easily optimized idk why you gotta filter
-				});
+					percentageChange: calculatePercentageChange(item.history)
+				};
 			})
 			.sort((a, b) => {
 				if (selectedFilter === 'Price') {
-					return selectedFilterType === 'Low to High' ? a.price - b.price : b.price - a.price;
+					return selectedFilterType === 'Ascending' ? a.price - b.price : b.price - a.price;
 				} else if (selectedFilter === 'Name') {
-					return selectedFilterType === 'Low to High'
+					return selectedFilterType === 'Ascending'
 						? a.name.localeCompare(b.name)
 						: b.name.localeCompare(a.name);
 				} else if (selectedFilter === 'Percentage Change') {
-					return selectedFilterType === 'Low to High'
+					return selectedFilterType === 'Ascending'
 						? a.percentageChange - b.percentageChange
 						: b.percentageChange - a.percentageChange;
 				}
 				return 0;
 			})
 	);
-
-	$inspect(filteredMarketData);
 </script>
 
 <div class="rounded-lg shadow-lg font-inter">
 	<div class="w-full flex flex-col space-y-2">
-		<!-- <div
+		<div
 			class="flex flex-col sm:flex-row sm:space-x-2 items-center justify-end space-y-2 sm:space-y-0"
 		>
-			<select class="select w-full sm:max-w-[120px]" bind:value={selectedDateRange}>
-				<option disabled selected>Select Date Range</option>
-				<option>1 hour</option>
-				<option>12 hour</option>
-				<option>24 hour</option>
-				<option>7 days</option>
-				<option>All</option>
-			</select>
+			<input type="text" class="input w-full" placeholder="Search" bind:value={searchFilter} />
 			<select class="select w-full sm:max-w-[200px]" bind:value={selectedFilter}>
 				<option disabled selected>Select Filter</option>
 				<option>Price</option>
@@ -87,11 +71,10 @@
 			</select>
 			<select class="select w-full sm:max-w-[150px]" bind:value={selectedFilterType}>
 				<option disabled selected>Select Filter Type</option>
-				<option>Low to High</option>
-				<option>High to Low</option>
+				<option>Ascending</option>
+				<option>Descending</option>
 			</select>
-		</div> -->
-
+		</div>
 		{#each filteredMarketData as item}
 			<a
 				href={`/stock/${item.ticker}`}
@@ -104,7 +87,6 @@
 						<span class="text-gray-400 ml-0 sm:ml-2 text-sm sm:pt-1">${item.ticker}</span>
 					</div>
 				</div>
-
 				<div class="flex-shrink-0 flex items-center space-x-4">
 					<div class="text-right flex flex-col sm:flex-row space-x-4 sm:space-x-8">
 						<div class="order-2 sm:order-1">${item.price.toFixed(2).toLocaleString()}</div>
@@ -118,7 +100,6 @@
 							{/if}
 						</div>
 					</div>
-
 					<div class="w-24 h-24 mx-auto">
 						<MiniChart stockData={item.history} />
 					</div>

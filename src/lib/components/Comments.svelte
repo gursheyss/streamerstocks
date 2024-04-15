@@ -8,7 +8,7 @@
 	let newComment = $state('');
 </script>
 
-<div class="bg-gray2 p-6 rounded-lg shadow-md font-inter text-white">
+<div class="bg-gray2 sm:p-6 rounded-lg shadow-md font-inter text-white">
 	<h2 class="text-2xl font-bold mb-4">Comments</h2>
 
 	<form action="?/submitComment" method="POST" class="mb-6 flex" use:enhance>
@@ -32,7 +32,7 @@
 	<div class="space-y-4">
 		{#each comments as comment (comment.id)}
 			<div class="bg-lightgray p-4 rounded-md shadow">
-				<div class="flex items-center mb-2">
+				<div class="flex items-center sm:mb-2">
 					<img
 						class="h-8 w-8 rounded-full mr-2"
 						src={comment.avatar_url || '/default-avatar.png'}

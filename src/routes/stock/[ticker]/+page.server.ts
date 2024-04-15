@@ -14,7 +14,7 @@ export const actions = {
 		const comment = data.get('comment');
 		const stockId = data.get('currentId');
 
-		console.log(comment, stockId);
+		// console.log(comment, stockId);
 		const userId = session?.user.id;
 
 		await supabase.from('comments').insert([

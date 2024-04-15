@@ -13,7 +13,7 @@
 	let { supabase } = $derived(data);
 	let selectedDateRange = $state('12 hour');
 
-	let marketData: MarketItem | null= $state(data.marketData);
+	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
@@ -42,7 +42,7 @@
 					table: 'market_prices'
 				},
 				(payload: any) => {
-					console.log('postgres_changes event triggered', payload);
+					// console.log('postgres_changes event triggered', payload);
 					const { new: newData, old: oldData } = payload;
 					if (newData.stock_id !== marketData.id && oldData.stock_id !== marketData.id) {
 						return;
@@ -67,7 +67,7 @@
 					table: 'comments'
 				},
 				async (payload: any) => {
-					console.log('postgres_changes event triggered', payload);
+					// console.log('postgres_changes event triggered', payload);
 					const { new: newData, old: oldData } = payload;
 					if (payload.eventType === 'INSERT') {
 						let newComment = {
@@ -200,8 +200,6 @@
 		beginningPrice: beginningPrice,
 		currentPrice: currentPrice
 	});
-
-	
 </script>
 
 <svelte:head>
@@ -211,36 +209,42 @@
 {#if filteredmarketData && filteredmarketData.history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
 		<div class="container mx-auto px-4 pt-8">
-			<div class="flex justify-between items-center">
+			<div class="flex justify-between space-x-2 items-center">
 				<h1 class="text-4xl font-bold">
 					{filteredmarketData.name}
 					<span class="text-gray-500">${ticker.toUpperCase()}</span>
 				</h1>
-				<div class="text-2xl">
-					${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2
-					})}
-					<span
-						class={filteredmarketData.currentPrice > filteredmarketData.beginningPrice
-							? 'text-green-500'
-							: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
-								? 'text-red-500'
-								: 'text-gray-500'}
+				<div class="flex flex-col sm:flex-row text-2xl">
+					<div>
+						${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2
+						})}
+					</div>
+					<div
+						class={`mt-2 sm:mt-0  ${
+							filteredmarketData.currentPrice > filteredmarketData.beginningPrice
+								? 'text-green-500'
+								: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
+									? 'text-red-500'
+									: 'text-gray-500'
+						}`}
 					>
-						({((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
-							filteredmarketData.beginningPrice) *
-							100 !==
-						0
-							? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
-									filteredmarketData.beginningPrice) *
-									100 >
-								0
-								? '+'
-								: ''
-							: ''}
-						{percentageChange.toFixed(2)}%)
-					</span>
+						<span class="whitespace-nowrap">
+							({((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+								filteredmarketData.beginningPrice) *
+								100 !==
+							0
+								? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+										filteredmarketData.beginningPrice) *
+										100 >
+									0
+									? '+'
+									: ''
+								: ''}
+							{percentageChange.toFixed(2)}%)
+						</span>
+					</div>
 				</div>
 			</div>
 			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">

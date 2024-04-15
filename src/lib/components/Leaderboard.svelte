@@ -11,7 +11,7 @@
 	let sortOrder = 'asc'; // default sort order
 
 	onMount(async () => {
-		console.log('Fetching leaderboard data...');
+		// console.log('Fetching leaderboard data...');
 		loading = true;
 		try {
 			leaderboardData = await fetchLeaderboardData();
