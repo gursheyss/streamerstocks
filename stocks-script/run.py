@@ -63,7 +63,7 @@ client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_S
 def update_prices(delta_sentiment:dict, scalar:float) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
-    response = list(client.table('market').select('id,name,price').execute().data)
+    response = list(client.table('market').select('*').execute().data)
     send_market_update(response, delta_sentiment, scalar)
     for row in response:
         if row['name'] in name_stock_mapping:
