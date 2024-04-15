@@ -18,7 +18,7 @@
 	let userBalance = $state<number | null>(data.userBalance);
 
 	let currentPrice = $state(data.marketPrice || 0);
-	let beginningPrice = $derived(data.marketPrice || 0);
+	let beginningPrice = $derived(marketData?.history?.[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 	let snapshotBalance = 0;
