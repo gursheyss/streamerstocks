@@ -150,7 +150,6 @@ async function updateUserMetrics(userId: any) {
 		if (tradeDataError) {
 			console.error('SQL Error:', tradeDataError.message);
 		} else {
-			console.log();
 			// console.log('SQL Data:', tradeData);
 		}
 
