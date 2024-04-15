@@ -1,4 +1,3 @@
-import { redis } from '$lib/server/redis';
 import type { MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 import { supabase } from '$lib/server/supabase';

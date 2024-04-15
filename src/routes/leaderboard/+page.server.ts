@@ -1,42 +1,29 @@
-import { redis } from '$lib/server/redis';
-
 export const load = async ({ locals }) => {
 	try {
-		let combinedData;
+		const { data: netWorthData, error: netWorthError } =
+			await locals.supabase.rpc('calculate_net_worth');
+		if (netWorthError) throw netWorthError;
 
-		// Try to load combinedData from Redis cache
-		const cachedCombinedData = await redis.get('combinedData');
-		if (cachedCombinedData) {
-			combinedData = JSON.parse(cachedCombinedData);
-		} else {
-			const { data: netWorthData, error: netWorthError } =
-				await locals.supabase.rpc('calculate_net_worth');
-			if (netWorthError) throw netWorthError;
+		const { data: pnlData, error: pnlError } = await locals.supabase.rpc('calculate_pnl');
+		if (pnlError) throw pnlError;
 
-			const { data: pnlData, error: pnlError } = await locals.supabase.rpc('calculate_pnl');
-			if (pnlError) throw pnlError;
+		const { data: tradeCountData, error: tradeCountError } =
+			await locals.supabase.rpc('calculate_trade_count');
+		if (tradeCountError) throw tradeCountError;
 
-			const { data: tradeCountData, error: tradeCountError } =
-				await locals.supabase.rpc('calculate_trade_count');
-			if (tradeCountError) throw tradeCountError;
+		// Combine data based on user_id
+		const combinedData = netWorthData.map((netWorthItem: { user_id: any }) => {
+			const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === netWorthItem.user_id);
+			const tradeCountItem = tradeCountData.find(
+				(t: { user_id: any }) => t.user_id === netWorthItem.user_id
+			);
 
-			// Combine data based on user_id
-			combinedData = netWorthData.map((netWorthItem: { user_id: any }) => {
-				const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === netWorthItem.user_id);
-				const tradeCountItem = tradeCountData.find(
-					(t: { user_id: any }) => t.user_id === netWorthItem.user_id
-				);
-
-				return {
-					...netWorthItem,
-					pnl: pnlItem ? pnlItem.pnl : null,
-					trade_count: tradeCountItem ? tradeCountItem.trade_count : null
-				};
-			});
-
-			// Set the data in Redis cache with a 10-minute expiration
-			await redis.set('combinedData', JSON.stringify(combinedData), 'EX', 600);
-		}
+			return {
+				...netWorthItem,
+				pnl: pnlItem ? pnlItem.pnl : null,
+				trade_count: tradeCountItem ? tradeCountItem.trade_count : null
+			};
+		});
 
 		return { leaderboardData: combinedData };
 	} catch (error) {

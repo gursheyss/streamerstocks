@@ -1,4 +1,3 @@
-import copy
 import random
 import time
 from os import getenv
@@ -51,47 +50,6 @@ name_stock_mapping = {
     "Arky": "arky",
     "Nosiiree": "nosiiree",
 }
-
-name_id_mapping = {
-    35: "vsbtobi",
-    14: "effy",
-    37: "ba",
-    6: "emily",
-    24: "sunny",
-    9: "ybg",
-    5: "baybeerae",
-    2: "mira",
-    30: "kc",
-    17: "joymei",
-    7: "jess",
-    34: "vsbdat",
-    40: "arky",
-    21: "kailey",
-    36: "yugi",
-    42: "nosiiree",
-    39: "malik",
-    23: "sa",
-    20: "alex",
-    26: "ellen",
-    10: "santi",
-    22: "a2guapo",
-    28: "jason",
-    11: "selena",
-    25: "aliyah",
-    13: "giaan",
-    27: "kaichu",
-    8: "raph",
-    16: "prod",
-    33: "vsblandon",
-    12: "keli",
-    29: "jdab",
-    4: "jes",
-    15: "mariah",
-    3: "alyssa",
-    18: "ron",
-    19: "irene"
-}
-
 # List of users to analyze sentiment for
 analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
 
@@ -104,23 +62,22 @@ client: Client = create_client(getenv("PUBLIC_SUPABASE_URL"), getenv("SUPABASE_S
 def update_prices(delta_sentiment:dict, scalar:float) -> None:
     '''Update the prices of stocks based on the change in sentiment (delta sentiment) scaled by a scalar (default 0.5)'''
     print('UPDATING PRICES')
-    response = list(client.rpc('get_most_recent_prices').execute().data)
-    new_prices = copy.deepcopy(response)
-    for row in new_prices:
-        if row['stock_id'] in name_id_mapping:
-            percent_delta = (delta_sentiment.get(name_id_mapping[row['stock_id']] + '_delta', 0) * (row['price']/100))
+    response = client.table('market').select('*').execute()
+    response = list(response.data)
+    send_market_update(response, delta_sentiment, scalar)
+    for row in response:
+        if row['name'] in name_stock_mapping:
+            percent_delta = (delta_sentiment.get(name_stock_mapping[row['name']] + '_delta', 0) * (row['price']/100))
             if percent_delta != 0:
                 row['price'] += (scalar * percent_delta)
             else:
                 row['price'] += row['price'] * random.uniform(-0.01, 0.01)
-            row['timestamp'] = int(time.time())
-    send_market_update(response, new_prices)
-    client.table('market_prices').insert(new_prices).execute()
+    client.table('market').upsert(response).execute()
 
-def decay_and_save_prices(decay_rate:float) -> None:
+def save_prices_to_history(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
     print('SAVING PRICES')
-    client.rpc('decay_and_save_prices', {'decay_rate': decay_rate}).execute()
+    client.rpc('save_prices_to_history', {'decay_rate': decay_rate}).execute()
 
 def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
@@ -174,7 +131,7 @@ def check_if_jason_online() -> None:
         except:
             send_error_message("Error checking if Jason is online")
 
-def decay_and_save_loop(save_interval_seconds:int, decay_rate:float) -> None:
+def save_history_loop(save_interval_seconds:int, decay_rate:float) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
@@ -183,7 +140,7 @@ def decay_and_save_loop(save_interval_seconds:int, decay_rate:float) -> None:
         try:
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
-                decay_and_save_prices(decay_rate)
+                save_prices_to_history(decay_rate)
         except:
             send_error_message("Error saving history")
         finally:
@@ -194,7 +151,7 @@ if __name__ == "__main__":
     online_thread = threading.Thread(target=check_if_jason_online)
     chat_update_thread = threading.Thread(target=update_by_chat_loop, kwargs={'max_batch_size': 50, 'scalar': 0.4812})
     reddit_update_thread = threading.Thread(target=update_by_reddit_loop, kwargs={'update_interval_seconds': 600, 'scalar': 0.2047})
-    save_thread = threading.Thread(target=decay_and_save_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
+    save_thread = threading.Thread(target=save_history_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
 
     online_thread.start()
     chat_update_thread.start()
