@@ -108,7 +108,7 @@
 													? 'text-red-400'
 													: 'text-gray-400'}
 										>
-											{leaderboardItem.pnl >= 0 ? '+' : ''}${leaderboardItem.pnl?.toFixed(2)}
+											{leaderboardItem.pnl >= 0 ? '+' : '-'}${Math.abs(Number(leaderboardItem.pnl?.toFixed(2)))}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
