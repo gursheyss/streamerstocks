@@ -86,8 +86,14 @@ export async function POST({ request }) {
 				status: amt < 0 ? 'bought' : 'sold'
 			};
 			const { error: tradeError } = await supabase.from('trades').insert([trade]);
-			if (tradeError) console.error('Error recording trade:', tradeError);
-
+			if (tradeError) {
+				console.error('Error recording trade:', tradeError);
+				return new Response(JSON.stringify({ success: false }), {
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+			}
 			// Update metrics in Redis
 			await updateUserMetrics(uuid); // Update user metrics after transaction
 
@@ -126,17 +132,26 @@ async function updateUserMetrics(userId: any) {
 
 		if (inventoryError) throw new Error('Failed to fetch inventory details');
 
+		const queryString = [
+			'*',
+			'(CASE',
+			"WHEN status = 'bought' THEN purchase_volume * bought_price",
+			"WHEN status = 'sold' THEN sale_volume * sold_price",
+			'END) as transaction_amount'
+		].join(' ');
+
+		console.log('Executing SQL:', queryString);
+
 		const { data: tradeData, error: tradeDataError } = await supabase
 			.from('trades')
-			.select(
-				`
-                *,
-                (CASE WHEN status = 'bought' THEN quantity * bought_price ELSE quantity * sold_price END) as transaction_amount
-            `
-			)
+			.select(queryString)
 			.eq('user_id', userId);
 
-		if (tradeDataError) throw new Error('Failed to fetch trade details');
+		if (tradeDataError) {
+			console.error('SQL Error:', tradeDataError.message);
+		} else {
+			console.log('SQL Data:', tradeData);
+		}
 
 		// Calculate net worth and PnL
 		const netWorth =
@@ -144,16 +159,20 @@ async function updateUserMetrics(userId: any) {
 			inventoryData.reduce((acc, item) => acc + item.quantity * item.market.price, 0);
 		const pnl = netWorth - (10000 + userDetails.amount_redeemed); // Assuming 10000 is the initial balance or some baseline
 		const tradeCount = tradeData.length;
+		console.log('Net Worth:', netWorth, 'PnL:', pnl, 'Trade Count:', tradeCount);
 
 		// Update Redis hash for detailed metrics
-		await redis.hmset(`user:${userId}`, {
+		await redis.hmset(`${userId}`, {
 			net_worth: netWorth.toFixed(2),
 			pnl: pnl.toFixed(2),
-			trade_count: tradeCount.toString()
+			trade_count: tradeCount
 		});
+		console.log(
+			'redis hmset' + userId + ' ' + netWorth.toFixed(2) + ' ' + pnl.toFixed(2) + ' ' + tradeCount
+		);
 
 		// Update the leaderboard sorted set by net worth
-		await redis.zadd('leaderboard', parseFloat(netWorth).toFixed(2), userId);
+		await redis.zadd('leaderboard', netWorth.toFixed(2), userId);
 
 		console.log(`Metrics updated for user: ${userId}`);
 	} catch (error) {

@@ -33,7 +33,7 @@ async function initializeLeaderboard() {
 				(t: { user_id: any }) => t.user_id === user.user_id
 			);
 
-			await redis.hmset(`user:${user.user_id}`, {
+			await redis.hmset(`${user.user_id}`, {
 				username: user.username, // Assume these fields are included in the RPC response
 				avatar_url: user.avatar_url,
 				net_worth: parseFloat(user.net_worth).toFixed(2),
@@ -48,9 +48,9 @@ async function initializeLeaderboard() {
 	await Promise.all(updates);
 	console.log('Leaderboard initialized successfully!');
 }
-// Schedule leaderboard initialization to run every night at 00:00
+// Updates leaderboard every 5 minutes
 cron.schedule(
-	'0 0 * * *',
+	'*/5 * * * *',
 	() => {
 		initializeLeaderboard();
 	},
@@ -63,11 +63,12 @@ cron.schedule(
 export const load = async ({ locals }) => {
 	try {
 		// Fetch leaderboard data from Redis
-		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 9);
+		// await initializeLeaderboard();
+		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 19);
 
 		const formattedData = await Promise.all(
 			leaderboardUserIds.map(async (userId) => {
-				const userDetails = await redis.hgetall(`user:${userId}`);
+				const userDetails = await redis.hgetall(`${userId}`);
 				return {
 					rank: leaderboardUserIds.indexOf(userId) + 1,
 					user_id: userId,

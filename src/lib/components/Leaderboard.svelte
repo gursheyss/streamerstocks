@@ -10,7 +10,6 @@
 	let sortColumn = 'net_worth'; // default sort column
 	let sortOrder = 'asc'; // default sort order
 
-	console.log('before onMount');
 	onMount(async () => {
 		console.log('Fetching leaderboard data...');
 		loading = true;
@@ -48,6 +47,7 @@
 		<div class="flex justify-center items-center mb-4 m-2">
 			<h2 class="text-xl font-bold text-white">Leaderboard</h2>
 		</div>
+		<p class=" text-xs text-center text-gray-400 italic">Updates every 5 minutes</p>
 		<div class="flex m-2">
 			<table class="w-full border-b border-gray-700">
 				<thead>
