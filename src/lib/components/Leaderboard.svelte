@@ -38,6 +38,9 @@
 	function getSortIcon() {
 		return '<i class="fas fa-sort"></i>';
 	}
+	function handleRowClick(username: string) {
+		window.location.href = `/portfolio/${username}`;
+	}
 </script>
 
 {#if loading}
@@ -69,7 +72,10 @@
 				</thead>
 				<tbody>
 					{#each leaderboardData.slice(0, numRows) as leaderboardItem, index}
-						<tr class="text-white font-bold items-center">
+						<tr
+							class="text-white font-bold items-center hover:bg-lightgray cursor-pointer"
+							on:click={() => handleRowClick(leaderboardItem.username)}
+						>
 							<td class="py-4 items-center">
 								<span>{leaderboardItem.rank}</span>
 							</td>
