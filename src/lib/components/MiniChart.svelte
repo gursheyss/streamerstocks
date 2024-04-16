@@ -57,7 +57,7 @@
 				responsive: true,
 				animation: {
 					duration: 1000,
-					easing: 'easeInOutQuad'
+					easing: 'easeOutExpo'
 				},
 				scales: {
 					y: {
