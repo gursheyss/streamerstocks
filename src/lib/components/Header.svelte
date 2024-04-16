@@ -68,7 +68,7 @@
 			{#if username}
 				<img src={profilePicture} alt="avatar" class="w-8 h-8 rounded-full" />
 				<span class="text-white font-inter font-bold hidden md:inline">{username}</span>
-				<form action="?/signOut" method="POST" use:enhance class="hidden md:block">
+				<form action="/?/signOut" method="POST" use:enhance class="hidden md:block">
 					<button
 						id="SignOutButton"
 						class="bg-white text-black px-4 py-2 rounded font-bold font-inter whitespace-nowrap"
@@ -119,7 +119,7 @@
 					class:text-white={$page.url.pathname === '/about'}>About</a
 				>
 				{#if username}
-					<form action="?/signOut" method="POST" use:enhance>
+					<form action="/?/signOut" method="POST" use:enhance>
 						<button
 							class="text-gray-500 hover:text-white block w-full text-left text-base font-medium"
 							type="submit"
