@@ -172,8 +172,8 @@ async function updateUserMetrics(userId: any) {
 		// 	'redis hmset' + userId + ' ' + netWorth.toFixed(2) + ' ' + pnl.toFixed(2) + ' ' + tradeCount
 		// );
 
-		// Update the leaderboard sorted set by net worth
-		await redis.zadd('leaderboard', netWorth.toFixed(2), userId);
+		// Update the leaderboard sorted set by pnl
+		await redis.zadd('leaderboard', pnl.toFixed(2), userId);
 
 		// console.log(`Metrics updated for user: ${userId}`);
 	} catch (error) {
