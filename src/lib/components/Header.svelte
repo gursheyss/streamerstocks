@@ -62,6 +62,11 @@
 					href="/about"
 					class:text-white={$page.url.pathname === '/about'}>About</a
 				>
+				<a
+					class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="https://forms.gle/t6rmVi7uCFU3qmbZ6"
+					target="_blank">Feedback</a
+				>
 			</div>
 		</div>
 		<div class="flex items-center space-x-4">
@@ -117,6 +122,11 @@
 					class="text-gray-500 hover:text-white block text-base font-medium"
 					href="/about"
 					class:text-white={$page.url.pathname === '/about'}>About</a
+				>
+				<a
+					class="text-gray-500 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+					href="https://forms.gle/t6rmVi7uCFU3qmbZ6"
+					target="_blank">Feedback</a
 				>
 				{#if username}
 					<form action="/?/signOut" method="POST" use:enhance>
