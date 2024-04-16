@@ -1,4 +1,4 @@
-import { TWITCH_EVENTSUB_SECRET } from '$env/static/private';
+import { TWITCH_EVENTSUB_SECRET, TWITCH_CLIENT_ID, TWITCH_AUTH_TOKEN } from '$env/static/private';
 import { supabase } from '$lib/server/supabase';
 import crypto from 'crypto';
 
@@ -15,8 +15,9 @@ const HMAC_PREFIX = 'sha256=';
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request }) {
     // Add the amount of channel points to the user's balance
-    const addChannelPointsToBalance = async (amt_weeniebucks:number, user_id:string) => {
+    const addChannelPointsToBalance = async (amt_weeniebucks:number, user_id:string, id:number, broadcaster_id:number, reward_id:number) => {
         const { data: userData, error: userError } = await supabase.from('profiles').select('balance, amount_redeemed',).eq('user_id', user_id);
+        let status = "CANCELED";
         if (userError || userData === undefined) {
             console.error("User not found");
         }
@@ -26,7 +27,25 @@ export async function POST({ request }) {
             const { data: updateData, error: updateError } = await supabase.from('profiles').update(userData[0]).eq('user_id', user_id).select();
             if (updateError) {
                 console.error("Failed to update balance");
-            };
+            }
+            else {
+                status = "FULFILLED";
+            }
+        }
+
+        const response = await fetch(`https://api.twitch.tv/helix/channel_points/custom_rewards/redemptions?broadcaster_id=${broadcaster_id}&reward_id=${reward_id}&id=${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Client-Id': TWITCH_CLIENT_ID,
+                'Authorization': 'Bearer ' + TWITCH_AUTH_TOKEN,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "status": status
+            })
+        });
+        if (!response.ok) {
+            console.error('Failed to update reward status');
         }
     }
 
@@ -43,7 +62,13 @@ export async function POST({ request }) {
                 notification.subscription.type === 'channel.channel_points_custom_reward_redemption.add'
                 && notification.event.reward.title.toLowerCase().includes('bucks') // SHOULD CHANCE THIS TO check for reward id but thats later and i need to study
             ) {
-                addChannelPointsToBalance(notification.event.reward.cost/10, notification.event.user_id);
+                addChannelPointsToBalance(
+                    notification.event.reward.cost/10, 
+                    notification.event.user_id,
+                    notification.event.id,
+                    notification.event.broadcaster_user_id,
+                    notification.event.reward.id
+                );
             }
             return new Response(null, {status: 204});
         }
