@@ -7,7 +7,7 @@
 
 	let leaderboardData: Profile[] = [];
 	let loading = true;
-	let sortColumn = 'net_worth'; // default sort column
+	let sortColumn = 'pnl'; // default sort column
 	let sortOrder = 'asc'; // default sort order
 
 	onMount(async () => {
@@ -108,7 +108,9 @@
 													? 'text-red-400'
 													: 'text-gray-400'}
 										>
-											{leaderboardItem.pnl >= 0 ? '+' : '-'}${Math.abs(Number(leaderboardItem.pnl?.toFixed(2)))}
+											{leaderboardItem.pnl >= 0 ? '+' : '-'}${Math.abs(
+												Number(leaderboardItem.pnl?.toFixed(2))
+											)}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">

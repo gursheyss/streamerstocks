@@ -25,10 +25,10 @@ async function initializeLeaderboard() {
 	// // Clear previous leaderboard data
 	await redis.del('leaderboard');
 
-	// Populate Redis sorted set with net worth data
-	const updates = netWorthData.map(
-		async (user: { user_id: any; username: any; avatar_url: any; net_worth: string }) => {
-			const pnlItem = pnlData.find((p: { user_id: any }) => p.user_id === user.user_id);
+	// Populate Redis sorted set with pnl data
+	const updates = pnlData.map(
+		async (user: { user_id: any; username: any; avatar_url: any; pnl: string }) => {
+			const networthItem = netWorthData.find((n: { user_id: any }) => n.user_id === user.user_id);
 			const tradeCountItem = tradeCountData.find(
 				(t: { user_id: any }) => t.user_id === user.user_id
 			);
@@ -36,13 +36,13 @@ async function initializeLeaderboard() {
 			await redis.hmset(`${user.user_id}`, {
 				username: user.username, // Assume these fields are included in the RPC response
 				avatar_url: user.avatar_url,
-				net_worth: parseFloat(user.net_worth).toFixed(2),
-				pnl: pnlItem ? parseFloat(pnlItem.pnl).toFixed(2) : '0',
+				net_worth: networthItem ? parseFloat(networthItem.net_worth).toFixed(2) : '0',
+				pnl: parseFloat(user.pnl).toFixed(2),
 				trade_count: tradeCountItem ? tradeCountItem.trade_count.toString() : '0'
 			});
 
-			// Add user to the sorted set by net worth
-			await redis.zadd('leaderboard', parseFloat(user.net_worth).toFixed(2), `${user.user_id}`);
+			// Add user to the sorted set by pnl
+			await redis.zadd('leaderboard', parseFloat(user.pnl).toFixed(2), `${user.user_id}`);
 		}
 	);
 	await Promise.all(updates);
