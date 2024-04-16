@@ -11,7 +11,6 @@
 
 		let currentPrice = history[history.length - 1]?.price || 0;
 		let beginningPrice = history[0]?.price || 0;
-		console.log(currentPrice, beginningPrice);
 
 		if (beginningPrice === 0) {
 			return 0; // Return 0 if beginningPrice is 0 to avoid division by zero

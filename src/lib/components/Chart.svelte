@@ -55,7 +55,7 @@
 				options: {
 					animation: {
 						duration: 1000, // duration of the animation in milliseconds
-						easing: 'linear' // easing function to use
+						easing: 'easeOutExpo' // easing function to use
 					},
 					responsive: true,
 
