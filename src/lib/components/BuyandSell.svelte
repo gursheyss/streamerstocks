@@ -12,7 +12,7 @@
 	let amount = $state('');
 	let loading = $state(false);
 	let preview = $state({ subtotal: 0, fee: 0, total: 0 });
-	let mode = $state('sell');
+	let mode = $state('buy');
 	const feeRate = 0.01;
 
 	async function updateStockAndBal(uuid: string, stockID: number, amt: number) {
