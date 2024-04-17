@@ -116,13 +116,13 @@
 		</button>
 	</div>
 	<div class="h-4">
-		<!-- {#if amount}
+		{#if amount}
 			<p class="text-sm text-gray-400">
 				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
 					currentPrice * Number(amount)
 				).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 			</p>
-			<p class="text-sm text-gray-400">
+			<!-- <p class="text-sm text-gray-400">
 				Subtotal: ${preview.subtotal.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
@@ -139,7 +139,7 @@
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
 				})}
-			</p>
-		{/if} -->
+			</p> -->
+		{/if}
 	</div>
 </div>
