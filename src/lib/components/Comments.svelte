@@ -60,9 +60,16 @@
 						alt="Avatar"
 					/>
 					<div>
-						<a href={`/portfolio/${comment.username}`}
-							><span class="font-semibold">{comment.username}</span></a
-						>
+						{#if comment.username.startsWith('[dev] ')}
+							<a href={`/portfolio/${comment.username}`}>
+								<span class="font-semibold text-yellow-300">[dev]</span>
+								<span class="font-semibold">{comment.username.split(' ')[1]}</span>
+							</a>
+						{:else}
+							<a href={`/portfolio/${comment.username}`}>
+								<span class="font-semibold">{comment.username}</span>
+							</a>
+						{/if}
 						<span class="text-gray-400 text-sm ml-2">
 							{formatDistanceToNow(parseISO(comment.created_at))} ago
 						</span>
