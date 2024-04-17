@@ -24,9 +24,11 @@
 		use:enhance={() => {
 			return async ({ result }) => {
 				if (result.type === 'success') {
+					newComment = '';
 					toast.success('Comment submitted successfully');
 				}
 				if (result.type === 'failure') {
+					newComment = '';
 					toast.error('You must be logged in to comment');
 				}
 			};
