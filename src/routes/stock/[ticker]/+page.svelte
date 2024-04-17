@@ -11,7 +11,7 @@
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
-	let selectedDateRange = $state('12 hour');
+	let selectedDateRange = $state('1 hour');
 
 	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
