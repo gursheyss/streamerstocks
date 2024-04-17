@@ -11,9 +11,8 @@
 		$props();
 	let amount = $state('');
 	let loading = $state(false);
-	let preview = $state({ subtotal: 0, fee: 0, total: 0 });
+	let preview = $state({ subtotal: 0, fee: 0, total: 0, priceImpact: 0 });
 	let mode = $state('buy');
-	const feeRate = 0.01;
 
 	async function updateStockAndBal(uuid: string, stockID: number, amt: number) {
 		loading = true;
@@ -34,40 +33,45 @@
 	}
 
 	function calculatePreview(amountToBuyOrSell: number) {
-		// Convert the amount to a positive number for calculations
-		let numericAmount = Math.abs(amountToBuyOrSell);
-		amountToBuyOrSell = mode === 'buy' ? amountToBuyOrSell : -amountToBuyOrSell;
-		const bondingCurveCoefficient = 160000;
-		const feeRate = 0.01; // 1% fee rate
-		// Calculate the current number of shares based on the bonding curve
-		const currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
-		// Calculate new shares and new price based on whether the action is buying or selling
-		let newShares, newPrice;
-		if (amountToBuyOrSell < 0) {
+		let numericAmount = Math.abs(amountToBuyOrSell); // Always work with positive numbers for calculation
+		const bondingCurveCoefficient = 240000;
+		const feeRate = 0.001; // Updated to 0.1% fee rate as per the new algo // This should be the current market price fetched from your state or props
+		let currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
+		let totalCost = 0;
+		let newPrice = currentPrice;
+		let newShares;
+
+		if (mode === 'buy') {
 			// Buying shares
-			newShares = currentShares + numericAmount;
-			const subtotal = numericAmount * currentPrice;
-			const fee = subtotal * feeRate;
-			const total = subtotal + fee;
-			newPrice = total / numericAmount;
+			for (let i = 0; i < amountToBuyOrSell; i++) {
+				newShares = currentShares + 1; // Increment shares one by one
+				newPrice = newShares ** 2 / bondingCurveCoefficient;
+				totalCost += newPrice; // Accumulate total cost
+				currentShares = newShares; // Update current shares
+			}
+			totalCost += totalCost * feeRate; // Apply fee to the total cost
 		} else {
 			// Selling shares
-			newShares = currentShares - numericAmount;
-			if (newShares < 0) {
-				newShares = 0;
+			for (let i = 0; i < numericAmount; i++) {
+				newShares = currentShares - 1; // Decrement shares one by one
+				if (newShares < 0) newShares = 0; // Ensure shares do not go negative
+				newPrice = newShares ** 2 / bondingCurveCoefficient;
+				totalCost += newPrice; // Accumulate total cost
+				currentShares = newShares; // Update current shares
 			}
-			newPrice = Math.pow(newShares, 2) / bondingCurveCoefficient;
-			const fee = (currentPrice - newPrice) * feeRate;
-			newPrice = currentPrice - fee;
+			totalCost -= totalCost * feeRate; // Apply fee to the total cost
 		}
-		// Calculate the subtotal, fee, and total based on the new price
-		const subtotal = numericAmount * currentPrice;
+
+		// Calculate subtotal, fee, and total based on the operation
+		const subtotal = amountToBuyOrSell * currentPrice; // This is the simple multiplication without bonding curve effect
 		const fee = subtotal * feeRate;
-		const total = amountToBuyOrSell > 0 ? subtotal + fee : subtotal - fee;
+		const total = mode === 'buy' ? subtotal + fee : subtotal - fee;
+
 		// Update the preview object
 		preview.subtotal = subtotal;
 		preview.fee = fee;
 		preview.total = total;
+		preview.priceImpact = ((newPrice - currentPrice) / currentPrice) * 100; // Optionally show new price after transaction
 	}
 
 	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
@@ -115,7 +119,7 @@
 		</button>
 	</div>
 	<div class="h-4">
-		<!-- {#if amount}
+		{#if amount}
 			<p class="text-sm text-gray-400">
 				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
 					currentPrice * Number(amount)
@@ -139,6 +143,21 @@
 					maximumFractionDigits: 2
 				})}
 			</p>
-		{/if} -->
+			<p
+				class={preview.priceImpact > 0
+					? 'text-xs text-green-400'
+					: preview.priceImpact < 0
+						? 'text-xs text-red-400'
+						: 'text-xs text-gray-400'}
+			>
+				Price Impact: {preview.priceImpact >= 0 ? '+' : '-'}{preview.priceImpact.toLocaleString(
+					undefined,
+					{
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					}
+				)}%
+			</p>
+		{/if}
 	</div>
 </div>
