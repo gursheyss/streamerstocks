@@ -11,6 +11,9 @@
 		$props();
 	let amount = $state('');
 	let loading = $state(false);
+	let preview = $state({ subtotal: 0, fee: 0, total: 0 });
+	let mode = $state('sell');
+	const feeRate = 0.01;
 
 	async function updateStockAndBal(uuid: string, stockID: number, amt: number) {
 		loading = true;
@@ -31,9 +34,52 @@
 		}
 	}
 
+	function calculatePreview(amountToBuyOrSell: number) {
+		// Convert the amount to a positive number for calculations
+		let numericAmount = Math.abs(amountToBuyOrSell);
+		amountToBuyOrSell = mode === 'buy' ? amountToBuyOrSell : -amountToBuyOrSell;
+		const bondingCurveCoefficient = 160000;
+		const feeRate = 0.01; // 1% fee rate
+		// Calculate the current number of shares based on the bonding curve
+		const currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
+		// Calculate new shares and new price based on whether the action is buying or selling
+		let newShares, newPrice;
+		if (amountToBuyOrSell < 0) {
+			// Buying shares
+			newShares = currentShares + numericAmount;
+			const subtotal = numericAmount * currentPrice;
+			const fee = subtotal * feeRate;
+			const total = subtotal + fee;
+			newPrice = total / numericAmount;
+		} else {
+			// Selling shares
+			newShares = currentShares - numericAmount;
+			if (newShares < 0) {
+				newShares = 0;
+			}
+			newPrice = Math.pow(newShares, 2) / bondingCurveCoefficient;
+			const fee = (currentPrice - newPrice) * feeRate;
+			newPrice = currentPrice - fee;
+		}
+		// Calculate the subtotal, fee, and total based on the new price
+		const subtotal = numericAmount * currentPrice;
+		const fee = subtotal * feeRate;
+		const total = amountToBuyOrSell > 0 ? subtotal + fee : subtotal - fee;
+		// Update the preview object
+		preview.subtotal = subtotal;
+		preview.fee = fee;
+		preview.total = total;
+	}
+
 	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
 		let inputElement = event.currentTarget;
 		amount = inputElement.value.replace(/\D/g, '');
+		calculatePreview(Number(amount));
+	}
+
+	function handleModeChange(newMode: 'buy' | 'sell') {
+		mode = newMode;
+		calculatePreview(Number(amount));
 	}
 </script>
 
@@ -75,6 +121,24 @@
 				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
 					currentPrice * Number(amount)
 				).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+			</p>
+			<p class="text-sm text-gray-400">
+				Subtotal: ${preview.subtotal.toLocaleString(undefined, {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})}
+			</p>
+			<p class="text-sm text-gray-400">
+				Estimated Fee: ${preview.fee.toLocaleString(undefined, {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})}
+			</p>
+			<p class="text-sm text-gray-400">
+				Total: ${preview.total.toLocaleString(undefined, {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})}
 			</p>
 		{/if}
 	</div>
