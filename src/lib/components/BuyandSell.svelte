@@ -24,7 +24,6 @@
 		});
 		const resp = await response.json();
 		loading = false;
-
 		if (resp['success'] == false) {
 			toast.error('Please ensure that you have enough money to purchase or shares to sell.');
 		} else if (amt > 0) {
