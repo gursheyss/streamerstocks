@@ -7,7 +7,7 @@
 
 	let leaderboardData: Profile[] = [];
 	let loading = true;
-	let sortColumn = 'net_worth'; // default sort column
+	let sortColumn = 'pnl'; // default sort column
 	let sortOrder = 'asc'; // default sort order
 
 	onMount(async () => {
@@ -49,7 +49,7 @@
 	<div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
 		<div class="flex flex-col items-center mb-4">
 			<h2 class="text-xl font-bold text-white">Leaderboard</h2>
-			<p class="text-xs text-gray-400 italic">Updates every 5 minutes</p>
+			<p class="text-xs text-gray-400 italic">Only displays the top 30 for now</p>
 		</div>
 		<div class="overflow-x-auto">
 			<div class="inline-block min-w-full">
@@ -108,14 +108,20 @@
 													? 'text-red-400'
 													: 'text-gray-400'}
 										>
-											{leaderboardItem.pnl >= 0 ? '+' : ''}${leaderboardItem.pnl?.toLocaleString(
-												'en-US'
-											)}
+											{leaderboardItem.pnl >= 0 ? '+' : '-'}${Math.abs(
+												Number(leaderboardItem.pnl ?? 0)
+											).toLocaleString(undefined, {
+												minimumFractionDigits: 2,
+												maximumFractionDigits: 2
+											})}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="text-white"
-											>${leaderboardItem.net_worth.toLocaleString('en-US')}</span
+											>${Number(leaderboardItem.net_worth).toLocaleString(undefined, {
+												minimumFractionDigits: 2,
+												maximumFractionDigits: 2
+											})}</span
 										>
 									</td>
 								</tr>

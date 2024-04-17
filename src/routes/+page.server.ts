@@ -58,7 +58,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					}
 				}
 			}
-			await redis.set('marketData', JSON.stringify(marketData), 'EX', 60 * 5);
+			await redis.set('marketData', JSON.stringify(marketData), 'EX', 60);
 		}
 	}
 	// redo in db function

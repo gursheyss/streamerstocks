@@ -14,7 +14,7 @@
 
 	onMount(() => {
 		const ctx = chartRef.getContext('2d');
-		if (ctx) {
+		if (ctx && stockData) {
 			downsampledData = stockData;
 			createChart(ctx);
 		}
@@ -57,7 +57,7 @@
 				responsive: true,
 				animation: {
 					duration: 1000,
-					easing: 'easeInOutQuad'
+					easing: 'easeOutExpo'
 				},
 				scales: {
 					y: {

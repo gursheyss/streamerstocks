@@ -56,7 +56,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 				} as MarketItem;
 			}
 			if (marketData != null) {
-				await redis.set('marketData'+initialData[0].id, JSON.stringify(marketData), 'EX', 60 * 5);
+				await redis.set('marketData'+initialData[0].id, JSON.stringify(marketData), 'EX', 60);
 			}
 
 		}
