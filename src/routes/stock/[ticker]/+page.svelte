@@ -44,7 +44,7 @@
 				(payload: any) => {
 					// console.log('postgres_changes event triggered', payload);
 					const { new: newData, old: oldData } = payload;
-					if (newData.stock_id !== marketData.id && oldData.stock_id !== marketData.id) {
+					if (newData.stock_id !== marketData?.id && oldData.stock_id !== marketData?.id) {
 						return;
 					}
 					if (payload.eventType === 'INSERT') {
@@ -64,7 +64,8 @@
 				{
 					event: '*',
 					schema: 'public',
-					table: 'comments'
+					table: 'comments',
+					filter: `stock_id=eq.${marketData?.id}`
 				},
 				async (payload: any) => {
 					// console.log('postgres_changes event triggered', payload);
