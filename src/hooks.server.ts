@@ -7,7 +7,7 @@ import { createServerClient } from '@supabase/ssr';
 import { redirect, type Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	if (PUBLIC_MAINTENANCE && event.url.pathname !== '/maintenance') {
+	if (PUBLIC_MAINTENANCE === 'true' && event.url.pathname !== '/maintenance') {
 		throw redirect(302, '/maintenance');
 	}
 
