@@ -116,7 +116,7 @@
 		</button>
 	</div>
 	<div class="h-4">
-		{#if amount}
+		<!-- {#if amount}
 			<p class="text-sm text-gray-400">
 				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
 					currentPrice * Number(amount)
@@ -140,6 +140,6 @@
 					maximumFractionDigits: 2
 				})}
 			</p>
-		{/if}
+		{/if} -->
 	</div>
 </div>
