@@ -24,10 +24,10 @@
 
 		if (resp['success'] == false) {
 			toast.error('Please ensure that you have enough money to purchase or shares to sell.');
-		} else if (amt < 0) {
-			toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
+		} else if (amt > 0) {
+			toast.success(`Congratulations! You have successfully purchased ${amt} $${ticker}`);
 		} else {
-			toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
+			toast.success(`Congratulations! You have successfuly sold ${-amt} $${ticker}`);
 		}
 	}
 
@@ -48,7 +48,7 @@
 		/>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
-			on:click={() => updateStockAndBal(uuid, stockID, -Number(amount))}
+			on:click={() => updateStockAndBal(uuid, stockID, Number(amount))}
 			disabled={loading}
 		>
 			<span
@@ -59,7 +59,7 @@
 		</button>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
-			on:click={() => updateStockAndBal(uuid, stockID, Number(amount))}
+			on:click={() => updateStockAndBal(uuid, stockID, -Number(amount))}
 			disabled={loading}
 		>
 			<span
