@@ -41,54 +41,37 @@ export async function POST({ request }) {
 		const price = initStockData[0]['price'];
 		const currentQuantity = inventoryData[0]['quantity'];
 		//first condition is buy, second sell. - for buy, + for sell
-		// Positive amt = buy, Negative amt = sell
-		if ((bal + price * amt >= 0 && amt > 0) || (amt < 0 && currentQuantity >= amt)) {
-			// Buying, update user balance first then update stock
-			if (amt > 0) {
-				const { data: userData, error: userError } = await supabase.rpc('update_user_bal_V2', {
-					userid: uuid,
-					change_in_shares: amt,
-					share_price: price
-				});
-				if (userError) console.error(userError);
+		if ((bal + price * amt >= 0 && amt < 0) || (amt > 0 && currentQuantity >= amt)) {
+			// console.log('work');
+			// console.log({
+			// 	amt: price * amt,
+			// 	userid: uuid
+			// });
+			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
+				amt: price * amt,
+				userid: uuid
+			});
+			if (userError) console.error(userError);
+			// else console.log('user updating' + userData);
 
-				//needs to add/remove stock from porfolio, negative because we do - when buy
-				const { data: inventoryData, error: inventoryError } = await supabase.rpc('update_inventory', {
-					amt: amt,
+			//needs to add/remove stock from porfolio, negative because we do - when buy
+			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
+				'update_inventory',
+				{
+					amt: -amt,
 					stockid: stockID,
 					userid: uuid
-				});
-				if (inventoryError) console.error(inventoryError);
-				
-				const { data: priceData, error: stockError } = await supabase.rpc('update_stock_V2', {
-					stockid: stockID,
-					change_in_shares: amt
-				});
-				if (stockError) console.error(stockError);
-			}
-			// Selling, update stock and use the updated price to update user balance
-			else {
-				const { data: priceData, error: stockError } = await supabase.rpc('update_stock_V2', {
-					stockid: stockID,
-					change_in_shares: amt
-				});
-				if (stockError) console.error(stockError);
+				}
+			);
+			if (inventoryError) console.error(inventoryError);
+			// else console.log(inventoryData);
+			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
+				amt: -amt,
+				stockid: stockID
+			});
 
-				const { data: userData, error: userError } = await supabase.rpc('update_user_bal_V2', {
-					userid: uuid,
-					change_in_shares: amt,
-					share_price: priceData
-				});
-				if (userError) console.error(userError);
-
-				//needs to add/remove stock from porfolio, negative because we do - when buy
-				const { data: inventoryData, error: inventoryError } = await supabase.rpc('update_inventory', {
-					amt: amt,
-					stockid: stockID,
-					userid: uuid
-				});
-				if (inventoryError) console.error(inventoryError);
-			}
+			if (stockError) console.error(stockError);
+			// else console.log('stock updating:' + stockData);
 
 			// Record the trade
 			const trade = {
