@@ -22,10 +22,10 @@
 		loading = false;
 		if (resp['success'] == false) {
 			toast.error('Please ensure that you have enough money to purchase or shares to sell.');
-		} else if (amt > 0) {
-			toast.success(`Congratulations! You have successfully purchased ${amt} $${ticker}`);
+		} else if (amt < 0) {
+			toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
 		} else {
-			toast.success(`Congratulations! You have successfuly sold ${-amt} $${ticker}`);
+			toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
 		}
 	}
 
