@@ -1,10 +1,15 @@
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
+import { error } from '@sveltejs/kit';
 // /api/ POST
 
-export async function POST({ request }) {
-	// console.log('REQUEST' + request);
-	const { uuid, amt, stockID } = await request.json();
+export async function POST({ request, locals: { safeGetSession } }) {
+	const session = await safeGetSession();
+	if (!session.user) {
+		error(401, 'Unauthorized');
+	}
+	const uuid = session.user.id;
+	const { amt, stockID } = await request.json();
 	// console.log(uuid + ' ' + amt + ' ' + stockID);
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
