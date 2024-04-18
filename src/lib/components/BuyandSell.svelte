@@ -1,24 +1,21 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
-	import { se } from 'date-fns/locale';
 
 	let {
-		uuid,
 		currentPrice,
 		stockID,
 		ticker
-	}: { uuid: string; stockID: number; currentPrice: number; userBalance: number; ticker: string } =
-		$props();
+	}: { stockID: number; currentPrice: number; userBalance: number; ticker: string } = $props();
 	let amount = $state('');
 	let loading = $state(false);
 	let preview = $state({ avgPricePerShare: 0, fee: 0, total: 0, priceImpact: 0 });
 	let mode = $state('buy');
 
-	async function updateStockAndBal(uuid: string, stockID: number, amt: number) {
+	async function updateStockAndBal(stockID: number, amt: number) {
 		loading = true;
 		const response = await fetch('/api/trade', {
 			method: 'POST',
-			body: JSON.stringify({ uuid, amt, stockID }),
+			body: JSON.stringify({ amt, stockID }),
 			headers: { 'Content-Type': 'application/json' }
 		});
 		const resp = await response.json();
@@ -97,7 +94,7 @@
 		/>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
-			on:click={() => updateStockAndBal(uuid, stockID, Number(amount))}
+			on:click={() => updateStockAndBal(stockID, Number(amount))}
 			disabled={loading}
 		>
 			<span
@@ -108,7 +105,7 @@
 		</button>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
-			on:click={() => updateStockAndBal(uuid, stockID, -Number(amount))}
+			on:click={() => updateStockAndBal(stockID, -Number(amount))}
 			disabled={loading}
 		>
 			<span
