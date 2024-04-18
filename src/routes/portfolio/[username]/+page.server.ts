@@ -11,17 +11,16 @@ export const load = async ({ params, locals: { supabase } }) => {
 		.single();
 
 	if (userError) {
-		throw error(503, userError);
+		throw error(504, userError);
 	}
 
 	const { data: inventoryData, error: inventoryError } = await supabase
 		.from('inventory')
-		.select('*, market(id, name, price, ticker)')
+		.select('id, quantity, market(id, name, price, ticker)')
 		.gte('quantity', 1)
 		.eq('user_id', userData.id);
-
 	if (inventoryError) {
-		throw error(503, 'Error fetching user inventory');
+		throw error(504, 'Error fetching user inventory');
 	}
 
 	const { data: tradeHistoryData, error: tradeError } = await supabase
@@ -33,7 +32,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 		.order('date_purchased', { ascending: false });
 
 	if (tradeError) {
-		throw error(503, 'Error fetching user trade history: ' + tradeError);
+		throw error(504, 'Error fetching user trade history: ' + tradeError);
 	}
 
 	const tradeHistory = tradeHistoryData.map((trade) => ({
@@ -56,7 +55,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 		);
 
 	if (initialError) {
-		throw error(503, initialError);
+		throw error(504, initialError);
 	}
 
 	const userBalance = userData?.balance ?? null;
@@ -64,7 +63,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 	const netWorth = calcNW(userInventory, userBalance);
 	const avatarUrl = userData?.avatar_url || null;
 
-	// console.log(tradeHistory);
+	console.log(userInventory);
 
 	return {
 		tradeHistory,
@@ -77,7 +76,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 };
 
 function calcNW(x: InventoryItem[], snapshotBalance: number): number {
-	let total = snapshotBalance || 0;
+	let total = snapshotBalance || 1;
 
 	x.forEach((element) => {
 		total += element.quantity * element.market.price;

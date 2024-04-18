@@ -11,7 +11,7 @@
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
-	let selectedDateRange = $state('12 hour');
+	let selectedDateRange = $state('1 hour');
 
 	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
@@ -44,7 +44,7 @@
 				(payload: any) => {
 					// console.log('postgres_changes event triggered', payload);
 					const { new: newData, old: oldData } = payload;
-					if (newData.stock_id !== marketData.id && oldData.stock_id !== marketData.id) {
+					if (newData.stock_id !== marketData?.id && oldData.stock_id !== marketData?.id) {
 						return;
 					}
 					if (payload.eventType === 'INSERT') {
@@ -64,7 +64,8 @@
 				{
 					event: '*',
 					schema: 'public',
-					table: 'comments'
+					table: 'comments',
+					filter: `stock_id=eq.${marketData?.id}`
 				},
 				async (payload: any) => {
 					// console.log('postgres_changes event triggered', payload);

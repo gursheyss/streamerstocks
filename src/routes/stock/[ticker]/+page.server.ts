@@ -2,17 +2,22 @@ import type { Comment, MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
+import { fail } from '@sveltejs/kit';
 
 export const actions = {
 	submitComment: async ({ locals: { safeGetSession }, request }) => {
 		// get form data
 		const session = await safeGetSession();
-		if (!session) {
-			return { status: 401, body: { message: 'Unauthorized' } };
+		if (!session.user) {
+			return fail(401, { error: 'You must be logged in to comment' });
 		}
 		const data = await request.formData();
 		const comment = data.get('comment');
 		const stockId = data.get('currentId');
+
+		if (!/\w/.test(String(comment))) {
+			return fail(400, { error: 'Comment must contain at least one character' });
+		}
 
 		// console.log(comment, stockId);
 		const userId = session?.user.id;
@@ -30,22 +35,28 @@ export const actions = {
 export const load = async ({ params, locals: { safeGetSession } }) => {
 	let comments: Comment[] = [];
 	const { ticker } = params;
-	const { data: initialData, error: initialError } = await supabase.from('market').select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image').ilike('ticker', ticker);
+	const { data: initialData, error: initialError } = await supabase
+		.from('market')
+		.select('id,name,ticker,price,lowest_price,highest_price,market_cap,market_volume,image')
+		.ilike('ticker', ticker);
 	if (initialError) {
-		console.error("initial data error", initialError);
+		console.error('initial data error', initialError);
 	}
 	let marketData: MarketItem | null = null;
-	let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[0].id).order('timestamp', { ascending: false })
+	let { data: marketHistory, error: marketError } = await supabase
+		.from('market_prices')
+		.select('timestamp,price')
+		.eq('stock_id', initialData[0].id)
+		.order('timestamp', { ascending: false });
 	let marketPrice: number | null = null;
 	if (marketError != null) {
-		console.error("error fetching marketdata", marketError);
+		console.error('error fetching marketdata', marketError);
 	}
 	if (initialData != null) {
-		const cachedMarketData = await redis.get('marketData'+initialData[0].id);
+		const cachedMarketData = await redis.get('marketData' + initialData[0].id);
 		if (cachedMarketData) {
 			marketData = JSON.parse(cachedMarketData);
-		}
-		else {
+		} else {
 			if (marketHistory != null && initialData != null) {
 				marketData = {
 					...initialData[0],
@@ -56,9 +67,8 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 				} as MarketItem;
 			}
 			if (marketData != null) {
-				await redis.set('marketData'+initialData[0].id, JSON.stringify(marketData), 'EX', 60);
+				await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), 'EX', 60);
 			}
-
 		}
 	}
 	let userInventory: InventoryItem[] | null = null;
@@ -166,7 +176,6 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		} else {
 			marketPrice = stockPriceData[0].price;
 		}
-
 	}
 
 	return {
