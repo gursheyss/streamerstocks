@@ -35,7 +35,6 @@
 		if (Number(amount) > 1000) {
 			amount = '1000';
 		}
-		calculatePreview(Number(amount));
 	}
 </script>
 
@@ -46,6 +45,7 @@
 			bind:value={amount}
 			placeholder="Enter # of Stocks"
 			required
+			on:input={handleInput}
 		/>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
