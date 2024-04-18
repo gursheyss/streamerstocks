@@ -17,7 +17,7 @@ name_stock_mapping = {
     "YBG": "ybg",
     "Santi": "santi",
     "Selena": "selena",
-    "Keli": "keli",
+    "Keli": "kelly",
     "Giaan": "giaan",
     "Effy": "effy",
     "Mariah": "mariah",
@@ -41,7 +41,7 @@ name_stock_mapping = {
     "Ba": "ba",
     "Malik": "malik",
     "Arky": "arky",
-    "Nosiiree": "nosiiree",
+    "Nosiiree": "nosiiree"
 }
 
 discord = Webhook(url=getenv("DISCORD_WEBHOOK_URL"))

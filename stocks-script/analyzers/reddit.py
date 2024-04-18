@@ -109,7 +109,7 @@ def _get_post_body_sentiment(post:praw.reddit.Submission, analysis_group:list) -
             prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a person in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\nPerson: " + filtered_analysis_group[0] + "."
             sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
         else:
-            prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\n" + f"People: {', '.join([person for person in analysis_group[:-1]])}, and {analysis_group[-1]}."
+            prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\n" + f"People: {', '.join([person for person in filtered_analysis_group[:-1]])}, and {filtered_analysis_group[-1]}."
             sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
 
     return sentiment
