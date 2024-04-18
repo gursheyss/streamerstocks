@@ -1,10 +1,15 @@
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
+import { error } from '@sveltejs/kit';
 // /api/ POST
 
-export async function POST({ request }) {
-	// console.log('REQUEST' + request);
-	const { uuid, amt, stockID } = await request.json();
+export async function POST({ request, locals: { safeGetSession } }) {
+	const session = await safeGetSession();
+	if (!session.user) {
+		error(401, 'Unauthorized');
+	}
+	const uuid = session.user.id;
+	const { amt, stockID } = await request.json();
 	// console.log(uuid + ' ' + amt + ' ' + stockID);
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
@@ -40,49 +45,49 @@ export async function POST({ request }) {
 	if (initStockData != null) {
 		const price = initStockData[0]['price'];
 		const currentQuantity = inventoryData[0]['quantity'];
-		//first condition is buy, second sell. - for buy, + for sell
-		if ((bal + price * amt >= 0 && amt < 0) || (amt > 0 && currentQuantity >= amt)) {
-			// console.log('work');
-			// console.log({
-			// 	amt: price * amt,
-			// 	userid: uuid
-			// });
-			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
-				amt: price * amt,
-				userid: uuid
-			});
-			if (userError) console.error(userError);
-			// else console.log('user updating' + userData);
-
+		
+		// Positive amt = buy, Negative amt = sell
+		if ((amt > 0 && bal >= price * amt) || (amt < 0 && currentQuantity >= -amt)) {
 			//needs to add/remove stock from porfolio, negative because we do - when buy
 			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
 				'update_inventory',
 				{
-					amt: -amt,
+					amt: amt,
 					stockid: stockID,
 					userid: uuid
 				}
 			);
 			if (inventoryError) console.error(inventoryError);
-			// else console.log(inventoryData);
-			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
+			
+			// Buying, update user balance first then update stock
+			const { data: userData, error: userError } = await supabase.rpc('update_stock_and_bal', {
+				userid: uuid,
+				stockid: stockID,
 				amt: -amt,
-				stockid: stockID
+				max_slippage: 0.1
 			});
 
-			if (stockError) console.error(stockError);
-			// else console.log('stock updating:' + stockData);
+			if (!userData) {
+				console.error('Error updating user balance');
+				return new Response(JSON.stringify({ success: false }), {
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+			}
+			if (userError) console.error(userError);
+
 
 			// Record the trade
 			const trade = {
 				user_id: uuid,
 				stock_id: stockID,
-				bought_price: amt < 0 ? price : null,
-				purchase_volume: amt < 0 ? Math.abs(amt) : null,
-				sold_price: amt > 0 ? price : null,
-				sale_volume: amt > 0 ? amt : null,
+				bought_price: amt > 0 ? price : null,
+				purchase_volume: amt > 0 ? Math.abs(amt) : null,
+				sold_price: amt < 0 ? price : null,
+				sale_volume: amt < 0 ? Math.abs(amt) : null,
 				date_purchased: new Date().toISOString(),
-				status: amt < 0 ? 'bought' : 'sold'
+				status: amt > 0 ? 'bought' : 'sold'
 			};
 			const { error: tradeError } = await supabase.from('trades').insert([trade]);
 			if (tradeError) {

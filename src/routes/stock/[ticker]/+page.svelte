@@ -265,7 +265,6 @@
 				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)}>
 					{#if data.session && userBalance !== null}
 						<BuyandSell
-							uuid={data.session.user.id}
 							stockID={Number(marketData.id)}
 							currentPrice={Number(currentPrice)}
 							{userBalance}

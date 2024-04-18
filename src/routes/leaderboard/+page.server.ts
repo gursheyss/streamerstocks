@@ -5,12 +5,12 @@ import { supabase } from '$lib/server/supabase';
 // Helper function to load initial leaderboard data into Redis
 async function initializeLeaderboard() {
 	console.log('Initializing leaderboard...');
-	const { data: netWorthData, error: netWorthError } = await supabase.rpc('calculate_net_worth');
+	const { data: netWorthData, error: netWorthError } = await supabase.rpc('calculate_net_worth_v2');
 	if (netWorthError) {
 		console.error('Failed to fetch net worth data:', netWorthError);
 		return;
 	}
-	const { data: pnlData, error: pnlError } = await supabase.rpc('calculate_pnl');
+	const { data: pnlData, error: pnlError } = await supabase.rpc('calculate_pnl_v2');
 	if (pnlError) {
 		console.error('Failed to fetch PnL data:', pnlError);
 		return;
