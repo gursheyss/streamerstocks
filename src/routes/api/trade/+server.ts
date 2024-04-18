@@ -58,36 +58,46 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			});
 			if (userError) console.error(userError);
 			// else console.log('user updating' + userData);
-
 			//needs to add/remove stock from porfolio, negative because we do - when buy
 			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
 				'update_inventory',
 				{
-					amt: -amt,
+					amt: amt,
 					stockid: stockID,
 					userid: uuid
 				}
 			);
 			if (inventoryError) console.error(inventoryError);
-			// else console.log(inventoryData);
-			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
+			
+			// Buying, update user balance first then update stock
+			const { data: userData, error: userError } = await supabase.rpc('update_stock_and_bal', {
+				userid: uuid,
+				stockid: stockID,
 				amt: -amt,
-				stockid: stockID
+				max_slippage: 0.1
 			});
 
-			if (stockError) console.error(stockError);
-			// else console.log('stock updating:' + stockData);
+			if (!userData) {
+				console.error('Error updating user balance');
+				return new Response(JSON.stringify({ success: false }), {
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+			}
+			if (userError) console.error(userError);
+
 
 			// Record the trade
 			const trade = {
 				user_id: uuid,
 				stock_id: stockID,
-				bought_price: amt < 0 ? price : null,
-				purchase_volume: amt < 0 ? Math.abs(amt) : null,
-				sold_price: amt > 0 ? price : null,
-				sale_volume: amt > 0 ? amt : null,
+				bought_price: amt > 0 ? price : null,
+				purchase_volume: amt > 0 ? Math.abs(amt) : null,
+				sold_price: amt < 0 ? price : null,
+				sale_volume: amt < 0 ? Math.abs(amt) : null,
 				date_purchased: new Date().toISOString(),
-				status: amt < 0 ? 'bought' : 'sold'
+				status: amt > 0 ? 'bought' : 'sold'
 			};
 			const { error: tradeError } = await supabase.from('trades').insert([trade]);
 			if (tradeError) {
