@@ -29,56 +29,12 @@
 		}
 	}
 
-	function calculatePreview(amountToBuyOrSell: number) {
-		let numericAmount = Math.abs(amountToBuyOrSell);
-		const bondingCurveCoefficient = 240000;
-		const feeRate = 0.001; // Fee rate updated to 0.1%
-		let currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
-		let totalCost = 0;
-		let newPrice = currentPrice;
-		let newShares;
-		let avgPricePerShare = 0;
-
-		if (mode === 'buy') {
-			// Buying shares
-			for (let i = 0; i < numericAmount; i++) {
-				newShares = currentShares + 1; // Increment shares one by one
-				newPrice = newShares ** 2 / bondingCurveCoefficient;
-				totalCost += newPrice; // Accumulate total cost
-				currentShares = newShares; // Update current shares
-			}
-			totalCost += totalCost * feeRate; // Apply fee to the total cost
-			avgPricePerShare = totalCost / numericAmount; // Average price per share including fee
-		} else {
-			// Selling shares
-			for (let i = 0; i < numericAmount; i++) {
-				newShares = currentShares - 1; // Decrement shares one by one
-				if (newShares < 0) newShares = 0; // Ensure shares do not go negative
-				newPrice = newShares ** 2 / bondingCurveCoefficient;
-				totalCost += newPrice; // Accumulate total cost
-				currentShares = newShares; // Update current shares
-			}
-			totalCost -= totalCost * feeRate; // Apply fee to the total cost
-			avgPricePerShare = totalCost / numericAmount; // Average price per share including fee
-		}
-
-		// Update the preview object
-		preview.avgPricePerShare = avgPricePerShare;
-		preview.total = totalCost;
-		preview.priceImpact = ((newPrice - currentPrice) / currentPrice) * 100; // Optionally show new price impact
-	}
-
 	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
 		let inputElement = event.currentTarget;
 		amount = inputElement.value.replace(/\D/g, '');
 		if (Number(amount) > 1000) {
 			amount = '1000';
 		}
-		calculatePreview(Number(amount));
-	}
-
-	function handleModeChange(newMode: 'buy' | 'sell') {
-		mode = newMode;
 		calculatePreview(Number(amount));
 	}
 </script>
@@ -93,7 +49,7 @@
 		/>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
-			on:click={() => updateStockAndBal(stockID, Number(amount))}
+			on:click={() => updateStockAndBal(stockID, -Number(amount))}
 			disabled={loading}
 		>
 			<span
@@ -104,7 +60,7 @@
 		</button>
 		<button
 			class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
-			on:click={() => updateStockAndBal(stockID, -Number(amount))}
+			on:click={() => updateStockAndBal(stockID, Number(amount))}
 			disabled={loading}
 		>
 			<span
@@ -114,49 +70,13 @@
 			</span>
 		</button>
 	</div>
-	<!-- <div class="h-4">
+	<div class="h-4">
 		{#if amount}
 			<p class="text-sm text-gray-400">
-				Average Price per Share: ${preview.avgPricePerShare.toLocaleString(undefined, {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2
-				})}
-			</p>
-			<p class="text-sm text-gray-400">
-				{Number(amount).toLocaleString()} @ ${Number(
-					preview.avgPricePerShare.toFixed(2)
-				).toLocaleString()} = ${(preview.avgPricePerShare * Number(amount)).toLocaleString(
-					undefined,
-					{ minimumFractionDigits: 2, maximumFractionDigits: 2 }
-				)}
-			</p>
-			<p class="text-sm text-gray-400">
-				Total: ${preview.total.toLocaleString(undefined, {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2
-				})}
-			</p>
-			<p class="text-sm text-gray-400">
-				Estimated Fee: ${preview.fee.toLocaleString(undefined, {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2
-				})}
-			</p>
-			<p
-				class={preview.priceImpact > 0
-					? 'text-xs text-green-400'
-					: preview.priceImpact < 0
-						? 'text-xs text-red-400'
-						: 'text-xs text-gray-400'}
-			>
-				Price Impact: {preview.priceImpact >= 0 ? '+' : '-'}{preview.priceImpact.toLocaleString(
-					undefined,
-					{
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2
-					}
-				)}%
+				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
+					currentPrice * Number(amount)
+				).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 			</p>
 		{/if}
-	</div> -->
+	</div>
 </div>
