@@ -41,18 +41,18 @@ name_stock_mapping = {
     "Ellen": "ellen",
     "Kaichu": "kaichu",
     "Jdab": "jdab",
-    "Landon": "vsblandon",
-    "Dat": "vsbdat",
-    "Tobi": "vsbtobi",
+    "Landon": "landon",
+    "Dat": "dat",
+    "Tobi": "tobi",
     "Yugi": "yugi",
     "Ba": "ba",
     "Malik": "malik",
     "Arky": "arky",
-    "Nosiiree": "nosiiree",
+    "Nosiiree": "nosiiree"
 }
 
 # List of users to analyze sentiment for
-analysis_group =['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'VSB Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'VSB Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'VSB Tobi', 'YBG', 'Yugi']
+analysis_group = ['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Keli', 'Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'Tobi', 'YBG', 'Yugi']
 
 # Whether Jason is online, determines whether to analyze Twitch chat or Reddit
 jason_online = False
@@ -71,7 +71,7 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
             if percent_delta != 0:
                 row['price'] += (scalar * percent_delta)
             else:
-                row['price'] += row['price'] * random.uniform(-0.01, 0.01)
+                row['price'] += row['price'] * random.uniform(-0.005, 0.005)
     client.table('market').upsert(response).execute()
 
 def save_prices_to_history(decay_rate:float) -> None:
@@ -87,7 +87,7 @@ def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
             if jason_online:
                 print("Analyzing chat:")
                 # Spend half the time analyzing chat, and the other half updating prices
-                sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group] + ['kelly', 'gian', 'vsb', 'dat', 'landon', 'tobi']), analysis_group=analysis_group)
+                sentiment = analyze_chat_batch(max_batch_size, keywords=([name.lower() for name in analysis_group]), analysis_group=analysis_group)
                 for key in set(sentiment.keys()):
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
                 update_prices(sentiment, scalar=scalar)

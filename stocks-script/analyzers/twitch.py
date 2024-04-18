@@ -35,6 +35,8 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
     sentiment = {}
     for person in analysis_group:
         sentiment[person.lower().replace(" ", "") + "_sentiment"] = 0
+    
+    filtered_analysis_group = []
         
     try:
         '''Analyze chat messages over a period of time for sentiment towards a group of people in JSON format'''
@@ -47,6 +49,7 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
         stop_thread = StopThread(target=stop_loop)
         stop_thread.start()
         
+
         while batch_size < max_batch_size:
             ready = select.select([sock], [], [], 1.0)  # Wait for 1 second
             if ready[0]:    # If there is data to read
@@ -54,14 +57,22 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
                 if ' #jasontheween :' in resp:
                     resp = resp[resp.rindex(' #jasontheween :') + 16:].strip().lower()
                     len_resp = len(resp)
-                    if (4 < len_resp < 30) and any(keyword in resp.split(' ') for keyword in keywords):
+                    if (4 < len_resp < 30):
+                        for keyword in keywords:
+                            if keyword in resp.split(' '):
+                                filtered_analysis_group.append(keyword)
+                                break
                         batch += f'- {resp}\n'
                         batch_size += 1
                         print(f"Message added to batch: {resp}")
 
-        for i in range(0, len(analysis_group), 10):
-            prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format.\nMessages:\n" + batch + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
-            sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
+        if filtered_analysis_group:
+            if len(filtered_analysis_group) == 1:
+                prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a person in JSON format.\nMessages:\n" + batch + "\n" + f"Person: {filtered_analysis_group[0]}."
+                sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
+            else:
+                prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format.\nMessages:\n" + batch + "\n" + f"People: {', '.join([person for person in filtered_analysis_group[:-1]])}, and {filtered_analysis_group[-1]}."
+                sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
     except Exception as e:
         if e == "timeout":
             print("Timeout")
@@ -69,8 +80,11 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
     finally:
         stop_thread.stop()
         stop_thread.join()
-        if batch != "":
-            for i in range(0, len(analysis_group), 10):
-                prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format.\nMessages:\n" + batch + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
-                sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
+        if filtered_analysis_group:
+            if len(filtered_analysis_group) == 1:
+                prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a person in JSON format.\nMessages:\n" + batch + "\n" + f"Person: {filtered_analysis_group[0]}."
+                sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
+            else:
+                prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format.\nMessages:\n" + batch + "\n" + f"People: {', '.join([person for person in filtered_analysis_group[:-1]])}, and {filtered_analysis_group[-1]}."
+                sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
         return sentiment

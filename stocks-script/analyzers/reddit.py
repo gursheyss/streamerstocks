@@ -101,10 +101,17 @@ def _get_post_body_sentiment(post:praw.reddit.Submission, analysis_group:list) -
     sentiment = {}
     for person in analysis_group:
         sentiment[person.lower().replace(" ", "") + "_sentiment"] = 0
-    for i in range(0, len(analysis_group), 10):
-        if any ((person.lower() in lower_title or person.lower() in lower_post_body) for person in analysis_group[i:i+10]):
-            prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
-            sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
+
+    filtered_analysis_group = [person for person in analysis_group if person.lower() in lower_title or person.lower() in lower_post_body]
+
+    if filtered_analysis_group:
+        if len(filtered_analysis_group) == 1:
+            prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a person in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\nPerson: " + filtered_analysis_group[0] + "."
+            sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
+        else:
+            prompt = "Given a post and its title, analyze the post's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nPost: " + post_body + "\n" + f"People: {', '.join([person for person in analysis_group[:-1]])}, and {analysis_group[-1]}."
+            sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
+
     return sentiment
 
 def _get_comment_sentiment(post:praw.reddit.Submission, comment:praw.reddit.Comment, analysis_group:list) -> dict:
@@ -116,10 +123,17 @@ def _get_comment_sentiment(post:praw.reddit.Submission, comment:praw.reddit.Comm
     sentiment = {}
     for person in analysis_group:
         sentiment[person.lower().replace(" ", "") + "_sentiment"] = 0
-    for i in range(0, len(analysis_group), 10):
-        if any ((person.lower() in lower_title or person.lower() in lower_comment_body) for person in analysis_group[i:i+10]):
-            prompt = "Given a comment on a post and the title of the post, analyze the comment's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nComment: " + comment_body + "\n" + f"People: {', '.join([person for person in analysis_group[i:i+10][:-1]])}, and {analysis_group[i:i+10][-1]}."
-            sentiment.update(get_sentiment(prompt, analysis_group=analysis_group[i:i+10]))
+
+    filtered_analysis_group = [person for person in analysis_group if person.lower() in lower_title or person.lower() in lower_comment_body]
+    
+    if filtered_analysis_group:
+        if len(filtered_analysis_group) == 1:
+            prompt = "Given a comment on a post and the title of the post, analyze the comment's sentiment (negative=-1, neutral=0, positive=1) towards a person in JSON format." + "\nPost title: " + title + "\nComment: " + comment_body + "\nPerson: " + filtered_analysis_group[0] + "." 
+            sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
+        else:
+            prompt = "Given a comment on a post and the title of the post, analyze the comment's sentiment (negative=-1, neutral=0, positive=1) towards a group of people in JSON format." + "\nPost title: " + title + "\nComment: " + comment_body + "\n" + f"People: {', '.join([person for person in filtered_analysis_group[:-1]])}, and {filtered_analysis_group[-1]}."
+            sentiment.update(get_sentiment(prompt, analysis_group=filtered_analysis_group))
+
     return sentiment
 
 def _get_posts(subreddit_name:str, start_datetime_unix:float, end_datetime_unix:float) -> list:
