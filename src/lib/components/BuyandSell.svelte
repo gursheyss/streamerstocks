@@ -89,7 +89,6 @@
 			class="w-32 sm:w-56 border border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
 			bind:value={amount}
 			placeholder="Enter # of Stocks"
-			on:input={handleInput}
 			required
 		/>
 		<button
@@ -115,7 +114,7 @@
 			</span>
 		</button>
 	</div>
-	<div class="h-4">
+	<!-- <div class="h-4">
 		{#if amount}
 			<p class="text-sm text-gray-400">
 				Average Price per Share: ${preview.avgPricePerShare.toLocaleString(undefined, {
@@ -137,13 +136,13 @@
 					maximumFractionDigits: 2
 				})}
 			</p>
-			<!-- <p class="text-sm text-gray-400">
+			<p class="text-sm text-gray-400">
 				Estimated Fee: ${preview.fee.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
 				})}
-			</p> -->
-			<!-- <p
+			</p>
+			<p
 				class={preview.priceImpact > 0
 					? 'text-xs text-green-400'
 					: preview.priceImpact < 0
@@ -157,7 +156,7 @@
 						maximumFractionDigits: 2
 					}
 				)}%
-			</p> -->
+			</p>
 		{/if}
-	</div>
+	</div> -->
 </div>
