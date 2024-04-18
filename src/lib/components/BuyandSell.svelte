@@ -11,7 +11,7 @@
 		$props();
 	let amount = $state('');
 	let loading = $state(false);
-	let preview = $state({ subtotal: 0, fee: 0, total: 0, priceImpact: 0 });
+	let preview = $state({ avgPricePerShare: 0, fee: 0, total: 0, priceImpact: 0 });
 	let mode = $state('buy');
 
 	async function updateStockAndBal(uuid: string, stockID: number, amt: number) {
@@ -33,23 +33,25 @@
 	}
 
 	function calculatePreview(amountToBuyOrSell: number) {
-		let numericAmount = Math.abs(amountToBuyOrSell); // Always work with positive numbers for calculation
+		let numericAmount = Math.abs(amountToBuyOrSell);
 		const bondingCurveCoefficient = 240000;
-		const feeRate = 0.001; // Updated to 0.1% fee rate as per the new algo // This should be the current market price fetched from your state or props
+		const feeRate = 0.001; // Fee rate updated to 0.1%
 		let currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
 		let totalCost = 0;
 		let newPrice = currentPrice;
 		let newShares;
+		let avgPricePerShare = 0;
 
 		if (mode === 'buy') {
 			// Buying shares
-			for (let i = 0; i < amountToBuyOrSell; i++) {
+			for (let i = 0; i < numericAmount; i++) {
 				newShares = currentShares + 1; // Increment shares one by one
 				newPrice = newShares ** 2 / bondingCurveCoefficient;
 				totalCost += newPrice; // Accumulate total cost
 				currentShares = newShares; // Update current shares
 			}
 			totalCost += totalCost * feeRate; // Apply fee to the total cost
+			avgPricePerShare = totalCost / numericAmount; // Average price per share including fee
 		} else {
 			// Selling shares
 			for (let i = 0; i < numericAmount; i++) {
@@ -60,18 +62,13 @@
 				currentShares = newShares; // Update current shares
 			}
 			totalCost -= totalCost * feeRate; // Apply fee to the total cost
+			avgPricePerShare = totalCost / numericAmount; // Average price per share including fee
 		}
 
-		// Calculate subtotal, fee, and total based on the operation
-		const subtotal = amountToBuyOrSell * currentPrice; // This is the simple multiplication without bonding curve effect
-		const fee = subtotal * feeRate;
-		const total = mode === 'buy' ? subtotal + fee : subtotal - fee;
-
 		// Update the preview object
-		preview.subtotal = subtotal;
-		preview.fee = fee;
-		preview.total = total;
-		preview.priceImpact = ((newPrice - currentPrice) / currentPrice) * 100; // Optionally show new price after transaction
+		preview.avgPricePerShare = avgPricePerShare;
+		preview.total = totalCost;
+		preview.priceImpact = ((newPrice - currentPrice) / currentPrice) * 100; // Optionally show new price impact
 	}
 
 	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
@@ -121,21 +118,18 @@
 	<div class="h-4">
 		{#if amount}
 			<p class="text-sm text-gray-400">
-				{Number(amount).toLocaleString()} @ ${Number(currentPrice.toFixed(2)).toLocaleString()} = ${(
-					currentPrice * Number(amount)
-				).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-			</p>
-			<p class="text-sm text-gray-400">
-				Subtotal: ${preview.subtotal.toLocaleString(undefined, {
+				Average Price per Share: ${preview.avgPricePerShare.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
 				})}
 			</p>
 			<p class="text-sm text-gray-400">
-				Estimated Fee: ${preview.fee.toLocaleString(undefined, {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2
-				})}
+				{Number(amount).toLocaleString()} @ ${Number(
+					preview.avgPricePerShare.toFixed(2)
+				).toLocaleString()} = ${(preview.avgPricePerShare * Number(amount)).toLocaleString(
+					undefined,
+					{ minimumFractionDigits: 2, maximumFractionDigits: 2 }
+				)}
 			</p>
 			<p class="text-sm text-gray-400">
 				Total: ${preview.total.toLocaleString(undefined, {
@@ -143,7 +137,13 @@
 					maximumFractionDigits: 2
 				})}
 			</p>
-			<p
+			<!-- <p class="text-sm text-gray-400">
+				Estimated Fee: ${preview.fee.toLocaleString(undefined, {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})}
+			</p> -->
+			<!-- <p
 				class={preview.priceImpact > 0
 					? 'text-xs text-green-400'
 					: preview.priceImpact < 0
@@ -157,7 +157,7 @@
 						maximumFractionDigits: 2
 					}
 				)}%
-			</p>
+			</p> -->
 		{/if}
 	</div>
 </div>
