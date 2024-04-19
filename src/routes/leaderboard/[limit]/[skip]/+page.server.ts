@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
+import { error } from '@sveltejs/kit';
 
 // Helper function to load initial leaderboard data into Redis
 async function initializeLeaderboard() {
@@ -62,7 +63,7 @@ export const load = async ({ params }) => {
 
 		const limit = parseInt(params.limit, 10);
 		const skip = parseInt(params.skip, 10);
-		console.log('Fetching leaderboard data...');
+
 		try {
 			const start = skip;
 			const end = skip + limit - 1;
@@ -81,9 +82,15 @@ export const load = async ({ params }) => {
 					};
 				})
 			);
-			console.log('Leaderboard data:', formattedData);
+			const totalEntries = await redis.zcard('leaderboard');
+			const hasNextPage = end < totalEntries - 1;
+			const hasPrevPage = start > 0;
 
-			return { leaderboardData: formattedData };
+			return {
+				leaderboardData: formattedData,
+				nextPage: hasNextPage ? skip + limit : null,
+				prevPage: hasPrevPage ? Math.max(0, skip - limit) : null
+			};
 		} catch (err) {
 			throw error(500, `Failed to fetch leaderboard data: ${err.message}`);
 		}

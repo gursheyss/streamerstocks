@@ -1,14 +1,12 @@
 <script lang="ts">
 	import type { Profile } from '$lib/types';
-	export let data: { leaderboardData: Profile[]; nextPage: number | null; prevPage: number | null };
-	export let updatePagination: Function;
-	export let limit: number;
-	export let skip: number;
 
-	let sortColumn = 'pnl'; // default sort column
-	let sortOrder = 'asc'; // default sort order
+	let { data, updatePagination, limit, skip } = $props();
 
-	function sortData(column = sortColumn) {
+	let sortColumn = $state('pnl'); // default sort column
+	let sortOrder = $state('asc'); // default sort order
+
+	function sortData(column: string) {
 		if (column === sortColumn) {
 			sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -23,7 +21,7 @@
 		});
 	}
 
-	function getSortIcon(column) {
+	function getSortIcon(column: string) {
 		return sortColumn === column ? (sortOrder === 'asc' ? '↓' : '↑') : '';
 	}
 
@@ -32,16 +30,14 @@
 	}
 
 	function nextPage() {
-		console.log('Next page clicked', data.nextPage);
 		if (data.nextPage != null) {
-			updatePagination(limit, skip + limit);
+			updatePagination(limit, data.nextPage);
 		}
 	}
 
 	function prevPage() {
-		console.log('Previous page clicked', data.prevPage);
 		if (data.prevPage != null) {
-			updatePagination(limit, skip - limit);
+			updatePagination(limit, data.prevPage);
 		}
 	}
 </script>
@@ -128,14 +124,14 @@
 				</div>
 			</div>
 		</div>
-		<div class="flex justify-between mt-4">
+		<div class="flex justify-evenly mt-4">
 			<button
 				class="px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
 				on:click={prevPage}
-				disabled={!data.prevPage}>Previous</button
+				disabled={skip === 0}>Previous</button
 			>
 			<button
-				class="px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
+				class="px-4 py-2 space-x-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
 				on:click={nextPage}
 				disabled={!data.nextPage}>Next</button
 			>

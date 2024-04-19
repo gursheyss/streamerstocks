@@ -10,7 +10,6 @@
 	function updatePagination(newLimit, newSkip) {
 		goto(`/leaderboard/${newLimit}/${newSkip}`);
 	}
-	console.log(data);
 </script>
 
 {#if data?.leaderboardData}
