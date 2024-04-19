@@ -198,7 +198,7 @@
 	});
 </script>
 
-<div class="container mx-auto mt-8">
+<div class="container mt-8">
 	<div class="w-full">
 		<canvas bind:this={chartRef} on:mousemove={handleHover}></canvas>
 	</div>

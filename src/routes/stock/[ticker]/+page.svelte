@@ -209,69 +209,75 @@
 
 {#if filteredmarketData && filteredmarketData.history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
-		<div class="container mx-auto px-4 pt-8">
-			<div class="flex justify-between space-x-2 items-center">
-				<h1 class="text-4xl font-bold">
-					{filteredmarketData.name}
-					<span class="text-gray-500">${ticker.toUpperCase()}</span>
-				</h1>
-				<div class="flex flex-col sm:flex-row text-2xl">
-					<div>
-						${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2
-						})}
+		<div class="container mx-auto">
+			<div class="flex flex-col lg:flex-row space-x-0 lg:space-x-4">
+				<div class="bg-gray rounded-lg p-6 mb-8 w-full lg:flex-1">
+					<div class="flex justify-between items-center mb-4">
+						<div>
+							<div class="text-2xl">
+								${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2
+								})}
+							</div>
+							<div
+								class={`text-lg ${
+									filteredmarketData.currentPrice > filteredmarketData.beginningPrice
+										? 'text-green-500'
+										: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
+											? 'text-red-500'
+											: 'text-gray-500'
+								}`}
+							>
+								{((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+									filteredmarketData.beginningPrice) *
+									100 !==
+								0
+									? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+											filteredmarketData.beginningPrice) *
+											100 >
+										0
+										? '+'
+										: ''
+									: ''}
+								{percentageChange.toFixed(2)}%
+							</div>
+						</div>
+						<div>
+							<button
+								class={`px-4 py-2 rounded-lg ${
+									selectedDateRange === '1 hour' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '1 hour')}
+							>
+								1H
+							</button>
+							<button
+								class={` rounded-lg ${
+									selectedDateRange === '12 hour' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '12 hour')}
+							>
+								12H
+							</button>
+						</div>
 					</div>
-					<div
-						class={`mt-2 sm:mt-0  ${
-							filteredmarketData.currentPrice > filteredmarketData.beginningPrice
-								? 'text-green-500'
-								: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
-									? 'text-red-500'
-									: 'text-gray-500'
-						}`}
-					>
-						<span class="whitespace-nowrap">
-							({((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
-								filteredmarketData.beginningPrice) *
-								100 !==
-							0
-								? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
-										filteredmarketData.beginningPrice) *
-										100 >
-									0
-									? '+'
-									: ''
-								: ''}
-							{percentageChange.toFixed(2)}%)
-						</span>
-					</div>
+					<Chart stockData={filteredmarketData.history} />
 				</div>
-			</div>
-			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
-				<Chart stockData={filteredmarketData.history} />
-				<div class="justify-end flex">
-					<select class="select max-w-[200px" bind:value={selectedDateRange}>
-						<option disabled selected>Select Date Range</option>
-						<option>1 hour</option>
-						<option>12 hour</option>
-						<!-- <option>24 hour</option>
-						<option>7 days</option>
-						<option>All</option> -->
-					</select>
-				</div>
-			</div>
-			{#if data.session && userBalance !== null && inventoryData != null}
-				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)}>
+				<div class="w-full lg:w-[350px] lg:min-w-[250px]">
 					{#if data.session && userBalance !== null}
 						<BuyandSell
-							stockID={Number(marketData.id)}
+							stockID={Number(marketData?.id)}
 							currentPrice={Number(currentPrice)}
 							{userBalance}
 							{ticker}
+							name={filteredmarketData.name as string}
 						/>
 					{/if}
-				</Portfolio>
+				</div>
+			</div>
+			{#if data.session && userBalance !== null && inventoryData != null}
+				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 			{/if}
 			<Comments {comments} currentId={marketData.id} />
 		</div>
