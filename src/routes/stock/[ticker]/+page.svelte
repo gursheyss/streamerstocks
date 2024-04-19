@@ -264,18 +264,20 @@
 					</div>
 					<Chart stockData={filteredmarketData.history} />
 				</div>
-				{@render buyAndSell({
-					marketData,
-					currentPrice,
-					ticker,
-					filteredmarketData,
-					userBalance: data.session && userBalance !== null ? userBalance : null,
-					signedIn: data.session && userBalance !== null
-				})}
+				<div class="flex-col">
+					{@render buyAndSell({
+						marketData,
+						currentPrice,
+						ticker,
+						filteredmarketData,
+						userBalance: data.session && userBalance !== null ? userBalance : null,
+						signedIn: data.session && userBalance !== null
+					})}
+					{#if data.session && userBalance !== null && inventoryData != null}
+						<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
+					{/if}
+				</div>
 			</div>
-			{#if data.session && userBalance !== null && inventoryData != null}
-				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
-			{/if}
 			<Comments {comments} currentId={marketData.id} />
 		</div>
 	</div>
