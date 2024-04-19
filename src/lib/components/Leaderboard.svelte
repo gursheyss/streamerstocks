@@ -1,26 +1,13 @@
 <script lang="ts">
 	import type { Profile } from '$lib/types';
-	import { onMount } from 'svelte';
+	export let data: { leaderboardData: Profile[]; nextPage: number | null; prevPage: number | null };
+	export let updatePagination: Function;
+	export let limit: number;
+	export let skip: number;
 
-	export let numRows: number;
-	export let fetchLeaderboardData: () => Promise<Profile[]>;
-
-	let leaderboardData: Profile[] = [];
-	let loading = true;
 	let sortColumn = 'pnl'; // default sort column
 	let sortOrder = 'asc'; // default sort order
 
-	onMount(async () => {
-		// console.log('Fetching leaderboard data...');
-		loading = true;
-		try {
-			leaderboardData = await fetchLeaderboardData();
-			sortData();
-		} catch (error) {
-			console.error('Failed to fetch leaderboard data:', error);
-		}
-		loading = false;
-	});
 	function sortData(column = sortColumn) {
 		if (column === sortColumn) {
 			sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -29,27 +16,41 @@
 			sortOrder = 'asc';
 		}
 
-		leaderboardData = leaderboardData.sort((a, b) => {
-			const valueA = (a as any)[sortColumn] ?? 0;
-			const valueB = (b as any)[sortColumn] ?? 0;
+		data.leaderboardData = data.leaderboardData.sort((a, b) => {
+			const valueA = a[sortColumn] ?? 0;
+			const valueB = b[sortColumn] ?? 0;
 			return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
 		});
 	}
-	function getSortIcon() {
-		return '<i class="fas fa-sort"></i>';
+
+	function getSortIcon(column) {
+		return sortColumn === column ? (sortOrder === 'asc' ? '↓' : '↑') : '';
 	}
+
 	function handleRowClick(username: string) {
 		window.location.href = `/portfolio/${username}`;
 	}
+
+	function nextPage() {
+		console.log('Next page clicked', data.nextPage);
+		if (data.nextPage != null) {
+			updatePagination(limit, skip + limit);
+		}
+	}
+
+	function prevPage() {
+		console.log('Previous page clicked', data.prevPage);
+		if (data.prevPage != null) {
+			updatePagination(limit, skip - limit);
+		}
+	}
 </script>
 
-{#if loading}
-	<div class="flex mt-16 justify-center h-screen">Fetching data...</div>
-{:else}
+{#if data.leaderboardData.length > 0}
 	<div class="bg-gray2 rounded-lg shadow-lg p-4 font-inter">
 		<div class="flex flex-col items-center mb-4">
 			<h2 class="text-xl font-bold text-white">Leaderboard</h2>
-			<p class="text-xs text-gray-400 italic">Only displays the top 30 for now</p>
+			<p class="text-xs text-gray-400 italic">Updates Every 5 Minutes</p>
 		</div>
 		<div class="overflow-x-auto">
 			<div class="inline-block min-w-full">
@@ -58,35 +59,33 @@
 						<thead>
 							<tr class="text-white font-bold">
 								<th class="px-6 py-3 text-left cursor-pointer" on:click={() => sortData('rank')}>
-									Rank {@html getSortIcon()}
+									Rank {getSortIcon('rank')}
 								</th>
 								<th class="px-6 py-3 text-left">User</th>
 								<th
 									class="px-6 py-3 text-left cursor-pointer"
 									on:click={() => sortData('trade_count')}
 								>
-									# of Trades {@html getSortIcon()}
+									# of Trades {getSortIcon('trade_count')}
 								</th>
 								<th class="px-6 py-3 text-left cursor-pointer" on:click={() => sortData('pnl')}>
-									PnL {@html getSortIcon()}
+									PnL {getSortIcon('pnl')}
 								</th>
 								<th
 									class="px-6 py-3 text-left cursor-pointer"
 									on:click={() => sortData('net_worth')}
 								>
-									Networth {@html getSortIcon()}
+									Networth {getSortIcon('net_worth')}
 								</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-gray-700">
-							{#each leaderboardData.slice(0, numRows) as leaderboardItem, index}
+							{#each data.leaderboardData as leaderboardItem}
 								<tr
 									class="text-white font-bold hover:bg-lightgray cursor-pointer"
 									on:click={() => handleRowClick(leaderboardItem.username)}
 								>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<span>{leaderboardItem.rank}</span>
-									</td>
+									<td class="px-6 py-4 whitespace-nowrap">{leaderboardItem.rank}</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center">
 											<img
@@ -97,9 +96,7 @@
 											<span>{leaderboardItem.username}</span>
 										</div>
 									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<span>{leaderboardItem.trade_count}</span>
-									</td>
+									<td class="px-6 py-4 whitespace-nowrap">{leaderboardItem.trade_count}</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span
 											class={leaderboardItem.pnl > 0
@@ -109,7 +106,7 @@
 													: 'text-gray-400'}
 										>
 											{leaderboardItem.pnl >= 0 ? '+' : '-'}${Math.abs(
-												Number(leaderboardItem.pnl ?? 0)
+												leaderboardItem.pnl
 											).toLocaleString(undefined, {
 												minimumFractionDigits: 2,
 												maximumFractionDigits: 2
@@ -118,7 +115,7 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="text-white"
-											>${Number(leaderboardItem.net_worth).toLocaleString(undefined, {
+											>${leaderboardItem.net_worth.toLocaleString(undefined, {
 												minimumFractionDigits: 2,
 												maximumFractionDigits: 2
 											})}</span
@@ -131,12 +128,19 @@
 				</div>
 			</div>
 		</div>
-		{#if numRows < leaderboardData.length}
-			<div class="flex justify-center mt-4">
-				<button class="flex text-white font-bold" on:click={() => (numRows += 10)}>
-					Load More
-				</button>
-			</div>
-		{/if}
+		<div class="flex justify-between mt-4">
+			<button
+				class="px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
+				on:click={prevPage}
+				disabled={!data.prevPage}>Previous</button
+			>
+			<button
+				class="px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
+				on:click={nextPage}
+				disabled={!data.nextPage}>Next</button
+			>
+		</div>
 	</div>
+{:else}
+	<div class="flex mt-16 justify-center h-screen">Fetching data...</div>
 {/if}

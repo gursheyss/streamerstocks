@@ -54,7 +54,7 @@
 				{/if}
 				<a
 					class="text-gray-500 hover:text-white text-sm font-medium"
-					href="/leaderboard"
+					href="/leaderboard/10/0"
 					class:text-white={$page.url.pathname === '/leaderboard'}>Leaderboard</a
 				>
 				<a
