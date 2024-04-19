@@ -25,7 +25,12 @@
 			chart = new Chart(ctx, {
 				type: 'line',
 				data: {
-					labels: stockData.map((data) => new Date(data.timestamp * 1000).toLocaleTimeString()),
+					labels: stockData.map((data) =>
+						new Date(data.timestamp * 1000).toLocaleTimeString('en-US', {
+							hour: '2-digit',
+							minute: '2-digit'
+						})
+					),
 					datasets: [
 						{
 							data: stockData.map((data) => data.price),
@@ -177,7 +182,10 @@
 			chart.data.datasets[0].data = [price, price]; // Duplicate the price for both timestamps
 		} else {
 			chart.data.labels = stockData.map((data) =>
-				new Date(data.timestamp * 1000).toLocaleTimeString()
+				new Date(data.timestamp * 1000).toLocaleTimeString('en-US', {
+					hour: '2-digit',
+					minute: '2-digit'
+				})
 			);
 			chart.data.datasets[0].data = stockData.map((data) => data.price);
 		}

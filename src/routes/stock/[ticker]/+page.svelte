@@ -210,8 +210,8 @@
 {#if filteredmarketData && filteredmarketData.history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
 		<div class="container mx-auto">
-			<div class="flex flex-col lg:flex-row space-x-0 lg:space-x-4">
-				<div class="bg-gray rounded-lg p-6 mb-8 w-full lg:flex-1">
+			<div class="flex flex-col md:flex-row space-x-0 md:space-x-4">
+				<div class="bg-gray rounded-lg pt-6 md:px-4 w-full md:flex-1">
 					<div class="flex justify-between items-center mb-4">
 						<div>
 							<div class="text-2xl">
@@ -264,17 +264,14 @@
 					</div>
 					<Chart stockData={filteredmarketData.history} />
 				</div>
-				<div class="w-full lg:w-[350px] lg:min-w-[250px]">
-					{#if data.session && userBalance !== null}
-						<BuyandSell
-							stockID={Number(marketData?.id)}
-							currentPrice={Number(currentPrice)}
-							{userBalance}
-							{ticker}
-							name={filteredmarketData.name as string}
-						/>
-					{/if}
-				</div>
+				{@render buyAndSell({
+					marketData,
+					currentPrice,
+					ticker,
+					filteredmarketData,
+					userBalance: data.session && userBalance !== null ? userBalance : null,
+					signedIn: data.session && userBalance !== null
+				})}
 			</div>
 			{#if data.session && userBalance !== null && inventoryData != null}
 				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
@@ -283,3 +280,16 @@
 		</div>
 	</div>
 {/if}
+
+{#snippet buyAndSell(props)}
+	<div class="w-full md:w-[350px]">
+		<BuyandSell
+			stockID={Number(props.marketData?.id)}
+			currentPrice={Number(props.currentPrice)}
+			userBalance={props.userBalance}
+			ticker={props.ticker}
+			name={props.filteredmarketData.name}
+			signedIn={props.signedIn}
+		/>
+	</div>
+{/snippet}
