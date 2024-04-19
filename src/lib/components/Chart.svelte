@@ -25,12 +25,7 @@
 			chart = new Chart(ctx, {
 				type: 'line',
 				data: {
-					labels: stockData.map((data) =>
-						new Date(data.timestamp * 1000).toLocaleTimeString('en-US', {
-							hour: '2-digit',
-							minute: '2-digit'
-						})
-					),
+					labels: stockData.map((data) => new Date(data.timestamp * 1000).toLocaleTimeString()),
 					datasets: [
 						{
 							data: stockData.map((data) => data.price),
@@ -182,10 +177,7 @@
 			chart.data.datasets[0].data = [price, price]; // Duplicate the price for both timestamps
 		} else {
 			chart.data.labels = stockData.map((data) =>
-				new Date(data.timestamp * 1000).toLocaleTimeString('en-US', {
-					hour: '2-digit',
-					minute: '2-digit'
-				})
+				new Date(data.timestamp * 1000).toLocaleTimeString()
 			);
 			chart.data.datasets[0].data = stockData.map((data) => data.price);
 		}
@@ -206,7 +198,7 @@
 	});
 </script>
 
-<div class="container mt-8">
+<div class="container mx-auto mt-8">
 	<div class="w-full">
 		<canvas bind:this={chartRef} on:mousemove={handleHover}></canvas>
 	</div>

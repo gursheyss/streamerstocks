@@ -29,7 +29,7 @@
 <header class="py-4">
 	<div class="container mx-auto flex items-center justify-between px-4">
 		<div class="flex items-center space-x-2">
-			<button class="text-white text-2xl md:hidden" onclick={toggleMenu}> &#9776; </button>
+			<button class="text-white text-2xl md:hidden" on:click={toggleMenu}> &#9776; </button>
 			<a href="/">
 				<div class="flex items-center space-x-2">
 					<span class="text-white text-2xl">📈</span>
@@ -86,7 +86,7 @@
 				<button
 					id="SignInButton"
 					class="bg-white text-black px-4 py-2 rounded font-inter flex items-center space-x-2"
-					onclick={signInWithTwitch}
+					on:click={signInWithTwitch}
 				>
 					<img
 						src="https://upload.wikimedia.org/wikipedia/commons/2/20/Twitch_icon_2012.svg"
