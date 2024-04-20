@@ -10,18 +10,19 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	}
 	const uuid = session.user.id;
 	const { amt, stockID } = await request.json();
-	// console.log(uuid + ' ' + amt + ' ' + stockID);
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
 		userid: uuid
 	});
-	if (balError) console.error(balError);
+	// console.log('bal: ', bal);
+	if (balError) console.error('balError: ', balError);
 	// else console.log(bal);
 	//get stock data
 	const { data: initStockData, error: initStockError } = await supabase
 		.from('market')
 		.select()
 		.eq('id', stockID);
+	// console.log('initStockData: ', initStockData);
 	if (initStockError) console.error('Error getting data from stockID' + initStockError);
 	//create entry if none (init at 0)
 	const { data: createEntryData, error: createEntryError } = await supabase.rpc(
@@ -31,7 +32,8 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			userid: uuid
 		}
 	);
-	if (createEntryError) console.error(createEntryError);
+	// console.log('createEntryData: ', createEntryData);
+	if (createEntryError) console.error('createEntryError\n', createEntryError);
 	// else console.log(createEntryData);
 	//get user inventory for specific stock
 	const { data: inventoryData, error: inventoryError } = await supabase
@@ -39,9 +41,9 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			userid: uuid
 		})
 		.eq('stock_id', stockID);
-	if (inventoryError) console.error(inventoryError);
+	if (inventoryError) console.error('inventoryError\n', inventoryError);
 	// else console.log(inventoryData[0]['quantity']);
-
+	// console.log('inventoryData: ', inventoryData);
 	if (initStockData != null) {
 		const price = initStockData[0]['price'];
 		const currentQuantity = inventoryData[0]['quantity'];
@@ -56,7 +58,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 				amt: price * amt,
 				userid: uuid
 			});
-			if (userError) console.error(userError);
+			if (userError) console.error('userError\n', userError);
 			// else console.log('user updating' + userData);
 
 			//needs to add/remove stock from porfolio, negative because we do - when buy
@@ -68,14 +70,14 @@ export async function POST({ request, locals: { safeGetSession } }) {
 					userid: uuid
 				}
 			);
-			if (inventoryError) console.error(inventoryError);
+			if (inventoryError) console.error('inventoryError\n', inventoryError);
 			// else console.log(inventoryData);
 			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
 				amt: -amt,
 				stockid: stockID
 			});
 
-			if (stockError) console.error(stockError);
+			if (stockError) console.error('stockError\n', stockError);
 			// else console.log('stock updating:' + stockData);
 
 			// Record the trade

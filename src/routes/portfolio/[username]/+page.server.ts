@@ -17,7 +17,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 	const { data: inventoryData, error: inventoryError } = await supabase
 		.from('inventory')
 		.select('id, quantity, market(id, name, price, ticker)')
-		.gte('quantity', 1)
+		.gt('quantity', 0)
 		.eq('user_id', userData.id);
 	if (inventoryError) {
 		throw error(504, 'Error fetching user inventory');

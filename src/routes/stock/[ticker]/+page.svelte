@@ -16,6 +16,7 @@
 	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
+	let userSharesAmount = $state<number | null>(data.userSharesAmount);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 	let snapshotBalance = 0;
 	if (userBalance != null) {
@@ -171,9 +172,9 @@
 			case '12 hour':
 				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
 				break;
-			// case '24 hour':
-			// 	filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
-			// 	break;
+			case '24 hour':
+				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
+				break;
 			// case '7 days':
 			// 	filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
 			// 	break;
@@ -193,6 +194,7 @@
 
 	const filteredMarketHistory = $derived(getFilteredHistory(marketData, selectedDateRange));
 	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
+	// let currentPrice = $derived(marketData?.price || 0); // we are using this because the latest timestamp price isnt the real price due to script not updating
 	let beginningPrice = $derived(filteredMarketHistory[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let filteredmarketData = $derived({
@@ -209,71 +211,101 @@
 
 {#if filteredmarketData && filteredmarketData.history}
 	<div class="bg-gray2 text-white min-h-screen font-inter">
-		<div class="container mx-auto px-4 pt-8">
-			<div class="flex justify-between space-x-2 items-center">
-				<h1 class="text-4xl font-bold">
-					{filteredmarketData.name}
-					<span class="text-gray-500">${ticker.toUpperCase()}</span>
-				</h1>
-				<div class="flex flex-col sm:flex-row text-2xl">
-					<div>
-						${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2
-						})}
+		<div class="container mx-auto">
+			<div class="flex flex-col md:flex-row space-x-0 md:space-x-4">
+				<div class="bg-gray rounded-lg pt-6 md:px-4 w-full md:flex-1">
+					<div class="flex justify-between items-center mb-4">
+						<div>
+							<div class="text-2xl">
+								${Number(filteredmarketData.currentPrice).toLocaleString(undefined, {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2
+								})}
+							</div>
+							<div
+								class={`text-lg ${
+									filteredmarketData.currentPrice > filteredmarketData.beginningPrice
+										? 'text-green-500'
+										: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
+											? 'text-red-500'
+											: 'text-gray-500'
+								}`}
+							>
+								{((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+									filteredmarketData.beginningPrice) *
+									100 !==
+								0
+									? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
+											filteredmarketData.beginningPrice) *
+											100 >
+										0
+										? '+'
+										: ''
+									: ''}
+								{percentageChange.toFixed(2)}%
+							</div>
+						</div>
+						<div>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '1 hour' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '1 hour')}
+							>
+								1H
+							</button>
+							<button
+								class={` px-2 py-2 rounded-lg ${
+									selectedDateRange === '12 hour' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '12 hour')}
+							>
+								12H
+							</button>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '24 hour')}
+							>
+								24H
+							</button>
+						</div>
 					</div>
-					<div
-						class={`mt-2 sm:mt-0  ${
-							filteredmarketData.currentPrice > filteredmarketData.beginningPrice
-								? 'text-green-500'
-								: filteredmarketData.currentPrice < filteredmarketData.beginningPrice
-									? 'text-red-500'
-									: 'text-gray-500'
-						}`}
-					>
-						<span class="whitespace-nowrap">
-							({((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
-								filteredmarketData.beginningPrice) *
-								100 !==
-							0
-								? ((filteredmarketData.currentPrice - filteredmarketData.beginningPrice) /
-										filteredmarketData.beginningPrice) *
-										100 >
-									0
-									? '+'
-									: ''
-								: ''}
-							{percentageChange.toFixed(2)}%)
-						</span>
-					</div>
+					<Chart stockData={filteredmarketData.history} />
 				</div>
-			</div>
-			<div class="bg-gray rounded-lg shadow-lg p-6 mb-8 w-full">
-				<Chart stockData={filteredmarketData.history} />
-				<div class="justify-end flex">
-					<select class="select max-w-[200px" bind:value={selectedDateRange}>
-						<option disabled selected>Select Date Range</option>
-						<option>1 hour</option>
-						<option>12 hour</option>
-						<!-- <option>24 hour</option>
-						<option>7 days</option>
-						<option>All</option> -->
-					</select>
-				</div>
-			</div>
-			{#if data.session && userBalance !== null && inventoryData != null}
-				<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)}>
+				<div class="flex-col">
 					{#if data.session && userBalance !== null}
-						<BuyandSell
-							stockID={Number(marketData.id)}
-							currentPrice={Number(currentPrice)}
-							{userBalance}
-							{ticker}
-						/>
+						{@render buyAndSell({
+							marketData,
+							currentPrice,
+							ticker,
+							filteredmarketData,
+							userBalance: data.session && userBalance !== null ? userBalance : null,
+							userSharesAmount: data.session && userSharesAmount !== null ? userSharesAmount : null,
+							signedIn: data.session && userBalance !== null
+						})}
 					{/if}
-				</Portfolio>
-			{/if}
+					{#if data.session && userBalance !== null && inventoryData != null}
+						<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
+					{/if}
+				</div>
+			</div>
 			<Comments {comments} currentId={marketData.id} />
 		</div>
 	</div>
 {/if}
+
+{#snippet buyAndSell(props)}
+	<div class="w-full md:w-[350px]">
+		<BuyandSell
+			stockID={Number(props.marketData?.id)}
+			currentPrice={Number(props.currentPrice)}
+			userBalance={props.userBalance}
+			userSharesAmount={props.userSharesAmount}
+			ticker={props.ticker}
+			name={props.filteredmarketData.name}
+			signedIn={props.signedIn}
+		/>
+	</div>
+{/snippet}
