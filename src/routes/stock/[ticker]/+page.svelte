@@ -153,11 +153,31 @@
 		// 			.subscribe()
 		// 	: null;
 
+		const inventorySubscription = data.session
+			? supabase
+					.channel('inventory')
+					.on(
+						'postgres_changes',
+						{
+							event: 'UPDATE',
+							schema: 'public',
+							table: 'inventory',
+							filter: `user_id=eq.${data.session.user.id}`
+						},
+						(payload: any) => {
+							const { new: newData } = payload;
+							userSharesAmount = newData.quantity;
+						}
+					)
+					.subscribe()
+			: null;
+
 		return () => {
 			marketSubscription.unsubscribe();
 			commentsSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 			// marketBalanceSubscription?.unsubscribe();
+			inventorySubscription?.unsubscribe();
 		};
 	});
 
