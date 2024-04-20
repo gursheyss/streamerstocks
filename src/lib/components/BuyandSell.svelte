@@ -7,7 +7,8 @@
 		stockID,
 		ticker,
 		name,
-		signedIn
+		signedIn,
+		userBalance
 	}: {
 		stockID: number;
 		currentPrice: number;
@@ -91,6 +92,73 @@
 					min="0"
 					oninput={handleInput}
 				/>
+				<div class="flex justify-between mt-2">
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						onclick={() => {
+							if (userBalance) {
+								amount = (Math.floor(userBalance * 0.25) / currentPrice).toLocaleString(undefined, {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2
+								});
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>25%</span
+						>
+					</button>
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						onclick={() => {
+							if (userBalance) {
+								amount = (Math.floor(userBalance * 0.5) / currentPrice).toLocaleString(undefined, {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2
+								});
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>50%</span
+						>
+					</button>
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						onclick={() => {
+							if (userBalance) {
+								amount = (Math.floor(userBalance * 0.75) / currentPrice).toLocaleString(undefined, {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2
+								});
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>75%</span
+						>
+					</button>
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						onclick={() => {
+							if (userBalance) {
+								const maxAmount = Math.floor((userBalance * 100) / currentPrice) / 100;
+								amount = maxAmount.toLocaleString(undefined, {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2
+								});
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>Max</span
+						>
+					</button>
+				</div>
 				<div class="mt-4 text-sm text-gray-400">
 					<div class="flex justify-between">
 						<span>Price:</span>
@@ -115,7 +183,7 @@
 						</span>
 					</div>
 					<button
-						class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray"
+						class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray hover:bg-gray-700"
 						onclick={() => updateStockAndBal(stockID, -Number(amount))}
 						disabled={loading}
 					>
@@ -185,7 +253,7 @@
 						disabled={loading}
 					>
 						<span
-							class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
+							class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0 hover:bg-gray-700"
 							>Sell {amount} ${ticker}</span
 						>
 					</button>
