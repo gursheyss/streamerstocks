@@ -8,11 +8,13 @@
 		ticker,
 		name,
 		signedIn,
-		userBalance
+		userBalance,
+		userSharesAmount
 	}: {
 		stockID: number;
 		currentPrice: number;
 		userBalance: number | null;
+		userSharesAmount: number | null;
 		ticker: string;
 		name: string;
 		signedIn: boolean;
@@ -222,6 +224,60 @@
 					min="0"
 					oninput={handleInput}
 				/>
+				<div class="flex justify-between mt-2">
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+						onclick={() => {
+							if (userSharesAmount) {
+								amount = userSharesAmount * 0.25;
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>25%</span
+						>
+					</button>
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+						onclick={() => {
+							if (userSharesAmount) {
+								amount = userSharesAmount * 0.5;
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>50%</span
+						>
+					</button>
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+						onclick={() => {
+							if (userSharesAmount) {
+								amount = userSharesAmount * 0.75;
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>75%</span
+						>
+					</button>
+					<button
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						onclick={() => {
+							if (userSharesAmount) {
+								amount = userSharesAmount;
+							}
+						}}
+					>
+						<span
+							class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+							>Max</span
+						>
+					</button>
+				</div>
 				<div class="mt-4 text-sm text-gray-400">
 					<div class="flex justify-between">
 						<span>Price:</span>

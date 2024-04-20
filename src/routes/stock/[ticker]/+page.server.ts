@@ -111,6 +111,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 
 	const session = await safeGetSession();
 	let userBalance: number | null = null;
+	let userSharesAmount: number | null = null;
 
 	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase
@@ -123,6 +124,21 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 			console.error('Error fetching user profile:', profileError);
 		} else {
 			userBalance = profileData?.balance ?? null;
+		}
+	}
+	if (session.user) {
+		// get user stock holding from inventory
+		const { data: inventoryData, error: inventoryError } = await supabase
+			.from('inventory')
+			.select('quantity')
+			.eq('user_id', session.user.id)
+			.eq('stock_id', marketData.id)
+			.single();
+
+		if (inventoryError) {
+			console.error('Error fetching user stock holding:', inventoryError);
+		} else {
+			userSharesAmount = inventoryData?.quantity ?? null;
 		}
 	}
 	if (session.user) {
@@ -182,6 +198,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		marketData,
 		comments,
 		userBalance,
+		userSharesAmount,
 		userInventory,
 		marketPrice
 	};

@@ -16,6 +16,7 @@
 	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
+	let userSharesAmount = $state<number | null>(data.userSharesAmount);
 	let inventoryData = $state<InventoryItem[] | null>(data.userInventory);
 	let snapshotBalance = 0;
 	if (userBalance != null) {
@@ -171,9 +172,9 @@
 			case '12 hour':
 				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
 				break;
-			// case '24 hour':
-			// 	filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
-			// 	break;
+			case '24 hour':
+				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
+				break;
 			// case '7 days':
 			// 	filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
 			// 	break;
@@ -192,8 +193,8 @@
 	}
 
 	const filteredMarketHistory = $derived(getFilteredHistory(marketData, selectedDateRange));
-	// let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
-	let currentPrice = $derived(marketData?.price || 0); // we are using this because the latest timestamp price isnt the real price for some reason
+	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
+	// let currentPrice = $derived(marketData?.price || 0); // we are using this because the latest timestamp price isnt the real price due to script not updating
 	let beginningPrice = $derived(filteredMarketHistory[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let filteredmarketData = $derived({
@@ -261,6 +262,14 @@
 							>
 								12H
 							</button>
+							<button
+								class={` rounded-lg ${
+									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '24 hour')}
+							>
+								24H
+							</button>
 						</div>
 					</div>
 					<Chart stockData={filteredmarketData.history} />
@@ -272,6 +281,7 @@
 						ticker,
 						filteredmarketData,
 						userBalance: data.session && userBalance !== null ? userBalance : null,
+						userSharesAmount: data.session && userSharesAmount !== null ? userSharesAmount : null,
 						signedIn: data.session && userBalance !== null
 					})}
 					{#if data.session && userBalance !== null && inventoryData != null}
@@ -290,6 +300,7 @@
 			stockID={Number(props.marketData?.id)}
 			currentPrice={Number(props.currentPrice)}
 			userBalance={props.userBalance}
+			userSharesAmount={props.userSharesAmount}
 			ticker={props.ticker}
 			name={props.filteredmarketData.name}
 			signedIn={props.signedIn}
