@@ -40,6 +40,21 @@
 			toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
 		}
 	}
+
+	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+		let inputElement = event.currentTarget;
+		let inputValue = inputElement.value.replace(/[^\d.]/g, '');
+		let decimalIndex = inputValue.indexOf('.');
+		if (decimalIndex !== -1) {
+			inputValue = inputValue.slice(0, decimalIndex + 3);
+		}
+		amount = Number(inputValue);
+		if (amount > 1000) {
+			amount = 1000;
+		} else if (inputValue === '') {
+			amount = '';
+		}
+	}
 </script>
 
 <div class="pt-4 pr-4 font-inter">
@@ -74,6 +89,7 @@
 					required
 					type="number"
 					min="0"
+					oninput={handleInput}
 				/>
 				<div class="mt-4 text-sm text-gray-400">
 					<div class="flex justify-between">
@@ -125,6 +141,7 @@
 					type="number"
 					required
 					min="0"
+					oninput={handleInput}
 				/>
 				<div class="mt-4 text-sm text-gray-400">
 					<div class="flex justify-between">
