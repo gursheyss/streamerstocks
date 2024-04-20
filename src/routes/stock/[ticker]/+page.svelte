@@ -192,7 +192,8 @@
 	}
 
 	const filteredMarketHistory = $derived(getFilteredHistory(marketData, selectedDateRange));
-	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
+	// let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
+	let currentPrice = $derived(marketData?.price || 0); // we are using this because the latest timestamp price isnt the real price for some reason
 	let beginningPrice = $derived(filteredMarketHistory[0]?.price || 0);
 	let percentageChange = $derived(((currentPrice - beginningPrice) / beginningPrice) * 100);
 	let filteredmarketData = $derived({

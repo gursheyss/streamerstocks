@@ -10,18 +10,19 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	}
 	const uuid = session.user.id;
 	const { amt, stockID } = await request.json();
-	// console.log(uuid + ' ' + amt + ' ' + stockID);
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
 		userid: uuid
 	});
-	if (balError) console.error(balError);
+	// console.log('bal: ', bal);
+	if (balError) console.error('balError: ', balError);
 	// else console.log(bal);
 	//get stock data
 	const { data: initStockData, error: initStockError } = await supabase
 		.from('market')
 		.select()
 		.eq('id', stockID);
+	// console.log('initStockData: ', initStockData);
 	if (initStockError) console.error('Error getting data from stockID' + initStockError);
 	//create entry if none (init at 0)
 	const { data: createEntryData, error: createEntryError } = await supabase.rpc(
@@ -31,6 +32,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			userid: uuid
 		}
 	);
+	// console.log('createEntryData: ', createEntryData);
 	if (createEntryError) console.error('createEntryError\n', createEntryError);
 	// else console.log(createEntryData);
 	//get user inventory for specific stock
@@ -41,7 +43,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 		.eq('stock_id', stockID);
 	if (inventoryError) console.error('inventoryError\n', inventoryError);
 	// else console.log(inventoryData[0]['quantity']);
-
+	// console.log('inventoryData: ', inventoryData);
 	if (initStockData != null) {
 		const price = initStockData[0]['price'];
 		const currentQuantity = inventoryData[0]['quantity'];

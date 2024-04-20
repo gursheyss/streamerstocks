@@ -154,11 +154,13 @@
 						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
 						onclick={() => {
 							if (userBalance) {
-								const maxAmount = Math.floor((userBalance * 1000) / currentPrice) / 1000;
-								amount = maxAmount.toLocaleString(undefined, {
-									minimumFractionDigits: 3,
-									maximumFractionDigits: 3
-								});
+								amount = (Math.floor((userBalance * 1000) / currentPrice) / 1000).toLocaleString(
+									undefined,
+									{
+										minimumFractionDigits: 3,
+										maximumFractionDigits: 3
+									}
+								);
 							}
 						}}
 					>
