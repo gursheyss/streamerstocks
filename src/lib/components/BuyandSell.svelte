@@ -229,7 +229,10 @@
 						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
 						onclick={() => {
 							if (userSharesAmount) {
-								amount = userSharesAmount * 0.25;
+								amount = (userSharesAmount * (0.25).toFixed(3)).toLocaleString(undefined, {
+									minimumFractionDigits: 3,
+									maximumFractionDigits: 3
+								});
 							}
 						}}
 					>
@@ -242,7 +245,10 @@
 						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 						onclick={() => {
 							if (userSharesAmount) {
-								amount = userSharesAmount * 0.5;
+								amount = (userSharesAmount * (0.5).toFixed(3)).toLocaleString(undefined, {
+									minimumFractionDigits: 3,
+									maximumFractionDigits: 3
+								});
 							}
 						}}
 					>
@@ -255,7 +261,10 @@
 						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 						onclick={() => {
 							if (userSharesAmount) {
-								amount = userSharesAmount * 0.75;
+								amount = (userSharesAmount * (0.75).toFixed(3)).toLocaleString(undefined, {
+									minimumFractionDigits: 3,
+									maximumFractionDigits: 3
+								});
 							}
 						}}
 					>
