@@ -47,7 +47,7 @@
 		let inputValue = inputElement.value.replace(/[^\d.]/g, '');
 		let decimalIndex = inputValue.indexOf('.');
 		if (decimalIndex !== -1) {
-			inputValue = inputValue.slice(0, decimalIndex + 3);
+			inputValue = inputValue.slice(0, decimalIndex + 4);
 		}
 		amount = Number(inputValue);
 		if (amount > 1000) {
@@ -94,13 +94,16 @@
 				/>
 				<div class="flex justify-between mt-2">
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 						onclick={() => {
 							if (userBalance) {
-								amount = (Math.floor(userBalance * 0.25) / currentPrice).toLocaleString(undefined, {
-									minimumFractionDigits: 2,
-									maximumFractionDigits: 2
-								});
+								amount = (Math.floor((userBalance * 250) / currentPrice) / 1000).toLocaleString(
+									undefined,
+									{
+										minimumFractionDigits: 3,
+										maximumFractionDigits: 3
+									}
+								);
 							}
 						}}
 					>
@@ -110,13 +113,16 @@
 						>
 					</button>
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 						onclick={() => {
 							if (userBalance) {
-								amount = (Math.floor(userBalance * 0.5) / currentPrice).toLocaleString(undefined, {
-									minimumFractionDigits: 2,
-									maximumFractionDigits: 2
-								});
+								amount = (Math.floor((userBalance * 500) / currentPrice) / 1000).toLocaleString(
+									undefined,
+									{
+										minimumFractionDigits: 3,
+										maximumFractionDigits: 3
+									}
+								);
 							}
 						}}
 					>
@@ -126,13 +132,16 @@
 						>
 					</button>
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 						onclick={() => {
 							if (userBalance) {
-								amount = (Math.floor(userBalance * 0.75) / currentPrice).toLocaleString(undefined, {
-									minimumFractionDigits: 2,
-									maximumFractionDigits: 2
-								});
+								amount = (Math.floor((userBalance * 750) / currentPrice) / 1000).toLocaleString(
+									undefined,
+									{
+										minimumFractionDigits: 3,
+										maximumFractionDigits: 3
+									}
+								);
 							}
 						}}
 					>
@@ -145,10 +154,10 @@
 						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
 						onclick={() => {
 							if (userBalance) {
-								const maxAmount = Math.floor((userBalance * 100) / currentPrice) / 100;
+								const maxAmount = Math.floor((userBalance * 1000) / currentPrice) / 1000;
 								amount = maxAmount.toLocaleString(undefined, {
-									minimumFractionDigits: 2,
-									maximumFractionDigits: 2
+									minimumFractionDigits: 3,
+									maximumFractionDigits: 3
 								});
 							}
 						}}
