@@ -176,7 +176,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 					)
 				`
 			)
-			.gte('quantity', 1)
+			.gte('quantity', 0.001)
 			.eq('user_id', session.user.id);
 		if (inventoryError) {
 			console.error('Error fetching user inventory:', inventoryError);
