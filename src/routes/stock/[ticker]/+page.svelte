@@ -247,7 +247,7 @@
 						</div>
 						<div>
 							<button
-								class={`px-4 py-2 rounded-lg ${
+								class={`px-2 py-2 rounded-lg ${
 									selectedDateRange === '1 hour' ? 'text-white' : 'text-gray-500'
 								}`}
 								onclick={() => (selectedDateRange = '1 hour')}
@@ -255,7 +255,7 @@
 								1H
 							</button>
 							<button
-								class={` rounded-lg ${
+								class={` px-2 py-2 rounded-lg${
 									selectedDateRange === '12 hour' ? 'text-white' : 'text-gray-500'
 								}`}
 								onclick={() => (selectedDateRange = '12 hour')}
@@ -263,7 +263,7 @@
 								12H
 							</button>
 							<button
-								class={` rounded-lg ${
+								class={`px-2 py-2 rounded-lg ${
 									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
 								}`}
 								onclick={() => (selectedDateRange = '24 hour')}
