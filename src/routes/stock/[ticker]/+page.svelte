@@ -275,15 +275,17 @@
 					<Chart stockData={filteredmarketData.history} />
 				</div>
 				<div class="flex-col">
-					{@render buyAndSell({
-						marketData,
-						currentPrice,
-						ticker,
-						filteredmarketData,
-						userBalance: data.session && userBalance !== null ? userBalance : null,
-						userSharesAmount: data.session && userSharesAmount !== null ? userSharesAmount : null,
-						signedIn: data.session && userBalance !== null
-					})}
+					{#if data.session && userBalance !== null}
+						{@render buyAndSell({
+							marketData,
+							currentPrice,
+							ticker,
+							filteredmarketData,
+							userBalance: data.session && userBalance !== null ? userBalance : null,
+							userSharesAmount: data.session && userSharesAmount !== null ? userSharesAmount : null,
+							signedIn: data.session && userBalance !== null
+						})}
+					{/if}
 					{#if data.session && userBalance !== null && inventoryData != null}
 						<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
 					{/if}

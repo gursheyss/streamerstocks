@@ -277,7 +277,10 @@
 						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
 						onclick={() => {
 							if (userSharesAmount) {
-								amount = userSharesAmount;
+								amount = userSharesAmount.toLocaleString(undefined, {
+									minimumFractionDigits: 3,
+									maximumFractionDigits: 3
+								});
 							}
 						}}
 					>
