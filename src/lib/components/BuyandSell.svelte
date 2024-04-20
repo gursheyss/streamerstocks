@@ -257,12 +257,12 @@
 						</span>
 					</div>
 					<button
-						class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray"
+						class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray hover:bg-gray-700"
 						onclick={() => updateStockAndBal(stockID, Number(amount))}
 						disabled={loading}
 					>
 						<span
-							class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0 hover:bg-gray-700"
+							class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
 							>Sell {amount} ${ticker}</span
 						>
 					</button>
