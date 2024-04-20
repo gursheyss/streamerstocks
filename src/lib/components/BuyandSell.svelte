@@ -102,7 +102,7 @@
 									amount = (Math.floor((userBalance * 250) / currentPrice) / 1000).toLocaleString(
 										undefined,
 										{
-											minimumFractionDigits: 3,
+											minimumFractionDigits: 0,
 											maximumFractionDigits: 3
 										}
 									);
@@ -121,7 +121,7 @@
 									amount = (Math.floor((userBalance * 500) / currentPrice) / 1000).toLocaleString(
 										undefined,
 										{
-											minimumFractionDigits: 3,
+											minimumFractionDigits: 0,
 											maximumFractionDigits: 3
 										}
 									);
@@ -140,7 +140,7 @@
 									amount = (Math.floor((userBalance * 750) / currentPrice) / 1000).toLocaleString(
 										undefined,
 										{
-											minimumFractionDigits: 3,
+											minimumFractionDigits: 0,
 											maximumFractionDigits: 3
 										}
 									);
@@ -159,7 +159,7 @@
 									amount = (Math.floor((userBalance * 1000) / currentPrice) / 1000).toLocaleString(
 										undefined,
 										{
-											minimumFractionDigits: 3,
+											minimumFractionDigits: 0,
 											maximumFractionDigits: 3
 										}
 									);
@@ -174,7 +174,14 @@
 					</div>
 					<div class="text-xs text-center text-gray-400 mt-2">
 						<span>${ticker} Owned:</span>
-						<span>{userSharesAmount ? userSharesAmount : 0} </span>
+						<span
+							>{userSharesAmount
+								? userSharesAmount.toLocaleString(undefined, {
+										minimumFractionDigits: 0,
+										maximumFractionDigits: 3
+									})
+								: 0}</span
+						>
 					</div>
 					<div class="mt-2 text-sm text-gray-400">
 						<div class="flex justify-between">
@@ -233,8 +240,8 @@
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
 							onclick={() => {
 								if (userSharesAmount) {
-									amount = (userSharesAmount * (0.25).toFixed(3)).toLocaleString(undefined, {
-										minimumFractionDigits: 3,
+									amount = (userSharesAmount * 0.25).toLocaleString(undefined, {
+										minimumFractionDigits: 0,
 										maximumFractionDigits: 3
 									});
 								}
@@ -249,8 +256,8 @@
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 							onclick={() => {
 								if (userSharesAmount) {
-									amount = (userSharesAmount * (0.5).toFixed(3)).toLocaleString(undefined, {
-										minimumFractionDigits: 3,
+									amount = (userSharesAmount * 0.5).toLocaleString(undefined, {
+										minimumFractionDigits: 0,
 										maximumFractionDigits: 3
 									});
 								}
@@ -265,8 +272,8 @@
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
 							onclick={() => {
 								if (userSharesAmount) {
-									amount = (userSharesAmount * (0.75).toFixed(3)).toLocaleString(undefined, {
-										minimumFractionDigits: 3,
+									amount = (userSharesAmount * 0.75).toLocaleString(undefined, {
+										minimumFractionDigits: 0,
 										maximumFractionDigits: 3
 									});
 								}
@@ -282,7 +289,7 @@
 							onclick={() => {
 								if (userSharesAmount) {
 									amount = userSharesAmount.toLocaleString(undefined, {
-										minimumFractionDigits: 3,
+										minimumFractionDigits: 0,
 										maximumFractionDigits: 3
 									});
 								}
@@ -296,7 +303,14 @@
 					</div>
 					<div class="text-xs text-center text-gray-400 mt-2">
 						<span>${ticker} Owned:</span>
-						<span>{userSharesAmount ? userSharesAmount : 0} </span>
+						<span
+							>{userSharesAmount
+								? userSharesAmount.toLocaleString(undefined, {
+										minimumFractionDigits: 0,
+										maximumFractionDigits: 3
+									})
+								: 0}</span
+						>
 					</div>
 					<div class="mt-2 text-sm text-gray-400">
 						<div class="flex justify-between">
