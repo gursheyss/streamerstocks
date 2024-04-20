@@ -297,7 +297,7 @@
 							>${currentPrice.toLocaleString(undefined, {
 								minimumFractionDigits: 2,
 								maximumFractionDigits: 2
-							})} / {ticker}</span
+							})} / ${ticker}</span
 						>
 					</div>
 					<div class="flex justify-between">
