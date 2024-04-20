@@ -255,7 +255,7 @@
 								1H
 							</button>
 							<button
-								class={` px-2 py-2 rounded-lg${
+								class={` px-2 py-2 rounded-lg ${
 									selectedDateRange === '12 hour' ? 'text-white' : 'text-gray-500'
 								}`}
 								onclick={() => (selectedDateRange = '12 hour')}
