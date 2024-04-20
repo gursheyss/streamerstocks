@@ -96,7 +96,7 @@
 				/>
 				<div class="flex justify-between mt-2">
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
 						onclick={() => {
 							if (userBalance) {
 								amount = (Math.floor((userBalance * 250) / currentPrice) / 1000).toLocaleString(
@@ -153,7 +153,7 @@
 						>
 					</button>
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
 						onclick={() => {
 							if (userBalance) {
 								amount = (Math.floor((userBalance * 1000) / currentPrice) / 1000).toLocaleString(
@@ -226,7 +226,7 @@
 				/>
 				<div class="flex justify-between mt-2">
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
 						onclick={() => {
 							if (userSharesAmount) {
 								amount = userSharesAmount * 0.25;
@@ -265,7 +265,7 @@
 						>
 					</button>
 					<button
-						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700"
+						class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
 						onclick={() => {
 							if (userSharesAmount) {
 								amount = userSharesAmount;
