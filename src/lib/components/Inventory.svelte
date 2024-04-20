@@ -22,7 +22,10 @@
 						<span class="text-gray-400 ml-2">${item.market.ticker}</span>
 					</td>
 					<td class="text-right py-4"
-						>{item.quantity} <span class="text-gray-400 ml-1">Shares</span></td
+						>{(Math.floor(item.quantity * 1000) / 1000).toLocaleString(undefined, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 3
+						})} <span class="text-gray-400 ml-1">Shares</span></td
 					>
 					<td class="text-right py-4"
 						>${(item.market.price * item.quantity).toFixed(2).toLocaleString()}</td
