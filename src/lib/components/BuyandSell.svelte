@@ -93,6 +93,7 @@
 						type="number"
 						min="0"
 						oninput={handleInput}
+						step="0.001"
 					/>
 					<div class="flex justify-between mt-2">
 						<button
@@ -234,6 +235,7 @@
 						required
 						min="0"
 						oninput={handleInput}
+						step="0.001"
 					/>
 					<div class="flex justify-between mt-2">
 						<button
