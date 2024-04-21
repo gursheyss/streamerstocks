@@ -362,7 +362,7 @@
 						<button
 							class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray hover:bg-gray-700"
 							onclick={() => updateStockAndBal(stockID, Number(amount))}
-							disabled={loading}
+							disabled={true}
 						>
 							{#if loading}
 								<span
