@@ -214,10 +214,17 @@
 							onclick={() => updateStockAndBal(stockID, -Number(amount))}
 							disabled={loading}
 						>
-							<span
-								class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
-								>Buy {amount} ${ticker}</span
-							>
+							{#if loading}
+								<span
+									class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
+									>Buying {amount} ${ticker}...</span
+								>
+							{:else}
+								<span
+									class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
+									>Buy {amount} ${ticker}</span
+								>
+							{/if}
 						</button>
 					</div>
 				</div>
@@ -357,10 +364,17 @@
 							onclick={() => updateStockAndBal(stockID, Number(amount))}
 							disabled={loading}
 						>
-							<span
-								class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
-								>Sell {amount} ${ticker}</span
-							>
+							{#if loading}
+								<span
+									class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
+									>Selling {amount} ${ticker}...</span
+								>
+							{:else}
+								<span
+									class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
+									>Sell {amount} ${ticker}</span
+								>
+							{/if}
 						</button>
 					</div>
 				</div>
