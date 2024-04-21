@@ -71,7 +71,6 @@ export async function POST({ request, locals: { safeGetSession } }) {
 				}
 			);
 			if (processTradeError) console.error('processTradeError\n', processTradeError);
-			else console.log(processTradeData);
 			// Record the trade
 			const trade = {
 				user_id: uuid,
