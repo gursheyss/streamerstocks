@@ -7,10 +7,8 @@ const redis = new Redis({
 	token: UPSTASH_REDIS_TOKEN
 });
 
-export const ratelimit = {
-	buysell: new Ratelimit({
-		redis,
-		prefix: 'ratelimit:create',
-		limiter: Ratelimit.slidingWindow(1, '5s')
-	})
-};
+export const ratelimit = new Ratelimit({
+	redis: redis,
+	limiter: Ratelimit.slidingWindow(1, '10s'),
+	prefix: '@upstash/ratelimit'
+});

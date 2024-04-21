@@ -26,23 +26,38 @@
 
 	async function updateStockAndBal(stockID: number, amt: number) {
 		loading = true;
-		const response = await fetch('/api/trade', {
-			method: 'POST',
-			body: JSON.stringify({ amt, stockID }),
-			headers: {
-				'Content-Type': 'application/json'
+
+		try {
+			const response = await fetch('/api/trade', {
+				method: 'POST',
+				body: JSON.stringify({ amt, stockID }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				const resp = await response.json();
+				if (resp['success'] == false) {
+					toast.error('You do not have enough balance to make this transaction.');
+				} else if (amt < 0) {
+					toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
+				} else {
+					toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
+				}
+			} else if (response.status === 401) {
+				toast.error('Unauthorized: Please log in to perform this action.');
+			} else if (response.status === 429) {
+				const errorData = await response.json();
+				toast.error(errorData.message);
+			} else {
+				toast.error('An error occurred. Please try again later.');
 			}
-		});
-		const resp = await response.json();
-		loading = false;
-		if (resp['success'] == false) {
-			toast.error(
-				'You are either rate limited or you do not have enough balance to make this transaction.'
-			);
-		} else if (amt < 0) {
-			toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
-		} else {
-			toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
+		} catch (error) {
+			console.error('Error:', error);
+			toast.error('An error occurred. Please try again later.');
+		} finally {
+			loading = false;
 		}
 	}
 
@@ -362,7 +377,6 @@
 						<button
 							class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray hover:bg-gray-700"
 							onclick={() => updateStockAndBal(stockID, Number(amount))}
-							disabled={true}
 						>
 							{#if loading}
 								<span
