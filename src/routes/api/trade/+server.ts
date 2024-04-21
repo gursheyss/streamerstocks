@@ -32,6 +32,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	// console.log('initStockData: ', initStockData);
 	if (initStockError) console.error('Error getting data from stockID' + initStockError);
 	//create entry if none (init at 0)
+
 	const { data: createEntryData, error: createEntryError } = await supabase.rpc(
 		'create_inventory_entry',
 		{
@@ -61,32 +62,15 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			//  amt: price * amt,
 			//  userid: uuid
 			// });
-			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
-				amt: price * amt,
-				userid: uuid
-			});
-			if (userError) console.error('userError\n', userError);
-			// else console.log('user updating' + userData);
-
-			//needs to add/remove stock from porfolio, negative because we do - when buy
-			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
-				'update_inventory',
+			const { data: processTradeData, error: processTradeError } = await supabase.rpc(
+				'process_trade',
 				{
-					amt: -amt,
 					stockid: stockID,
-					userid: uuid
+					userid: uuid,
+					amount: amt
 				}
 			);
-			if (inventoryError) console.error('inventoryError\n', inventoryError);
-			// else console.log(inventoryData);
-			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
-				amt: -amt,
-				stockid: stockID
-			});
-
-			if (stockError) console.error('stockError\n', stockError);
-			// else console.log('stock updating:' + stockData);
-
+			if (processTradeError) console.error('processTradeError\n', processTradeError);
 			// Record the trade
 			const trade = {
 				user_id: uuid,

@@ -74,7 +74,8 @@
 
 <div class="bg-green-700 text-white text-center py-2 mb-4">
 	<!-- New div -->
-	Selling is temporarily disabled. It will be back once the exploit has beee fixed. 
+	If you guys have any questions or need help, please join the discord (contact/feedback button at the
+	top)
 </div>
 
 {#if data.session && userBalance !== null && inventoryData != null}
