@@ -36,7 +36,9 @@
 		const resp = await response.json();
 		loading = false;
 		if (resp['success'] == false) {
-			toast.error('Please ensure that you have enough money to purchase or shares to sell.');
+			toast.error(
+				'You are either rate limited or you do not have enough balance to make this transaction.'
+			);
 		} else if (amt < 0) {
 			toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
 		} else {

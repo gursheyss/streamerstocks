@@ -1,12 +1,18 @@
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
 import { error } from '@sveltejs/kit';
+import { ratelimit } from '$lib/server/upstash';
 // /api/ POST
 
 export async function POST({ request, locals: { safeGetSession } }) {
 	const session = await safeGetSession();
 	if (!session.user) {
 		error(401, 'Unauthorized');
+	}
+	const { success, reset } = await ratelimit.buysell.limit(session.user.id);
+	if (!success) {
+		const timeRemaining = Math.floor((reset - Date.now()) / 1000);
+		return error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
 	}
 	const uuid = session.user.id;
 	const { amt, stockID } = await request.json();

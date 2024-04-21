@@ -39,6 +39,7 @@
     "@supabase/ssr": "^0.3.0",
     "@sveltejs/adapter-vercel": "^5.2.0",
     "@types/chart.js": "^2.9.41",
+    "@upstash/ratelimit": "^1.1.2",
     "@vercel/analytics": "^1.2.2",
     "@vercel/speed-insights": "^1.0.10",
     "bits-ui": "^0.21.4",
