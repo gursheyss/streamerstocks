@@ -9,11 +9,12 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	if (!session.user) {
 		error(401, 'Unauthorized');
 	}
-	const { success, reset } = await ratelimit.buysell.limit(session.user.id);
+	const { success, reset } = await ratelimit.limit(session.user.id);
 	if (!success) {
 		const timeRemaining = Math.floor((reset - Date.now()) / 1000);
-		return error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
+		error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
 	}
+	console.log('passed ratelimit');
 	const uuid = session.user.id;
 	const { amt, stockID } = await request.json();
 	let found = false;
