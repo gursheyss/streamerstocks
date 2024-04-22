@@ -74,8 +74,7 @@
 
 <div class="bg-green-700 text-white text-center py-2 mb-4">
 	<!-- New div -->
-	If you guys have any questions or need help, please join the discord (contact/feedback button at the
-	top)
+	Join our discord at the top for help or questions
 </div>
 
 {#if data.session && userBalance !== null && inventoryData != null}
