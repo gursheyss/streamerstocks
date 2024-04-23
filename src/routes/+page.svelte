@@ -74,7 +74,7 @@
 
 <div class="bg-green-700 text-white text-center py-2 mb-4">
 	<!-- New div -->
-	Join our discord at the top for help or questions
+	Everyone has been reset to $10,000 + redeemed channel points and all girls have been removed.
 </div>
 
 {#if data.session && userBalance !== null && inventoryData != null}
