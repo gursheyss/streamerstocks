@@ -76,6 +76,10 @@
 	<!-- New div -->
 	Everyone has been reset to $10,000 + redeemed channel points and all girls have been removed.
 </div>
+<div class="bg-green-700 text-white text-center py-2 mb-4">
+	<!-- New div -->
+	Some prices have been adjusted across the board
+</div>
 
 {#if data.session && userBalance !== null && inventoryData != null}
 	<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
