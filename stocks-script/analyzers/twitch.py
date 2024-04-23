@@ -36,7 +36,7 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
     for person in analysis_group:
         sentiment[person.lower().replace(" ", "") + "_sentiment"] = 0
     
-    filtered_analysis_group = []
+    filtered_analysis_group = set()
         
     try:
         '''Analyze chat messages over a period of time for sentiment towards a group of people in JSON format'''
@@ -60,12 +60,14 @@ def analyze_chat_batch(max_batch_size:int, keywords:list, analysis_group:list) -
                     if (4 < len_resp < 30):
                         for keyword in keywords:
                             if keyword in resp.split(' '):
-                                filtered_analysis_group.append(keyword)
+                                filtered_analysis_group.add(keyword)
+                                batch += f'- {resp}\n'
+                                batch_size += 1
+                                print(f"Message added to batch: {resp}")
                                 break
-                        batch += f'- {resp}\n'
-                        batch_size += 1
-                        print(f"Message added to batch: {resp}")
 
+        filtered_analysis_group = list(filtered_analysis_group)
+        
         if filtered_analysis_group:
             if len(filtered_analysis_group) == 1:
                 prompt = "Given a list of messages, analyze the overall sentiment (negative=-1, neutral=0, positive=1) towards a person in JSON format.\nMessages:\n" + batch + "\n" + f"Person: {filtered_analysis_group[0]}."
