@@ -43,7 +43,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		console.error('initial data error', initialError);
 	}
 	let marketData: MarketItem | null = null;
-	let { data: lastHourMarketHistory, error: marketError } = await supabase.rpc('get_stock_history', { stockid: initialData[0].id, hour_range: 1, min_interval: 1 });
+	let { data: marketHistory, error: marketError } = await supabase.rpc('get_stock_history_ranges', { stockid: initialData[0].id });
 	let marketPrice: number | null = null;
 	if (marketError != null) {
 		console.error('error fetching marketdata', marketError);
@@ -54,10 +54,10 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		if (cachedMarketData) {
 			marketData = JSON.parse(cachedMarketData);
 		} else {
-			if (lastHourMarketHistory != null && initialData != null) {
+			if (marketHistory != null && initialData != null) {
 				marketData = {
 					...initialData[0],
-					history: lastHourMarketHistory,
+					history: marketHistory,
 					low: 0,
 					high: 0,
 					volume: 0

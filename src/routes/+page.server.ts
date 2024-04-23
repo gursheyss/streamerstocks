@@ -41,7 +41,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					});
 				}
 				else {
-					let {data: lastHourMarketHistory, error: marketError} = await supabase.rpc('get_stock_history', { stockid: initialData[i].id, hour_range: 1, min_interval: 1});
+					let {data: lastHourMarketHistory, error: marketError} = await supabase.rpc('get_stock_history_over_range', { stockid: initialData[i].id, hour_range: 24, min_interval: 60});
 					if(marketError) {
 						console.error("error fetching marketData", marketError);
 					}
