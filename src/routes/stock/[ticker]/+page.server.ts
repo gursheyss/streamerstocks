@@ -43,31 +43,28 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		console.error('initial data error', initialError);
 	}
 	let marketData: MarketItem | null = null;
-	let { data: marketHistory, error: marketError } = await supabase
-		.from('market_prices')
-		.select('timestamp,price')
-		.eq('stock_id', initialData[0].id)
-		.order('timestamp', { ascending: false });
+	let { data: lastHourMarketHistory, error: marketError } = await supabase.rpc('get_stock_history', { stockid: initialData[0].id, hour_range: 1, min_interval: 1 });
 	let marketPrice: number | null = null;
 	if (marketError != null) {
 		console.error('error fetching marketdata', marketError);
 	}
 	if (initialData != null) {
-		const cachedMarketData = await redis.get('marketData' + initialData[0].id);
+		// const cachedMarketData = await redis.get('marketData' + initialData[0].id);
+		const cachedMarketData = null;
 		if (cachedMarketData) {
 			marketData = JSON.parse(cachedMarketData);
 		} else {
-			if (marketHistory != null && initialData != null) {
+			if (lastHourMarketHistory != null && initialData != null) {
 				marketData = {
 					...initialData[0],
-					history: marketHistory.reverse(),
+					history: lastHourMarketHistory,
 					low: 0,
 					high: 0,
 					volume: 0
 				} as MarketItem;
 			}
 			if (marketData != null) {
-				await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), 'EX', 60);
+				// await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), 'EX', 60);
 			}
 		}
 	}

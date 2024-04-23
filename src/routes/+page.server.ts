@@ -16,7 +16,8 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	let userInventory: InventoryItem[] | null = null;
 	let marketData: MarketItem[] = [];
 
-	const cachedMarketData = await redis.get('marketData');
+	// const cachedMarketData = await redis.get('marketData');
+	const cachedMarketData = null;
 	// add more conditions for validation
 	if (cachedMarketData) {
 		marketData = JSON.parse(cachedMarketData)
@@ -29,7 +30,8 @@ export const load = async ({ locals: { safeGetSession } }) => {
 		else {
 			let initMarketData: MarketItem[] = [];
 			for (let i = 0; i < initialData.length; i+=1) {
-				const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
+				// const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
+				const cachedIndivMarketData = null;
 				//todo:: add more validatino for conditions 
 				if (cachedIndivMarketData != null && JSON.parse(cachedIndivMarketData).history.length == 0) {
 					const marketItem = JSON.parse(cachedIndivMarketData);
@@ -39,15 +41,15 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					});
 				}
 				else {
-					let {data: marketHistory, error: marketError} = await supabase.from('market_prices').select('timestamp,price').eq('stock_id', initialData[i].id).order('timestamp', { ascending: false }).limit(60);
+					let {data: lastHourMarketHistory, error: marketError} = await supabase.rpc('get_stock_history', { stockid: initialData[i].id, hour_range: 1, min_interval: 1});
 					if(marketError) {
 						console.error("error fetching marketData", marketError);
 					}
 					else {
-						if (marketHistory != null && initialData != null) {
+						if (lastHourMarketHistory != null && initialData != null) {
 							initMarketData.push({
 								...initialData[i],
-								history: marketHistory.reverse(),
+								history: lastHourMarketHistory,
 								low: 0,
 								high: 0,
 								volume: 0
@@ -58,7 +60,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					}
 				}
 			}
-			await redis.set('marketData', JSON.stringify(marketData), 'EX', 60);
+			// await redis.set('marketData', JSON.stringify(marketData), 'EX', 60);
 		}
 	}
 	// redo in db function

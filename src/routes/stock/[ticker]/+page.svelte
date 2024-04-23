@@ -7,6 +7,7 @@
 	import type { MarketItem, MarketItemHistory } from '$lib/types';
 	import type { Comment } from '$lib/types';
 	import type { InventoryItem } from '$lib/types';
+	import { derived } from 'svelte/store';
 
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
@@ -14,6 +15,15 @@
 	let selectedDateRange = $state('1 hour');
 
 	let marketData: MarketItem | null = $state(data.marketData);
+	let historyData = {
+		'1 hour': data.marketData.history,	// 1 hour
+		'1 day': [],						// 1 day
+		'1 week': [],						// 1 week
+		'1 month': [],						// 1 month
+		'1 year': [],						// 1 year
+		'all': []							// 5 years
+	};
+
 	let comments: Comment[] = $state(data.comments);
 	let userBalance = $state<number | null>(data.userBalance);
 	let userSharesAmount = $state<number | null>(data.userSharesAmount);
@@ -181,38 +191,76 @@
 		};
 	});
 
-	function getFilteredHistory(item: MarketItem, dateRange: string): MarketItemHistory[] {
-		const currentTimestamp = Math.floor(Date.now() / 1000); // Convert to seconds
-		let filterTimestamp = 0;
-
-		switch (dateRange) {
-			case '1 hour':
-				filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
-				break;
-			case '12 hour':
-				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
-				break;
-			case '24 hour':
-				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
-				break;
-			// case '7 days':
-			// 	filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
-			// 	break;
-			default:
-				return item.history;
+	async function getFilteredHistory(range: string): Promise<MarketItemHistory[] | undefined> {
+		console.log(historyData[range as keyof typeof historyData]?.length);
+		if (historyData[range as keyof typeof historyData]?.length === 0) {
+			if (range === '1 hour') {
+				const response = await supabase.rpc('get_stock_history', { stockid: marketData?.id, hour_range: 1, min_interval: 1 });
+				historyData[range as keyof typeof historyData] = response.data;
+				return response.data;
+			}
+			else if (range === '1 day') {
+				const response = await supabase.rpc('get_stock_history', { stockid: marketData?.id, hour_range: 24, min_interval: 10 });
+				historyData[range as keyof typeof historyData] = response.data;
+				return response.data;
+			}
+			else if (range === '1 week') {
+				const response = await supabase.rpc('get_stock_history', { stockid: marketData?.id, hour_range: 24*7, min_interval: 60 });
+				historyData[range as keyof typeof historyData] = response.data;
+				return response.data;
+			}
+			else if (range === '1 month') {
+				const response = await supabase.rpc('get_stock_history', { stockid: marketData?.id, hour_range: 24*30, min_interval: 60*12 });
+				historyData[range as keyof typeof historyData] = response.data;
+				return response.data;
+			}
+			else if (range === '1 year') {
+				const response = await supabase.rpc('get_stock_history', { stockid: marketData?.id, hour_range: 24*365, min_interval: 60*24*7 });
+				historyData[range as keyof typeof historyData] = response.data;
+				return response.data;
+			}
+			else if (range === 'all') {
+				const response = await supabase.rpc('get_stock_history', { stockid: marketData?.id, hour_range: 24*365*10, min_interval: 60*24*7 });
+				historyData[range as keyof typeof historyData] = response.data;
+				return response.data;
+			}
+		}
+		else {
+			return historyData[range as keyof typeof historyData] as MarketItemHistory[];
 		}
 
-		const filteredHistory = item.history.filter((entry) => entry.timestamp >= filterTimestamp);
+		// const currentTimestamp = Math.floor(Date.now() / 1000); // Convert to seconds
+		// let filterTimestamp = 0;
 
-		// If the filtered history is empty, include the most recent data point
-		if (filteredHistory.length === 0 && item.history.length > 0) {
-			return [item.history[item.history.length - 1]];
-		}
+		// switch (dateRange) {
+		// 	case '1 hour':
+		// 		filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
+		// 		break;
+		// 	case '12 hour':
+		// 		filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
+		// 		break;
+		// 	case '24 hour':
+		// 		filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
+		// 		break;
+		// 	// case '7 days':
+		// 	// 	filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
+		// 	// 	break;
+		// 	default:
+		// 		return item.history;
+		// }
 
-		return filteredHistory;
+		// const filteredHistory = item.history.filter((entry) => entry.timestamp >= filterTimestamp);
+
+		// // If the filtered history is empty, include the most recent data point
+		// if (filteredHistory.length === 0 && item.history.length > 0) {
+		// 	return [item.history[item.history.length - 1]];
+		// }
+
+		// return filteredHistory;
 	}
 
-	const filteredMarketHistory = $derived(getFilteredHistory(marketData, selectedDateRange));
+	// const filteredMarketHistory = $derived(getFilteredHistory(selectedDateRange));
+	const filteredMarketHistory = null; // LEFT OFF HERE
 	let currentPrice = $derived(marketData?.history?.slice(-1)[0]?.price || 0);
 	// let currentPrice = $derived(marketData?.price || 0); // we are using this because the latest timestamp price isnt the real price due to script not updating
 	let beginningPrice = $derived(filteredMarketHistory[0]?.price || 0);
@@ -275,20 +323,44 @@
 								1H
 							</button>
 							<button
-								class={` px-2 py-2 rounded-lg ${
-									selectedDateRange === '12 hour' ? 'text-white' : 'text-gray-500'
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '1 day' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '12 hour')}
+								onclick={() => (selectedDateRange = '1 day')}
 							>
-								12H
+								1D
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === '1 week' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '24 hour')}
+								onclick={() => (selectedDateRange = '1 week')}
 							>
-								24H
+								7D
+							</button>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '1 month' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '1 month')}
+							>
+								1M
+							</button>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '1 year' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '1 year')}
+							>
+								1Y
+							</button>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === 'all' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = 'all')}
+							>
+								All
 							</button>
 						</div>
 					</div>
