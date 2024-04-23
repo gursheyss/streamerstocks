@@ -48,11 +48,14 @@ name_stock_mapping = {
     "Ba": "ba",
     "Malik": "malik",
     "Arky": "arky",
-    "Nosiiree": "nosiiree"
+    "Nosiiree": "nosiiree",
+    "Redify": "redify",
+    "Edward": "edward",
+    "MrLazerboy": "lazerboy"
 }
 
 # List of users to analyze sentiment for
-analysis_group = ['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'Dat', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Kelly', 'Landon', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'Tobi', 'YBG', 'Yugi']
+analysis_group = ['A2Guapo', 'Alex', 'Aliyah', 'Alyssa', 'Arky', 'Ba', 'BayBeeRae', 'Dat', 'Edward', 'Effy', 'Ellen', 'Emily', 'Giaan', 'Irene', 'Jason', 'Jdab', 'Jes', 'Jess', 'Joy Mei', 'KC', 'Kaichu', 'Kailey', 'Kelly', 'Landon', 'Lazerboy', 'Malik', 'Mariah', 'Mira', 'Nosiiree', 'Prod', 'Raph', 'Redify', 'Sa', 'Santi', 'Selena', 'Ron', 'Sunny', 'Tobi', 'YBG', 'Yugi']
 
 # Whether Jason is online, determines whether to analyze Twitch chat or Reddit
 jason_online = False
