@@ -76,13 +76,16 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
 
 def save_prices_to_history(decay_rate:float) -> None:
     '''Save the current prices of stocks to their history. Does not save to history if the price has not changed.'''
-    print('SAVING PRICES')
-    client.rpc('decay_and_save_snapshots', {'decay_rate': decay_rate}).execute()
+    try:
+        print('SAVING PRICES')
+        client.rpc('decay_and_save_snapshots', {'decay_rate': decay_rate}).execute()
+    except:
+        raise Exception()
 
-def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
+def update_by_chat_loop(max_batch_size:int, scalar:float, exit_event:threading.Event) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
     print("Starting Twitch chat analysis loop\n******************************\n")
-    while True:
+    while not exit_event.is_set():
         try:
             if jason_online:
                 print("Analyzing chat:")
@@ -94,12 +97,13 @@ def update_by_chat_loop(max_batch_size:int, scalar:float) -> None:
             time.sleep(1)
         except:
             send_error_message("Error analyzing Twitch chat")
+            exit_event.set()
 
-def update_by_reddit_loop(update_interval_seconds:int, scalar:float) -> None:
+def update_by_reddit_loop(update_interval_seconds:int, scalar:float, exit_event:threading.Event) -> None:
     '''Update prices based on Reddit if Jason is offline'''
     print("Starting Reddit analysis loop\n******************************\n")
     previous_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
-    while True:
+    while not exit_event.is_set():
         try:
             if not jason_online:
                 current_time = int(time.time())
@@ -114,11 +118,12 @@ def update_by_reddit_loop(update_interval_seconds:int, scalar:float) -> None:
             time.sleep(1)
         except:
             send_error_message("Error analyzing Reddit")
+            exit_event.set()
 
-def check_if_jason_online() -> None:
+def check_if_jason_online(exit_event:threading.Event) -> None:
     '''Check if Jason is online every 5 minutes and update the global variable jason_online accordingly'''
     global jason_online
-    while True:
+    while not exit_event.is_set():
         try:
             contents = requests.get('https://www.twitch.tv/jasontheween').content.decode('utf-8')
             if 'isLiveBroadcast' in contents:
@@ -130,28 +135,31 @@ def check_if_jason_online() -> None:
             time.sleep(300)
         except:
             send_error_message("Error checking if Jason is online")
+            exit_event.set()
 
-def save_snapshot_loop(save_interval_seconds:int, decay_rate:float) -> None:
+def save_snapshot_loop(save_interval_seconds:int, decay_rate:float, exit_event:threading.Event) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
     decay_delta = {}
     for person in analysis_group:
         decay_delta[person.lower().replace(" ", "") + "_delta"] = -1
-    while True:
+    while not exit_event.is_set():
         try:
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
                 save_prices_to_history(decay_rate)
+            time.sleep(1)
         except:
             send_error_message("Error saving history")
-        finally:
-            time.sleep(1)
+            exit_event.set()
 
 if __name__ == "__main__":
+    exit_event = threading.Event()
+
     print("Starting the market mover....")
-    online_thread = threading.Thread(target=check_if_jason_online)
-    chat_update_thread = threading.Thread(target=update_by_chat_loop, kwargs={'max_batch_size': 50, 'scalar': 0.4812})
-    reddit_update_thread = threading.Thread(target=update_by_reddit_loop, kwargs={'update_interval_seconds': 600, 'scalar': 0.2047})
-    save_thread = threading.Thread(target=save_snapshot_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244}) # -10% every 3 days
+    online_thread = threading.Thread(target=check_if_jason_online, kwargs={'exit_event': exit_event})
+    chat_update_thread = threading.Thread(target=update_by_chat_loop, kwargs={'max_batch_size': 50, 'scalar': 0.4812, 'exit_event': exit_event})
+    reddit_update_thread = threading.Thread(target=update_by_reddit_loop, kwargs={'update_interval_seconds': 600, 'scalar': 0.2047, 'exit_event': exit_event})
+    save_thread = threading.Thread(target=save_snapshot_loop, kwargs={'save_interval_seconds': 60, 'decay_rate': 0.0000244, 'exit_event': exit_event}) # -10% every 3 days
 
     online_thread.start()
     chat_update_thread.start()
