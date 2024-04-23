@@ -83,7 +83,8 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 					created_at,
 					profiles!comments_user_id_fkey (
 							avatar_url,
-							username
+							username,
+							label
 					)
 				`
 		)
@@ -97,6 +98,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 			id: comment.id,
 			avatar_url: comment.profiles?.avatar_url || null,
 			username: comment.profiles?.username || null,
+			label: comment.profiles?.label || null,
 			comment: comment.comment,
 			created_at: comment.created_at
 		}));

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { formatDistanceToNow, parseISO } from 'date-fns';
+	import clsx from 'clsx';
 
 	import type { Comment } from '$lib/types';
 	import { toast } from 'svelte-sonner';
@@ -62,16 +63,20 @@
 						alt="Avatar"
 					/>
 					<div>
-						{#if comment.username.startsWith('[dev] ')}
-							<a href={`/portfolio/${comment.username}`}>
-								<span class="font-semibold text-yellow-300">[dev]</span>
-								<span class="font-semibold">{comment.username.split(' ')[1]}</span>
-							</a>
-						{:else}
-							<a href={`/portfolio/${comment.username}`}>
-								<span class="font-semibold">{comment.username}</span>
-							</a>
-						{/if}
+						<span
+							class={clsx({
+								'text-yellow-400': comment.label === 'dev',
+								'text-purple-400': comment.label === 'streamer'
+							})}
+						>
+							{#if comment.label}
+								[{comment.label}]
+							{/if}
+						</span>
+						<a href={`/portfolio/${comment.username}`}>
+							<span class="font-semibold">{comment.username}</span>
+						</a>
+
 						<span class="text-gray-400 text-sm ml-2">
 							{formatDistanceToNow(parseISO(comment.created_at))} ago
 						</span>

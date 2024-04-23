@@ -60,7 +60,7 @@
 				<a
 					class="text-gray-500 hover:text-white text-sm font-medium"
 					href="https://discord.gg/2asZArVb7s"
-					target="_blank">Contact/Feedback</a
+					target="_blank">Discord</a
 				>
 				<a
 					class="text-gray-500 hover:text-white text-sm font-medium"
@@ -121,7 +121,7 @@
 				<a
 					class="text-gray-500 hover:text-white text-base font-medium"
 					href="https://discord.gg/2asZArVb7s"
-					target="_blank">Contact/Feedback</a
+					target="_blank">Discord</a
 				>
 				<a
 					class="text-gray-500 hover:text-white block text-base font-medium"
