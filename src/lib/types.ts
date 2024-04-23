@@ -20,6 +20,7 @@ export interface Comment {
 	id: number;
 	created_at: string;
 	avatar_url: string | null;
+	label: string | null;
 	username: string | null;
 	comment: string;
 }

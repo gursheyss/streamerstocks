@@ -6,7 +6,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 
 	const { data: userData, error: userError } = await supabase
 		.from('profiles')
-		.select('balance, id, avatar_url')
+		.select('balance, id, avatar_url, label')
 		.ilike('username', username)
 		.single();
 
@@ -62,6 +62,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 	const userInventory = inventoryData as InventoryItem[];
 	const netWorth = calcNW(userInventory, userBalance);
 	const avatarUrl = userData?.avatar_url || null;
+	const label = userData.label ?? null;
 
 	// console.log('userInventory\n', userInventory);
 
@@ -71,7 +72,8 @@ export const load = async ({ params, locals: { supabase } }) => {
 		userBalance,
 		userInventory,
 		netWorth,
-		avatarUrl
+		avatarUrl,
+		label
 	};
 };
 
