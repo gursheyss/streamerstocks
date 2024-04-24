@@ -10,6 +10,8 @@ async function initializeLeaderboard() {
 		return;
 	}
 
+	const pipeline = redis.pipeline();
+
 	data.map(
 		async (user: {
 			user_id: string;
@@ -19,7 +21,7 @@ async function initializeLeaderboard() {
 			pnl: string;
 			trade_count: string;
 		}) => {
-			await redis.hmset(`${user.user_id}`, {
+			pipeline.hmset(`${user.user_id}`, {
 				username: user.username,
 				avatar_url: user.avatar_url,
 				net_worth: parseFloat(user.net_worth).toFixed(2),
@@ -27,22 +29,30 @@ async function initializeLeaderboard() {
 				trade_count: user.trade_count.toString()
 			});
 
-			// Add user to the sorted set by pnl
-			await redis.zadd('leaderboard', {
+			pipeline.zadd('leaderboard', {
 				score: Number(parseFloat(user.pnl).toFixed(2)),
 				member: `${user.user_id}`
 			});
 		}
 	);
 
+	await pipeline.exec();
+	await redis.expire('leaderboard', 3600); // Set TTL for leaderboard data (e.g., 1 hour)
+
 	console.log('Leaderboard initialized successfully!');
 }
 
 export const load = async () => {
 	try {
-		// Fetch leaderboard data from Redis
-		await initializeLeaderboard();
+		// Check if leaderboard data exists in Redis
+		const leaderboardExists = await redis.exists('leaderboard');
 
+		if (!leaderboardExists) {
+			// Initialize leaderboard data if it doesn't exist
+			await initializeLeaderboard();
+		}
+
+		// Fetch leaderboard data from Redis
 		const leaderboardUserIds = await redis.zrange('leaderboard', 0, 99, {
 			rev: true
 		});
@@ -61,7 +71,6 @@ export const load = async () => {
 			})
 		);
 
-		// console.log('Formatted leaderboard data:', formattedData);
 		return { leaderboardData: formattedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);
