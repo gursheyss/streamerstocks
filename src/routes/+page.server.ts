@@ -1,7 +1,7 @@
 import type { MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 import { supabase } from '$lib/server/supabase';
-import { redis } from '$lib/server/upstash';
+import { redis } from '$lib/server/redis';
 
 export const actions = {
 	signOut: async ({ locals: { supabase } }) => {

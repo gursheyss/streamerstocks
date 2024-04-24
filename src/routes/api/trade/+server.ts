@@ -1,7 +1,7 @@
 import { supabase } from '$lib/server/supabase';
-import { redis } from '$lib/server/upstash';
+import { redis } from '$lib/server/redis';
 import { error } from '@sveltejs/kit';
-import { ratelimit } from '$lib/server/upstash';
+import { ratelimit } from '$lib/server/redis';
 // /api/ POST
 
 export async function POST({ request, locals: { safeGetSession } }) {

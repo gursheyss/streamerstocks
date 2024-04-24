@@ -1,4 +1,4 @@
-import { redis } from '$lib/server/upstash';
+import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
 
 // Helper function to load initial leaderboard data into Redis
