@@ -17,7 +17,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	let marketData: MarketItem[] = [];
 
 	const cachedMarketData = await redis.get<MarketItem[]>('marketData');
-	console.log(cachedMarketData);
+	// console.log(cachedMarketData);
 	// add more conditions for validation
 	if (cachedMarketData) {
 		marketData = cachedMarketData;

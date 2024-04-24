@@ -53,9 +53,10 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		console.error('error fetching marketdata', marketError);
 	}
 	if (initialData != null) {
-		const cachedMarketData = await redis.get<string>('marketData' + initialData[0].id);
+		const cachedMarketData = await redis.get<MarketItem>('marketData' + initialData[0].id);
+		// console.log(cachedMarketData);
 		if (cachedMarketData) {
-			marketData = JSON.parse(cachedMarketData);
+			marketData = cachedMarketData;
 		} else {
 			if (marketHistory != null && initialData != null) {
 				marketData = {
