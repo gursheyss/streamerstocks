@@ -62,11 +62,11 @@ export const load = async () => {
 				const userDetails = await redis.hgetall(`${userId}`);
 				return {
 					rank: leaderboardUserIds.indexOf(userId) + 1,
-					username: userDetails.username,
-					avatar_url: userDetails.avatar_url,
-					net_worth: Number(userDetails.net_worth),
-					pnl: Number(userDetails.pnl),
-					trade_count: parseInt(userDetails.trade_count, 10)
+					username: userDetails?.username,
+					avatar_url: userDetails?.avatar_url,
+					net_worth: Number(userDetails?.net_worth),
+					pnl: Number(userDetails?.pnl),
+					trade_count: parseInt(userDetails?.trade_count as string, 10)
 				};
 			})
 		);
