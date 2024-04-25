@@ -66,25 +66,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			});
 			if (processTradeError) console.error('processTradeError\n', processTradeError);
 			// Record the trade
-			const trade = {
-				user_id: uuid,
-				stock_id: stockID,
-				bought_price: amt < 0 ? price : null,
-				purchase_volume: amt < 0 ? Math.abs(amt) : null,
-				sold_price: amt > 0 ? price : null,
-				sale_volume: amt > 0 ? amt : null,
-				date_purchased: new Date().toISOString(),
-				status: amt < 0 ? 'bought' : 'sold'
-			};
-			const { error: tradeError } = await supabase.from('trades').insert([trade]);
-			if (tradeError) {
-				console.error('Error recording trade:', tradeError);
-				return new Response(JSON.stringify({ success: false }), {
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-			}
+			
 			// Update metrics in Redis
 			await updateUserMetrics(uuid); // Update user metrics after transaction
 
