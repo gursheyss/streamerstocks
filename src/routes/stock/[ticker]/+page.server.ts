@@ -49,9 +49,10 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		console.error('error fetching marketdata', marketError);
 	}
 	if (initialData != null) {
-		const cachedMarketData = await redis.get('marketData' + initialData[0].id);
+		const cachedMarketData = await redis.get<MarketItem>('marketData' + initialData[0].id);
+		// console.log(cachedMarketData);
 		if (cachedMarketData) {
-			marketData = JSON.parse(cachedMarketData);
+			marketData = cachedMarketData;
 		} else {
 			if (marketHistory != null && initialData != null) {
 				marketData = {
@@ -63,7 +64,9 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 				} as MarketItem;
 			}
 			if (marketData != null) {
-				await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), 'EX', 60);
+				await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), {
+					ex: 60
+				});
 			}
 		}
 	}
@@ -79,7 +82,8 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 					created_at,
 					profiles!comments_user_id_fkey (
 							avatar_url,
-							username
+							username,
+							label
 					)
 				`
 		)
@@ -93,6 +97,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 			id: comment.id,
 			avatar_url: comment.profiles?.avatar_url || null,
 			username: comment.profiles?.username || null,
+			label: comment.profiles?.label || null,
 			comment: comment.comment,
 			created_at: comment.created_at
 		}));

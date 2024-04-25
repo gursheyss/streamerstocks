@@ -1,9 +1,10 @@
 <div class="flex flex-col items-center justify-center h-screen space-y-4">
 	<div class="font-bold">
-		we r down for maintenance lol, join our <a
+		<a
 			class="text-pink-300 underline"
 			href="https://discord.com/invite/2asZArVb7s">discord</a
-		> to know when we're back
+		> <br>
+		this website is meant to be a meme and community project. fuck those who are taking this seriously. go touch grass.
 	</div>
 	<div class="text-center">
 		<div>postmortems</div>

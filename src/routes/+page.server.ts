@@ -15,24 +15,21 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	let userInventory: InventoryItem[] | null = null;
 	let marketData: MarketItem[] = [];
 
-	// const cachedMarketData = await redis.get('marketData');
-	const cachedMarketData = null;
+	const cachedMarketData = await redis.get('marketData');
 	// add more conditions for validation
 	if (cachedMarketData) {
-		marketData = JSON.parse(cachedMarketData)
-	}
-	else {
-		const { data: initialData, error:initError } = await supabase.from('market').select('*');
-		if(initError || initialData === undefined) {
+		marketData = cachedMarketData;
+	} else {
+		const { data: initialData, error: initError } = await supabase.from('market').select('*');
+		if (initError || initialData === undefined) {
 			console.error(initError);
-		}
-		else {
-			let initMarketData: MarketItem[] = [];
-			for (let i = 0; i < initialData.length; i+=1) {
-				const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
-				//todo:: add more validatino for conditions 
-				if (cachedIndivMarketData != null && JSON.parse(cachedIndivMarketData).history.length == 0) {
-					const marketItem = JSON.parse(cachedIndivMarketData);
+		} else {
+			const initMarketData: MarketItem[] = [];
+			for (let i = 0; i < initialData.length; i += 1) {
+				const cachedIndivMarketData = await redis.get<MarketItem>('marketData' + initialData[i].id);
+				//todo:: add more validatino for conditions
+				if (cachedIndivMarketData != null && cachedIndivMarketData.history.length == 0) {
+					const marketItem = cachedIndivMarketData;
 					initMarketData.push({
 						...marketItem,
 						history: marketItem.history
@@ -58,7 +55,9 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					}
 				}
 			}
-			await redis.set('marketData', JSON.stringify(marketData), 'EX', 60);
+			await redis.set('marketData', JSON.stringify(marketData), {
+				ex: 60
+			});
 		}
 	}
 	// redo in db function
@@ -75,7 +74,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 			userBalance = profileData?.balance ?? null;
 		}
 		// This is fetching the history from market table too but once we delete that column, should be chill
-		let { data: inventoryData, error: inventoryError } = await supabase
+		const { data: inventoryData, error: inventoryError } = await supabase
 			.from('inventory')
 			.select(
 				`

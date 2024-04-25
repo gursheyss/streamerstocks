@@ -1,11 +1,8 @@
-import cron from 'node-cron';
 import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
 
 // Helper function to load initial leaderboard data into Redis
 async function initializeLeaderboard() {
-	console.log('Initializing leaderboard...');
-
 	const { data, error } = await supabase.rpc('calculate_leaderboard_data_v2');
 
 	if (error) {
@@ -13,20 +10,18 @@ async function initializeLeaderboard() {
 		return;
 	}
 
-	// Clear previous leaderboard data
-	await redis.del('leaderboard');
+	const pipeline = redis.pipeline();
 
-	// Populate Redis sorted set with pnl data
-	const updates = data.map(
+	data.map(
 		async (user: {
-			user_id: any;
-			username: any;
-			avatar_url: any;
+			user_id: string;
+			username: string;
+			avatar_url: string;
 			net_worth: string;
 			pnl: string;
-			trade_count: { toString: () => any };
+			trade_count: string;
 		}) => {
-			await redis.hmset(`${user.user_id}`, {
+			pipeline.hmset(`${user.user_id}`, {
 				username: user.username,
 				avatar_url: user.avatar_url,
 				net_worth: parseFloat(user.net_worth).toFixed(2),
@@ -34,124 +29,51 @@ async function initializeLeaderboard() {
 				trade_count: user.trade_count.toString()
 			});
 
-			// Add user to the sorted set by pnl
-			await redis.zadd('leaderboard', parseFloat(user.pnl).toFixed(2), `${user.user_id}`);
+			pipeline.zadd('leaderboard', {
+				score: Number(parseFloat(user.pnl).toFixed(2)),
+				member: `${user.user_id}`
+			});
 		}
 	);
 
-	await Promise.all(updates);
+	await pipeline.exec();
+	await redis.expire('leaderboard', 3600); // Set TTL for leaderboard data (e.g., 1 hour)
 
 	console.log('Leaderboard initialized successfully!');
 }
-// Updates leaderboard every 5 minutes
-cron.schedule(
-	'*/5 * * * *',
-	() => {
-		initializeLeaderboard();
-	},
-	{
-		scheduled: true,
-		timezone: 'America/New_York'
-	}
-);
 
-export const load = async ({ locals }) => {
+export const load = async () => {
 	try {
+		// Check if leaderboard data exists in Redis
+		const leaderboardExists = await redis.exists('leaderboard');
+
+		if (!leaderboardExists) {
+			// Initialize leaderboard data if it doesn't exist
+			await initializeLeaderboard();
+		}
+
 		// Fetch leaderboard data from Redis
-		// await initializeLeaderboard();
-		let leaderboardUserIds = await redis.zrevrange('leaderboard', 0, 29);
+		const leaderboardUserIds = await redis.zrange('leaderboard', 0, 99, {
+			rev: true
+		});
 
 		const formattedData = await Promise.all(
 			leaderboardUserIds.map(async (userId) => {
 				const userDetails = await redis.hgetall(`${userId}`);
 				return {
 					rank: leaderboardUserIds.indexOf(userId) + 1,
-					username: userDetails.username,
-					avatar_url: userDetails.avatar_url,
-					net_worth: Number(userDetails.net_worth),
-					pnl: Number(userDetails.pnl),
-					trade_count: parseInt(userDetails.trade_count, 10)
+					username: userDetails?.username,
+					avatar_url: userDetails?.avatar_url,
+					net_worth: Number(userDetails?.net_worth),
+					pnl: Number(userDetails?.pnl),
+					trade_count: parseInt(userDetails?.trade_count as string, 10)
 				};
 			})
 		);
 
-		// console.log('Formatted leaderboard data:', formattedData);
 		return { leaderboardData: formattedData };
 	} catch (error) {
 		console.error('Error fetching leaderboard data:', error);
 		return { leaderboardData: [] };
 	}
 };
-
-/*
-CREATE OR REPLACE FUNCTION calculate_net_worth()
-RETURNS TABLE (
-  user_id uuid,
-  username text,
-  avatar_url text,
-  net_worth numeric
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    p.id,
-    p.username,
-    p.avatar_url,
-    CAST(p.balance AS numeric) + COALESCE((SELECT SUM(CAST(quantity AS numeric) * CAST(m.price AS numeric))
-                          FROM inventory i
-                          JOIN market m ON m.id = i.stock_id
-                          WHERE i.user_id = p.id), 0) AS net_worth
-  FROM profiles p;
-END; $$
-LANGUAGE plpgsql STABLE;
-
-*/
-
-/*
-CREATE OR REPLACE FUNCTION calculate_pnl()
-RETURNS TABLE (
-  user_id uuid,
-  username text,
-  avatar_url text,
-  pnl numeric
-) AS $$
-DECLARE
-  user_net_worth RECORD;
-BEGIN
-  FOR user_net_worth IN SELECT * FROM calculate_net_worth()
-  LOOP
-    RETURN QUERY
-    SELECT 
-      user_net_worth.user_id,
-      user_net_worth.username,
-      user_net_worth.avatar_url,
-      CAST(user_net_worth.net_worth AS numeric) - (10000 + (SELECT COALESCE(SUM(CAST(amount_redeemed AS numeric)), 0) 
-                                           FROM profiles 
-                                           WHERE id = user_net_worth.user_id)) AS pnl;
-  END LOOP;
-END; $$
-LANGUAGE plpgsql STABLE;
-*.
-
-/*
-CREATE OR REPLACE FUNCTION calculate_trade_count()
-RETURNS TABLE (
-  user_id uuid,
-  username text,
-  avatar_url text,
-  trade_count bigint
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    p.id,
-    p.username,
-    p.avatar_url,
-    COALESCE((SELECT COUNT(*)
-              FROM trades t
-              WHERE t.user_id = p.id), 0) AS trade_count
-  FROM profiles p;
-END; $$
-LANGUAGE plpgsql STABLE;
-
-*/

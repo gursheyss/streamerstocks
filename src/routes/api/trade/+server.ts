@@ -1,7 +1,7 @@
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
 import { error } from '@sveltejs/kit';
-import { ratelimit } from '$lib/server/upstash';
+import { ratelimit } from '$lib/server/redis';
 // /api/ POST
 
 export async function POST({ request, locals: { safeGetSession } }) {
@@ -9,11 +9,12 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	if (!session.user) {
 		error(401, 'Unauthorized');
 	}
-	const { success, reset } = await ratelimit.buysell.limit(session.user.id);
+	const { success, reset } = await ratelimit.limit(session.user.id);
 	if (!success) {
 		const timeRemaining = Math.floor((reset - Date.now()) / 1000);
-		return error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
+		error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
 	}
+	console.log('passed ratelimit');
 	const uuid = session.user.id;
 	const { amt, stockID } = await request.json();
 	let found = false;
@@ -31,13 +32,11 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	// console.log('initStockData: ', initStockData);
 	if (initStockError) console.error('Error getting data from stockID' + initStockError);
 	//create entry if none (init at 0)
-	const { data: createEntryData, error: createEntryError } = await supabase.rpc(
-		'create_inventory_entry',
-		{
-			stockid: stockID,
-			userid: uuid
-		}
-	);
+
+	const { error: createEntryError } = await supabase.rpc('create_inventory_entry', {
+		stockid: stockID,
+		userid: uuid
+	});
 	// console.log('createEntryData: ', createEntryData);
 	if (createEntryError) console.error('createEntryError\n', createEntryError);
 	// else console.log(createEntryData);
@@ -60,32 +59,12 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			//  amt: price * amt,
 			//  userid: uuid
 			// });
-			const { data: userData, error: userError } = await supabase.rpc('update_user_bal', {
-				amt: price * amt,
-				userid: uuid
+			const { error: processTradeError } = await supabase.rpc('process_trade', {
+				stockid: stockID,
+				userid: uuid,
+				amount: amt
 			});
-			if (userError) console.error('userError\n', userError);
-			// else console.log('user updating' + userData);
-
-			//needs to add/remove stock from porfolio, negative because we do - when buy
-			const { data: inventoryData, error: inventoryError } = await supabase.rpc(
-				'update_inventory',
-				{
-					amt: -amt,
-					stockid: stockID,
-					userid: uuid
-				}
-			);
-			if (inventoryError) console.error('inventoryError\n', inventoryError);
-			// else console.log(inventoryData);
-			const { data: stockData, error: stockError } = await supabase.rpc('update_stock', {
-				amt: -amt,
-				stockid: stockID
-			});
-
-			if (stockError) console.error('stockError\n', stockError);
-			// else console.log('stock updating:' + stockData);
-
+			if (processTradeError) console.error('processTradeError\n', processTradeError);
 			// Record the trade
 			const trade = {
 				user_id: uuid,
@@ -121,7 +100,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 }
 
 // Helper function to update user net worth, PnL, and trade count in Redis
-async function updateUserMetrics(userId: any) {
+async function updateUserMetrics(userId: string) {
 	try {
 		// Fetch the current balance, PnL, and trade count details from your database
 		const { data: userDetails, error: userDetailsError } = await supabase
@@ -185,7 +164,7 @@ async function updateUserMetrics(userId: any) {
 		// );
 
 		// Update the leaderboard sorted set by pnl
-		await redis.zadd('leaderboard', pnl.toFixed(2), userId);
+		await redis.zadd('leaderboard', { score: Number(parseFloat(pnl.toFixed(2))), member: userId });
 
 		// console.log(`Metrics updated for user: ${userId}`);
 	} catch (error) {
