@@ -126,25 +126,69 @@
 	function getFilteredHistory(item: MarketItem, dateRange: string): MarketItemHistory[] {
 		const currentTimestamp = Math.floor(Date.now() / 1000); // Convert to seconds
 		let filterTimestamp = 0;
+		let filteredHistory = item.history;
+		const timestamps = new Set();
 
 		switch (dateRange) {
 			case '1 hour':
 				filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
-				break;
-			case '12 hour':
-				filterTimestamp = currentTimestamp - 12 * 60 * 60; // 12 hours in seconds
+				filteredHistory = item.history.filter((entry) => {
+					const roundedTimestamp = Math.floor(entry.timestamp/10);
+					if (timestamps.has(roundedTimestamp)) {
+						return false;
+					}
+					timestamps.add(roundedTimestamp);
+					return (
+						entry.timestamp >= filterTimestamp &&
+						roundedTimestamp % (1*6) === 0
+					);
+				});
 				break;
 			case '24 hour':
 				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
+				filteredHistory = item.history.filter((entry) => {
+					const roundedTimestamp = Math.floor(entry.timestamp/10);
+					if (timestamps.has(roundedTimestamp)) {
+						return false;
+					}
+					timestamps.add(roundedTimestamp);
+					return (
+						entry.timestamp >= filterTimestamp &&
+						roundedTimestamp % (15*6) === 0
+					);
+				});
 				break;
-			// case '7 days':
-			// 	filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
-			// 	break;
+			case '7 days':
+				filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
+				filteredHistory = item.history.filter((entry) => {
+					const roundedTimestamp = Math.floor(entry.timestamp/10);
+					if (timestamps.has(roundedTimestamp)) {
+						return false;
+					}
+					timestamps.add(roundedTimestamp);
+					return (
+						entry.timestamp >= filterTimestamp &&
+						roundedTimestamp % (60*6) === 0
+					);
+				});
+				break;
+			case '30 days':
+				filterTimestamp = currentTimestamp - 30 * 24 * 60 * 60; // 7 days in seconds
+				filteredHistory = item.history.filter((entry) => {
+					const roundedTimestamp = Math.floor(entry.timestamp/10);
+					if (timestamps.has(roundedTimestamp)) {
+						return false;
+					}
+					timestamps.add(roundedTimestamp);
+					return (
+						entry.timestamp >= filterTimestamp &&
+						roundedTimestamp % (60*24*6) === 0
+					);
+				});
+				break;
 			default:
 				return item.history;
 		}
-
-		const filteredHistory = item.history.filter((entry) => entry.timestamp >= filterTimestamp);
 
 		// If the filtered history is empty, include the most recent data point
 		if (filteredHistory.length === 0 && item.history.length > 0) {
@@ -217,20 +261,28 @@
 								1H
 							</button>
 							<button
-								class={` px-2 py-2 rounded-lg ${
-									selectedDateRange === '12 hour' ? 'text-white' : 'text-gray-500'
-								}`}
-								onclick={() => (selectedDateRange = '12 hour')}
-							>
-								12H
-							</button>
-							<button
 								class={`px-2 py-2 rounded-lg ${
 									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
 								}`}
 								onclick={() => (selectedDateRange = '24 hour')}
 							>
-								24H
+								1D
+							</button>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '7 days' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '7 days')}
+							>
+								1W
+							</button>
+							<button
+								class={`px-2 py-2 rounded-lg ${
+									selectedDateRange === '30 days' ? 'text-white' : 'text-gray-500'
+								}`}
+								onclick={() => (selectedDateRange = '30 days')}
+							>
+								1M
 							</button>
 						</div>
 					</div>

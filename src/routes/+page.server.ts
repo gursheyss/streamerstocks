@@ -11,13 +11,11 @@ export const actions = {
 
 export const load = async ({ locals: { safeGetSession } }) => {
 	const session = await safeGetSession();
-
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
 	let marketData: MarketItem[] = [];
 
-	const cachedMarketData = await redis.get<MarketItem[]>('marketData');
-	// console.log(cachedMarketData);
+	const cachedMarketData = await redis.get('marketData');
 	// add more conditions for validation
 	if (cachedMarketData) {
 		marketData = cachedMarketData;
@@ -36,20 +34,17 @@ export const load = async ({ locals: { safeGetSession } }) => {
 						...marketItem,
 						history: marketItem.history
 					});
-				} else {
-					const { data: marketHistory, error: marketError } = await supabase
-						.from('market_prices')
-						.select('timestamp,price')
-						.eq('stock_id', initialData[i].id)
-						.order('timestamp', { ascending: false })
-						.limit(60);
-					if (marketError) {
-						console.error('error fetching marketData', marketError);
-					} else {
-						if (marketHistory != null && initialData != null) {
+				}
+				else {
+					let {data: lastHourMarketHistory, error: marketError} = await supabase.rpc('get_stock_history_over_range', { stockid: initialData[i].id, hour_range: 24, min_interval: 60});
+					if(marketError) {
+						console.error("error fetching marketData", marketError);
+					}
+					else {
+						if (lastHourMarketHistory != null && initialData != null) {
 							initMarketData.push({
 								...initialData[i],
-								history: marketHistory.reverse(),
+								history: lastHourMarketHistory,
 								low: 0,
 								high: 0,
 								volume: 0
