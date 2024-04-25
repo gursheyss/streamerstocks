@@ -11,7 +11,6 @@ export const actions = {
 
 export const load = async ({ locals: { safeGetSession } }) => {
 	const session = await safeGetSession();
-	
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
 	let marketData: MarketItem[] = [];
@@ -30,8 +29,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 		else {
 			let initMarketData: MarketItem[] = [];
 			for (let i = 0; i < initialData.length; i+=1) {
-				// const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
-				const cachedIndivMarketData = null;
+				const cachedIndivMarketData = await redis.get('marketData'+initialData[i].id);
 				//todo:: add more validatino for conditions 
 				if (cachedIndivMarketData != null && JSON.parse(cachedIndivMarketData).history.length == 0) {
 					const marketItem = JSON.parse(cachedIndivMarketData);
@@ -60,7 +58,7 @@ export const load = async ({ locals: { safeGetSession } }) => {
 					}
 				}
 			}
-			// await redis.set('marketData', JSON.stringify(marketData), 'EX', 60);
+			await redis.set('marketData', JSON.stringify(marketData), 'EX', 60);
 		}
 	}
 	// redo in db function

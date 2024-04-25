@@ -49,8 +49,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		console.error('error fetching marketdata', marketError);
 	}
 	if (initialData != null) {
-		// const cachedMarketData = await redis.get('marketData' + initialData[0].id);
-		const cachedMarketData = null;
+		const cachedMarketData = await redis.get('marketData' + initialData[0].id);
 		if (cachedMarketData) {
 			marketData = JSON.parse(cachedMarketData);
 		} else {
@@ -64,7 +63,7 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 				} as MarketItem;
 			}
 			if (marketData != null) {
-				// await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), 'EX', 60);
+				await redis.set('marketData' + initialData[0].id, JSON.stringify(marketData), 'EX', 60);
 			}
 		}
 	}
