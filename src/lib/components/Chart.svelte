@@ -27,8 +27,8 @@
 				data: {
 					labels: stockData.map((data) =>
 						new Date(data.timestamp * 1000).toLocaleTimeString('en-US', {
-							hour: '2-digit',
-							minute: '2-digit'
+							hour: 'numeric',
+							minute: 'numeric'
 						})
 					),
 					datasets: [
@@ -52,7 +52,7 @@
 									return gradient;
 								}
 							},
-							tension: 0.1,
+							tension: 0.05,
 							pointRadius: 0
 						}
 					]
@@ -84,6 +84,30 @@
 								borderDash: [5, 5],
 								drawBorder: false,
 								drawTicks: false
+							}
+						},
+						x: {
+							ticks: {
+								callback: (tickValue: number | string) => {
+									if (typeof tickValue === 'number') {
+										// Display the time in HH:mm format if the data is within the same day
+										if (stockData[stockData.length - 1].timestamp - stockData[0].timestamp <= 86400) {
+											return new Date(stockData[tickValue].timestamp * 1000).toLocaleString('en-US', {
+												hour: 'numeric',
+												minute: 'numeric'
+											});
+										} 
+										// Display the date in MMM dd format if the data spans multiple days
+										else {
+											return new Date(stockData[tickValue].timestamp * 1000).toLocaleString('en-US', {
+												month: 'short',
+												day: 'numeric'
+											});
+										}
+									}
+									return tickValue;
+								},
+								maxTicksLimit: 10
 							}
 						}
 					},
@@ -160,6 +184,24 @@
 
 		const padding = (yMax - yMin) * 0.1; // Add 10% padding
 
+		let labelOptions: Intl.DateTimeFormatOptions;
+		// Display the time in HH:mm format if the data is within the same day
+		if (stockData[stockData.length - 1].timestamp - stockData[0].timestamp <= 86400) {
+			labelOptions = {
+				hour: 'numeric',
+				minute: 'numeric'
+			};
+		}
+		// Display the date in MMM dd format if the data spans multiple days
+		else {
+			labelOptions = {
+				month: 'short',
+				day: 'numeric',
+				hour: 'numeric',
+				minute: 'numeric'
+			};
+		}
+
 		// Ensure the chart's canvas context is available
 		if (chart.ctx) {
 			const { ctx, chartArea } = chart;
@@ -182,10 +224,7 @@
 			chart.data.datasets[0].data = [price, price]; // Duplicate the price for both timestamps
 		} else {
 			chart.data.labels = stockData.map((data) =>
-				new Date(data.timestamp * 1000).toLocaleTimeString('en-US', {
-					hour: '2-digit',
-					minute: '2-digit'
-				})
+				new Date(data.timestamp * 1000).toLocaleTimeString('en-US', labelOptions)
 			);
 			chart.data.datasets[0].data = stockData.map((data) => data.price);
 		}
