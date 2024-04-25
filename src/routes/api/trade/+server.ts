@@ -1,7 +1,7 @@
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
 import { error } from '@sveltejs/kit';
-import { ratelimit } from '$lib/server/upstash';
+import { ratelimit } from '$lib/server/redis';
 // /api/ POST
 
 export async function POST({ request, locals: { safeGetSession } }) {
@@ -33,13 +33,10 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	if (initStockError) console.error('Error getting data from stockID' + initStockError);
 	//create entry if none (init at 0)
 
-	const { data: createEntryData, error: createEntryError } = await supabase.rpc(
-		'create_inventory_entry',
-		{
-			stockid: stockID,
-			userid: uuid
-		}
-	);
+	const { error: createEntryError } = await supabase.rpc('create_inventory_entry', {
+		stockid: stockID,
+		userid: uuid
+	});
 	// console.log('createEntryData: ', createEntryData);
 	if (createEntryError) console.error('createEntryError\n', createEntryError);
 	// else console.log(createEntryData);
@@ -62,14 +59,11 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			//  amt: price * amt,
 			//  userid: uuid
 			// });
-			const { data: processTradeData, error: processTradeError } = await supabase.rpc(
-				'process_trade',
-				{
-					stockid: stockID,
-					userid: uuid,
-					amount: amt
-				}
-			);
+			const { error: processTradeError } = await supabase.rpc('process_trade', {
+				stockid: stockID,
+				userid: uuid,
+				amount: amt
+			});
 			if (processTradeError) console.error('processTradeError\n', processTradeError);
 			// Record the trade
 			const trade = {
@@ -106,7 +100,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 }
 
 // Helper function to update user net worth, PnL, and trade count in Redis
-async function updateUserMetrics(userId: any) {
+async function updateUserMetrics(userId: string) {
 	try {
 		// Fetch the current balance, PnL, and trade count details from your database
 		const { data: userDetails, error: userDetailsError } = await supabase
@@ -170,7 +164,7 @@ async function updateUserMetrics(userId: any) {
 		// );
 
 		// Update the leaderboard sorted set by pnl
-		await redis.zadd('leaderboard', pnl.toFixed(2), userId);
+		await redis.zadd('leaderboard', { score: Number(parseFloat(pnl.toFixed(2))), member: userId });
 
 		// console.log(`Metrics updated for user: ${userId}`);
 	} catch (error) {
