@@ -54,7 +54,7 @@ def send_market_update(original_stock_data:list, delta_stock_data:dict, scalar:f
     for row in original_stock_data:
         if row['name'] in name_stock_mapping:
             delta_stock_data[name_stock_mapping[row['name']] + '_delta'] *= scalar
-            if 0.1 < abs(delta_stock_data.get(name_stock_mapping[row['name']] + '_delta', 0)):
+            if 0.05 < abs(delta_stock_data.get(name_stock_mapping[row['name']] + '_delta', 0)):
                 delta_stock_data[name_stock_mapping[row['name']] + '_delta'] = round(delta_stock_data[name_stock_mapping[row['name']] + '_delta'], 2)
                 description += f"${row['name']}: {delta_stock_data[name_stock_mapping[row['name']] + '_delta']}%\n"
     if description != "The market has been updated. Here are the changes: \n\n":

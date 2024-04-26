@@ -74,7 +74,7 @@ def update_prices(delta_sentiment:dict, scalar:float) -> None:
             if percent_delta != 0:
                 row['price'] += (scalar * percent_delta)
             else:
-                row['price'] += row['price'] * random.uniform(-0.005, 0.005)
+                row['price'] += row['price'] * random.uniform(-0.0025, 0.0025)
     client.table('market').upsert(response).execute()
 
 def save_prices_to_history(decay_rate:float) -> None:
