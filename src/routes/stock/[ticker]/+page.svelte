@@ -11,7 +11,7 @@
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
-	let selectedDateRange = $state('1 hour');
+	let selectedDateRange = $state('day');
 
 	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
@@ -130,7 +130,7 @@
 		const timestamps = new Set();
 
 		switch (dateRange) {
-			case '1 hour':
+			case 'hour':
 				filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -144,7 +144,7 @@
 					);
 				});
 				break;
-			case '24 hour':
+			case 'day':
 				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -158,7 +158,7 @@
 					);
 				});
 				break;
-			case '7 days':
+			case 'week':
 				filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -172,7 +172,7 @@
 					);
 				});
 				break;
-			case '30 days':
+			case 'month':
 				filterTimestamp = currentTimestamp - 30 * 24 * 60 * 60; // 7 days in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -254,33 +254,33 @@
 						<div>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '1 hour' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'hour' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '1 hour')}
+								onclick={() => (selectedDateRange = 'hour')}
 							>
 								1H
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'day' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '24 hour')}
+								onclick={() => (selectedDateRange = 'day')}
 							>
 								1D
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '7 days' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'week' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '7 days')}
+								onclick={() => (selectedDateRange = 'week')}
 							>
 								1W
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '30 days' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'month' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '30 days')}
+								onclick={() => (selectedDateRange = 'month')}
 							>
 								1M
 							</button>
