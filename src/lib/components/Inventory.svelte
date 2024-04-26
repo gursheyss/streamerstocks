@@ -22,27 +22,14 @@
 						<span class="text-gray-400 ml-2">${item.market.ticker}</span>
 					</td>
 					<td class="text-right py-4"
-						><span class="text-gray-400 ml-1">Shares</span>
-						{(Math.floor(item.quantity * 1000) / 1000).toLocaleString(undefined, {
+						>{(Math.floor(item.quantity * 1000) / 1000).toLocaleString(undefined, {
 							minimumFractionDigits: 0,
 							maximumFractionDigits: 3
-						})}
-					</td>
-					{#if item.pnl >= 0}
-					<td class="text-right py-4 text-green-500">
-						<span class="text-gray-400 ml-1">Return</span>
-						$+{item.pnl.toFixed(2).toLocaleString()}
-					</td>
-					{:else}
-					<td class="text-right py-4 text-red-500">
-						<span class="text-gray-400 ml-1">Return</span>
-						${item.pnl.toFixed(2).toLocaleString()}
-					</td>
-					{/if}
-					<td class="text-right py-4">
-						<span class="text-gray-400 ml-1">Market Value</span>
-						${(item.market.price * item.quantity).toFixed(2).toLocaleString()}
-					</td>
+						})} <span class="text-gray-400 ml-1">Shares</span></td
+					>
+					<td class="text-right py-4"
+						>${(item.market.price * item.quantity).toFixed(2).toLocaleString()}</td
+					>
 				</tr>
 			{/each}
 		</tbody>
