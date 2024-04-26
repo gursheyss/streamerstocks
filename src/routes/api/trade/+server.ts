@@ -16,6 +16,7 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	}
 	console.log('passed ratelimit');
 	const uuid = session.user.id;
+	const max_slippage = 0.1; // 10% slippage
 	const { amt, stockID } = await request.json();
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
@@ -59,14 +60,15 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			//  amt: price * amt,
 			//  userid: uuid
 			// });
-			const { error: processTradeError } = await supabase.rpc('process_trade', {
+			const { error: processTradeError } = await supabase.rpc('process_trade_v2', {
 				stockid: stockID,
 				userid: uuid,
-				amount: amt
+				amount: amt,
+				max_slippage: max_slippage
 			});
 			if (processTradeError) console.error('processTradeError\n', processTradeError);
 			// Record the trade
-			
+
 			// Update metrics in Redis
 			await updateUserMetrics(uuid); // Update user metrics after transaction
 
