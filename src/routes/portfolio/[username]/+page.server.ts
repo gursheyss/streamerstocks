@@ -16,11 +16,17 @@ export const load = async ({ params, locals: { supabase } }) => {
 
 	const { data: inventoryData, error: inventoryError } = await supabase
 		.from('inventory')
-		.select('id, quantity, market(id, name, price, ticker)')
+		.select('id, stock_id, quantity, market(id, name, price, ticker)')
 		.gte('quantity', 0.001)
 		.eq('user_id', userData.id);
 	if (inventoryError) {
 		throw error(504, 'Error fetching user inventory');
+	}
+
+	for (const stock of inventoryData) {
+		const { data: pnlData, error: inventoryError } = await supabase
+			.rpc('get_stock_pnl', { userid: userData.id, stockid: stock.stock_id });
+		stock.pnl = pnlData;
 	}
 
 	const { data: tradeHistoryData, error: tradeError } = await supabase
