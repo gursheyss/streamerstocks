@@ -129,18 +129,14 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 	}
 	if (session.user) {
 		// get user stock holding from inventory
-		const { data: inventoryData, error: inventoryError } = await supabase
+		const { data: inventoryData } = await supabase
 			.from('inventory')
 			.select('quantity')
 			.eq('user_id', session.user.id)
 			.eq('stock_id', marketData.id)
 			.single();
 
-		if (inventoryError) {
-			console.error('Error fetching user stock holding:', inventoryError);
-		} else {
-			userSharesAmount = inventoryData?.quantity ?? null;
-		}
+		userSharesAmount = inventoryData?.quantity ?? null;
 	}
 	if (session.user) {
 		const { data: profileData, error: profileError } = await supabase

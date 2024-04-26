@@ -11,7 +11,7 @@
 	let { data } = $props();
 	let { ticker } = $derived($page.params);
 	let { supabase } = $derived(data);
-	let selectedDateRange = $state('1 hour');
+	let selectedDateRange = $state('day');
 
 	let marketData: MarketItem | null = $state(data.marketData);
 	let comments: Comment[] = $state(data.comments);
@@ -58,63 +58,6 @@
 			)
 			.subscribe();
 
-		const commentsSubscription = supabase
-			.channel('comments')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'comments',
-					filter: `stock_id=eq.${marketData?.id}`
-				},
-				async (payload: any) => {
-					// console.log('postgres_changes event triggered', payload);
-					const { new: newData, old: oldData } = payload;
-					if (payload.eventType === 'INSERT') {
-						let newComment = {
-							id: newData.id,
-							avatar_url: newData.profiles?.avatar_url || null,
-							username: newData.profiles?.username || null,
-							comment: newData.comment,
-							created_at: newData.created_at
-						};
-
-						if (!newData.profiles) {
-							const { data: userProfile, error } = await supabase
-								.from('profiles')
-								.select('username, avatar_url')
-								.eq('id', newData.user_id)
-								.single();
-
-							if (error) {
-								console.error('Error fetching user profile:', error);
-							} else {
-								newComment.avatar_url = userProfile.avatar_url;
-								newComment.username = userProfile.username;
-							}
-						}
-
-						comments = [newComment, ...comments];
-					} else if (payload.eventType === 'UPDATE') {
-						comments = comments.map((comment) =>
-							comment.id === newData.id
-								? {
-										...comment,
-										comment: newData.comment,
-										score: newData.score,
-										avatar_url: newData.profiles?.avatar_url || comment.avatar_url,
-										username: newData.profiles?.username || comment.username,
-										created_at: newData.created_at
-									}
-								: comment
-						);
-					} else if (payload.eventType === 'DELETE') {
-						comments = comments.filter((comment) => comment.id !== oldData.id);
-					}
-				}
-			)
-			.subscribe();
 		const profileSubscription = data.session
 			? supabase
 					.channel('profiles')
@@ -174,7 +117,6 @@
 
 		return () => {
 			marketSubscription.unsubscribe();
-			commentsSubscription.unsubscribe();
 			profileSubscription?.unsubscribe();
 			// marketBalanceSubscription?.unsubscribe();
 			inventorySubscription?.unsubscribe();
@@ -188,7 +130,7 @@
 		const timestamps = new Set();
 
 		switch (dateRange) {
-			case '1 hour':
+			case 'hour':
 				filterTimestamp = currentTimestamp - 60 * 60; // 1 hour in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -202,7 +144,7 @@
 					);
 				});
 				break;
-			case '24 hour':
+			case 'day':
 				filterTimestamp = currentTimestamp - 24 * 60 * 60; // 24 hours in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -216,7 +158,7 @@
 					);
 				});
 				break;
-			case '7 days':
+			case 'week':
 				filterTimestamp = currentTimestamp - 7 * 24 * 60 * 60; // 7 days in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -230,7 +172,7 @@
 					);
 				});
 				break;
-			case '30 days':
+			case 'month':
 				filterTimestamp = currentTimestamp - 30 * 24 * 60 * 60; // 7 days in seconds
 				filteredHistory = item.history.filter((entry) => {
 					const roundedTimestamp = Math.floor(entry.timestamp/10);
@@ -312,33 +254,33 @@
 						<div>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '1 hour' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'hour' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '1 hour')}
+								onclick={() => (selectedDateRange = 'hour')}
 							>
 								1H
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '24 hour' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'day' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '24 hour')}
+								onclick={() => (selectedDateRange = 'day')}
 							>
 								1D
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '7 days' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'week' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '7 days')}
+								onclick={() => (selectedDateRange = 'week')}
 							>
 								1W
 							</button>
 							<button
 								class={`px-2 py-2 rounded-lg ${
-									selectedDateRange === '30 days' ? 'text-white' : 'text-gray-500'
+									selectedDateRange === 'month' ? 'text-white' : 'text-gray-500'
 								}`}
-								onclick={() => (selectedDateRange = '30 days')}
+								onclick={() => (selectedDateRange = 'month')}
 							>
 								1M
 							</button>

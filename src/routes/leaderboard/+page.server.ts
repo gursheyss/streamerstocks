@@ -1,7 +1,6 @@
 import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
 
-// Helper function to load initial leaderboard data into Redis
 async function initializeLeaderboard() {
 	const { data, error } = await supabase.rpc('calculate_leaderboard_data_v2');
 
@@ -37,22 +36,19 @@ async function initializeLeaderboard() {
 	);
 
 	await pipeline.exec();
-	await redis.expire('leaderboard', 3600); // Set TTL for leaderboard data (e.g., 1 hour)
+	await redis.expire('leaderboard', 3600);
 
 	console.log('Leaderboard initialized successfully!');
 }
 
 export const load = async () => {
 	try {
-		// Check if leaderboard data exists in Redis
 		const leaderboardExists = await redis.exists('leaderboard');
 
 		if (!leaderboardExists) {
-			// Initialize leaderboard data if it doesn't exist
 			await initializeLeaderboard();
 		}
 
-		// Fetch leaderboard data from Redis
 		const leaderboardUserIds = await redis.zrange('leaderboard', 0, 99, {
 			rev: true
 		});
