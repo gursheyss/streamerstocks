@@ -52,5 +52,4 @@ export interface InventoryItem {
 	stock_id: number;
 	quantity: number;
 	market: MarketItem;
-	pnl: number | undefined;
 }
