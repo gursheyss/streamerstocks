@@ -60,14 +60,16 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			//  amt: price * amt,
 			//  userid: uuid
 			// });
-			const { error: processTradeError } = await supabase.rpc('process_trade_v2', {
-				stockid: stockID,
-				userid: uuid,
-				amount: amt,
-				max_slippage: max_slippage
-			});
+			const { data: processTradeData, error: processTradeError } = await supabase.rpc(
+				'process_trade_v2',
+				{
+					stockid: stockID,
+					userid: uuid,
+					amt: amt,
+					max_slippage: max_slippage
+				}
+			);
 			if (processTradeError) console.error('processTradeError\n', processTradeError);
-			// Record the trade
 
 			// Update metrics in Redis
 			await updateUserMetrics(uuid); // Update user metrics after transaction
