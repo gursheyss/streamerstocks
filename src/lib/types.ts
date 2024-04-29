@@ -53,3 +53,28 @@ export interface InventoryItem {
 	quantity: number;
 	market: MarketItem;
 }
+
+export interface Prediction {
+	id: number;
+	description: string;
+	start_time: string;
+	end_time: string;
+	outcome: boolean | null;
+	is_active: boolean;
+	options: PredictionOption[];
+}
+
+export interface PredictionOption {
+	id: number;
+	prediction_id: number;
+	description: string;
+}
+
+export interface Bet {
+	id: number;
+	prediction_id: number;
+	user_id: string;
+	prediction_option_id: number;
+	amount: number;
+	placed_at: string;
+}

@@ -59,6 +59,11 @@
 				>
 				<a
 					class="text-gray-500 hover:text-white text-sm font-medium"
+					href="/predictions"
+					class:text-white={$page.url.pathname === '/predictions'}>Predictions</a
+				>
+				<a
+					class="text-gray-500 hover:text-white text-sm font-medium"
 					href="https://discord.gg/2asZArVb7s"
 					target="_blank">Discord</a
 				>
