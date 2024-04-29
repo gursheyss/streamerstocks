@@ -23,10 +23,10 @@
 	let amount = $state('');
 	let loading = $state(false);
 	let preview = $state({ avgPricePerShare: 0, fee: 0, total: 0, priceImpact: 0 });
+	let activeTab = $state('buy');
 
 	async function updateStockAndBal(stockID: number, amt: number) {
 		loading = true;
-
 		try {
 			const response = await fetch('/api/trade', {
 				method: 'POST',
@@ -38,29 +38,127 @@
 
 			if (response.ok) {
 				const resp = await response.json();
-				if (resp['success'] == false) {
-					toast.error('You do not have enough balance to make this transaction.');
-				} else if (amt < 0) {
-					toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
+				if (resp.success) {
+					const actionText = amt < 0 ? 'purchased' : 'sold';
+					const amountText = Math.abs(amt);
+					toast.success(
+						`Congratulations! You have successfully ${actionText} ${amountText} $${ticker}`
+					);
 				} else {
-					toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
+					toast.error('An unexpected error occurred.');
 				}
-			} else if (response.status === 401) {
-				toast.error('Unauthorized: Please log in to perform this action.');
-			} else if (response.status === 429) {
-				const errorData = await response.json();
-				toast.error(errorData.message);
 			} else {
-				toast.error('An error occurred. Please try again later.');
+				const errorData = await response.json();
+				switch (response.status) {
+					case 401:
+						toast.error('Unauthorized: Please log in to perform this action.');
+						break;
+					case 429:
+						toast.error(errorData.message);
+						break;
+					case 400:
+						toast.error(errorData.message);
+						break;
+					case 500:
+						toast.error(errorData.message || 'An unexpected error occurred.');
+						break;
+					default:
+						toast.error('An unexpected error occurred.');
+				}
 			}
 		} catch (error) {
 			console.error('Error:', error);
-			toast.error('An error occurred. Please try again later.');
+			toast.error('An unexpected error occurred. Please try again later.');
 		} finally {
 			loading = false;
 		}
 	}
+	function calculatePreview(amountToBuyOrSell: number) {
+		const bondingCurveCoefficient = 160000;
+		const feeRate = 0.001; // 0.1% fee rate
+		const isBuying = activeTab === 'buy';
+		const numericAmount = Math.abs(amountToBuyOrSell);
+		const intAmount = Math.floor(numericAmount);
+		const fractionalAmount = numericAmount - intAmount;
 
+		// Calculate the current number of shares based on the bonding curve
+		const currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
+
+		// Handle fractional shares
+		let fractionalCost = 0;
+		let newShares = currentShares;
+		if (fractionalAmount > 0) {
+			newShares += fractionalAmount;
+			const newPrice = Math.pow(newShares, 2) / bondingCurveCoefficient;
+			fractionalCost = fractionalAmount * newPrice * (isBuying ? 1 + feeRate : 1 - feeRate);
+			newShares = currentShares + fractionalAmount;
+		}
+
+		// Handle whole shares
+		let wholeCost = 0;
+		for (let i = 0; i < intAmount; i++) {
+			newShares = isBuying ? newShares + 1 : newShares - 1;
+			const newPrice = Math.pow(newShares, 2) / bondingCurveCoefficient;
+			wholeCost += newPrice;
+		}
+		wholeCost *= isBuying ? 1 + feeRate : 1 - feeRate;
+
+		const total = fractionalCost + wholeCost;
+		const priceImpact = Math.pow(newShares, 2) / bondingCurveCoefficient - currentPrice;
+
+		preview = {
+			avgPricePerShare: total / numericAmount,
+			fee: (isBuying ? 1 : -1) * (fractionalCost * feeRate + wholeCost * feeRate),
+			total,
+			priceImpact
+		};
+	}
+	// Helper function to compute maximum shares buyable within available balance
+	function maxSharesBuyable(
+		buyingPower: number,
+		currentPrice: number,
+		bondingCurveCoefficient: number,
+		feeRate: number
+	) {
+		let shares = 0;
+		let totalCost = 0;
+		let currentShares = Math.sqrt(currentPrice * bondingCurveCoefficient);
+
+		while (true) {
+			const nextShares = currentShares + shares + 1;
+			const nextSharePrice = Math.pow(nextShares, 2) / bondingCurveCoefficient;
+			const nextTotalCost = totalCost + nextSharePrice * (1 + feeRate);
+
+			if (nextTotalCost <= buyingPower) {
+				shares += 1;
+				totalCost = nextTotalCost;
+				currentShares = nextShares;
+			} else {
+				const remainingBuyingPower = buyingPower - totalCost;
+				const fractionalShares = remainingBuyingPower / (nextSharePrice * (1 + feeRate));
+				shares += fractionalShares;
+				break;
+			}
+		}
+
+		return Math.floor(shares * 1000) / 1000;
+	}
+
+	// Modified calculatePercentage function
+	function calculatePercentage(percentage: number) {
+		let sharesToTrade = 0;
+		if (activeTab === 'buy' && userBalance !== null) {
+			const buyingPower = userBalance * percentage;
+			sharesToTrade = maxSharesBuyable(buyingPower, currentPrice, 160000, 0.001);
+		} else if (activeTab === 'sell' && userSharesAmount !== null) {
+			sharesToTrade = Math.floor(userSharesAmount * percentage * 1000) / 1000;
+		}
+		amount = sharesToTrade.toLocaleString(undefined, {
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 3
+		});
+		calculatePreview(Number(amount)); // Update the preview based on the new amount
+	}
 	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
 		let inputElement = event.currentTarget;
 		let inputValue = inputElement.value.replace(/[^\d.]/g, '');
@@ -68,12 +166,16 @@
 		if (decimalIndex !== -1) {
 			inputValue = inputValue.slice(0, decimalIndex + 4);
 		}
-		amount = Number(inputValue);
-		if (amount > 1000) {
-			amount = 1000;
+		amount = String(inputValue);
+		if (Number(amount) > 1000) {
+			amount = '1000';
 		} else if (inputValue === '') {
 			amount = '';
 		}
+		calculatePreview(Number(amount));
+	}
+	function updateTab(tab: string) {
+		activeTab = tab;
 	}
 </script>
 
@@ -86,12 +188,14 @@
 				<Tabs.Trigger
 					value="buy"
 					class="h-8 rounded-l-[7px] bg-transparent py-2 data-[state=active]:bg-lightgray data-[state=active]:text-green-400"
+					on:click={() => updateTab('buy')}
 				>
 					Buy
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="sell"
 					class="h-8 rounded-r-[7px] bg-transparent py-2 data-[state=active]:bg-lightgray data-[state=active]:text-red-400"
+					on:click={() => updateTab('sell')}
 				>
 					Sell
 				</Tabs.Trigger>
@@ -115,17 +219,7 @@
 					<div class="flex justify-between mt-2">
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
-							onclick={() => {
-								if (userBalance) {
-									amount = (Math.floor((userBalance * 250) / currentPrice) / 1000).toLocaleString(
-										undefined,
-										{
-											minimumFractionDigits: 0,
-											maximumFractionDigits: 3
-										}
-									);
-								}
-							}}
+							onclick={() => calculatePercentage(0.25)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -134,17 +228,7 @@
 						</button>
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-							onclick={() => {
-								if (userBalance) {
-									amount = (Math.floor((userBalance * 500) / currentPrice) / 1000).toLocaleString(
-										undefined,
-										{
-											minimumFractionDigits: 0,
-											maximumFractionDigits: 3
-										}
-									);
-								}
-							}}
+							onclick={() => calculatePercentage(0.5)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -153,17 +237,7 @@
 						</button>
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-							onclick={() => {
-								if (userBalance) {
-									amount = (Math.floor((userBalance * 750) / currentPrice) / 1000).toLocaleString(
-										undefined,
-										{
-											minimumFractionDigits: 0,
-											maximumFractionDigits: 3
-										}
-									);
-								}
-							}}
+							onclick={() => calculatePercentage(0.75)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -172,17 +246,7 @@
 						</button>
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
-							onclick={() => {
-								if (userBalance) {
-									amount = (Math.floor((userBalance * 1000) / currentPrice) / 1000).toLocaleString(
-										undefined,
-										{
-											minimumFractionDigits: 0,
-											maximumFractionDigits: 3
-										}
-									);
-								}
-							}}
+							onclick={() => calculatePercentage(1)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -211,11 +275,38 @@
 								})} / ${ticker}</span
 							>
 						</div>
+						<!-- avg price per share -->
+						<div class="flex justify-between">
+							<span>Avg Price Per Share:</span>
+							<span>
+								{#if amount}
+									${preview.avgPricePerShare.toLocaleString('en-US', {
+										minimumFractionDigits: 2,
+										maximumFractionDigits: 2
+									})}
+								{:else}
+									-
+								{/if}
+							</span>
+						</div>
+						<div class="flex justify-between">
+							<span>Fee:</span>
+							<span>
+								{#if amount}
+									${preview.fee.toLocaleString('en-US', {
+										minimumFractionDigits: 2,
+										maximumFractionDigits: 2
+									})}
+								{:else}
+									-
+								{/if}
+							</span>
+						</div>
 						<div class="flex justify-between">
 							<span>Total:</span>
 							<span>
 								{#if amount}
-									${(currentPrice * Number(amount)).toLocaleString('en-US', {
+									${preview.total.toLocaleString('en-US', {
 										minimumFractionDigits: 2,
 										maximumFractionDigits: 2
 									})}
@@ -264,14 +355,7 @@
 					<div class="flex justify-between mt-2">
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
-							onclick={() => {
-								if (userSharesAmount) {
-									amount = (userSharesAmount * 0.25).toLocaleString(undefined, {
-										minimumFractionDigits: 0,
-										maximumFractionDigits: 3
-									});
-								}
-							}}
+							onclick={() => calculatePercentage(0.25)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -280,14 +364,7 @@
 						</button>
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-							onclick={() => {
-								if (userSharesAmount) {
-									amount = (userSharesAmount * 0.5).toLocaleString(undefined, {
-										minimumFractionDigits: 0,
-										maximumFractionDigits: 3
-									});
-								}
-							}}
+							onclick={() => calculatePercentage(0.5)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -296,14 +373,7 @@
 						</button>
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-							onclick={() => {
-								if (userSharesAmount) {
-									amount = (userSharesAmount * 0.75).toLocaleString(undefined, {
-										minimumFractionDigits: 0,
-										maximumFractionDigits: 3
-									});
-								}
-							}}
+							onclick={() => calculatePercentage(0.75)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -312,14 +382,7 @@
 						</button>
 						<button
 							class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
-							onclick={() => {
-								if (userSharesAmount) {
-									amount = userSharesAmount.toLocaleString(undefined, {
-										minimumFractionDigits: 0,
-										maximumFractionDigits: 3
-									});
-								}
-							}}
+							onclick={() => calculatePercentage(1)}
 						>
 							<span
 								class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
@@ -352,7 +415,7 @@
 							<span>Fee:</span>
 							<span>
 								{#if amount}
-									${(currentPrice * Number(amount) * 0.01).toLocaleString('en-US', {
+									${preview.fee.toLocaleString('en-US', {
 										minimumFractionDigits: 2,
 										maximumFractionDigits: 2
 									})}
@@ -365,7 +428,7 @@
 							<span>Total:</span>
 							<span>
 								{#if amount}
-									${(currentPrice * Number(amount) * 0.99).toLocaleString('en-US', {
+									${preview.total.toLocaleString('en-US', {
 										minimumFractionDigits: 2,
 										maximumFractionDigits: 2
 									})}
