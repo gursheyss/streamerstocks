@@ -74,12 +74,11 @@
 
 <div class="bg-green-700 text-white text-center py-2 mb-4">
 	<!-- New div -->
-	Everyone has been reset to $10,000 + redeemed channel points and all girls have been removed.
+	Adding predictions and more stocks soon.
 </div>
-<div class="bg-green-700 text-white text-center py-2 mb-4">
-	<!-- New div -->
+<!-- <div class="bg-green-700 text-white text-center py-2 mb-4">
 	Some prices have been adjusted across the board
-</div>
+</div> -->
 
 {#if data.session && userBalance !== null && inventoryData != null}
 	<Portfolio balance={userBalance} netWorth={calcNW(inventoryData)} />
