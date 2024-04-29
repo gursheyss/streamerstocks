@@ -7,22 +7,25 @@ import { ratelimit } from '$lib/server/redis';
 export async function POST({ request, locals: { safeGetSession } }) {
 	const session = await safeGetSession();
 	if (!session.user) {
-		error(401, 'Unauthorized');
+		throw error(401, 'Unauthorized');
 	}
 	const { success, reset } = await ratelimit.limit(session.user.id);
 	if (!success) {
 		const timeRemaining = Math.floor((reset - Date.now()) / 1000);
-		error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
+		throw error(429, `Rate limit exceeded. Try again in ${timeRemaining} seconds.`);
 	}
-	console.log('passed ratelimit');
+	// console.log('passed ratelimit');
 	const uuid = session.user.id;
+	const max_slippage = 0.1; // 10% slippage
 	const { amt, stockID } = await request.json();
 	let found = false;
 	const { data: bal, error: balError } = await supabase.rpc('get_user_bal', {
 		userid: uuid
 	});
 	// console.log('bal: ', bal);
-	if (balError) console.error('balError: ', balError);
+	if (balError) {
+		throw error(500, 'Failed to retrieve user balance.');
+	}
 	// else console.log(bal);
 	//get stock data
 	const { data: initStockData, error: initStockError } = await supabase
@@ -30,7 +33,9 @@ export async function POST({ request, locals: { safeGetSession } }) {
 		.select()
 		.eq('id', stockID);
 	// console.log('initStockData: ', initStockData);
-	if (initStockError) console.error('Error getting data from stockID' + initStockError);
+	if (initStockError) {
+		throw error(500, 'Failed to retrieve stock data.');
+	}
 	//create entry if none (init at 0)
 
 	const { error: createEntryError } = await supabase.rpc('create_inventory_entry', {
@@ -38,7 +43,9 @@ export async function POST({ request, locals: { safeGetSession } }) {
 		userid: uuid
 	});
 	// console.log('createEntryData: ', createEntryData);
-	if (createEntryError) console.error('createEntryError\n', createEntryError);
+	if (createEntryError) {
+		throw error(500, 'Failed to create inventory entry.');
+	}
 	// else console.log(createEntryData);
 	//get user inventory for specific stock
 	const { data: inventoryData, error: inventoryError } = await supabase
@@ -46,7 +53,9 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			userid: uuid
 		})
 		.eq('stock_id', stockID);
-	if (inventoryError) console.error('inventoryError\n', inventoryError);
+	if (inventoryError) {
+		throw error(500, 'Failed to retrieve user inventory.');
+	}
 	// else console.log(inventoryData[0]['quantity']);
 	// console.log('inventoryData: ', inventoryData);
 	if (initStockData != null) {
@@ -59,18 +68,33 @@ export async function POST({ request, locals: { safeGetSession } }) {
 			//  amt: price * amt,
 			//  userid: uuid
 			// });
-			const { error: processTradeError } = await supabase.rpc('process_trade', {
-				stockid: stockID,
-				userid: uuid,
-				amount: amt
-			});
-			if (processTradeError) console.error('processTradeError\n', processTradeError);
-			// Record the trade
-			
+			const { data: processTradeData, error: processTradeError } = await supabase.rpc(
+				'process_trade_v2',
+				{
+					stockid: stockID,
+					userid: uuid,
+					amt: amt,
+					max_slippage: max_slippage
+				}
+			);
+
+			// old algo in case we need to revert.
+			// const {error: processTradeError } =  await supabase.rpc('process_trade', {
+			// 	stockid: stockID,
+			// 	userid: uuid,
+			// 	amount: amt,
+			// });
+
+			if (processTradeError) {
+				throw error(500, processTradeError.message);
+			}
+
 			// Update metrics in Redis
 			await updateUserMetrics(uuid); // Update user metrics after transaction
 
 			found = true;
+		} else {
+			throw error(400, 'Insufficient balance or quantity.');
 		}
 	}
 	// return success
