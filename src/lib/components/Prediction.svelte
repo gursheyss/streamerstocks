@@ -181,10 +181,3 @@
 		{/if}
 	</button>
 </div>
-
-<style>
-	.selected {
-		background-color: var(--color-primary); /* Replace with your actual primary color variable */
-		color: white;
-	}
-</style>

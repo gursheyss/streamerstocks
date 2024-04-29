@@ -4,25 +4,10 @@
 	import type { Prediction } from '$lib/types';
 
 	let { data } = $props();
-	let predictions: Prediction[] = $state(data.predictions);
-	let userBalance = $state<number | null>(data.userBalance);
+	let predictions: Prediction[] = $state(data.predictions ?? []);
+	let userBalance = $state<number | null>(data.userBalance ?? null);
 
-	// Derived or computed values should be handled within $effect or getters
-	$effect(() => {
-		// Here you might want to set up any derived state or effects that react to changes in your state.
-	});
-
-	// Example effect to react to changes in user balance
-	$effect(() => {
-		if (userBalance !== null) {
-			console.log(`User balance updated: ${userBalance}`);
-			// Possibly update user's available funds for betting
-		}
-	});
-
-	// Define any additional handlers or logic here
 	function handleBetPlacement(predictionId: number, amount: number) {
-		// Logic to handle bet placement
 		console.log(`Placing a bet of ${amount} on prediction ${predictionId}`);
 	}
 </script>
