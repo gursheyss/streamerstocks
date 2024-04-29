@@ -1,16 +1,29 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { Tabs } from 'bits-ui';
-	import type { Prediction } from '$lib/types';
+	import type { Prediction, Bet } from '$lib/types';
 
-	let { prediction, userBalance }: { prediction: Prediction; userBalance: number } = $props();
+	let {
+		prediction,
+		userBalance,
+		userBets
+	}: { prediction: Prediction; userBalance: number; userBets: Bet[] } = $props();
 
 	let amount = $state('');
 	let loading = $state(false);
-	let timeLeft = $state('0:46'); // Placeholder for time left until submissions close.
-
+	let currentTime = $state(new Date());
+	let userBet = userBets.find((bet) => bet.prediction_id === prediction.id);
+	let hasPlacedBet = !!userBet;
 	let selectedOptionId = $state();
+	let timer: NodeJS.Timeout;
+	onMount(() => {
+		timer = setInterval(updateCurrentTime, 1000);
+	});
 
+	onDestroy(() => {
+		clearInterval(timer);
+	});
 	async function placeBet() {
 		if (!selectedOptionId) {
 			toast.error('Please select an option before placing a bet.');
@@ -98,14 +111,32 @@
 			amount = '';
 		}
 	}
+	function updateCurrentTime() {
+		currentTime = new Date();
+	}
+	function calculateTimeLeft() {
+		const endTime = new Date(prediction.end_time);
+		const timeDiff = endTime.getTime() - currentTime.getTime();
+
+		if (timeDiff <= 0) {
+			return 'Submissions closed';
+		}
+
+		const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+		const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+		const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+		return `Submissions closing in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+	}
 </script>
 
 <div
-	class="prediction-component w-1/3 p-4 font-inter border border-lightgray m-4 rounded-[9px] text-white"
+	class="flex flex-col justify-between prediction-component w-1/3 p-4 font-inter border border-lightgray m-4 rounded-[9px] text-white"
 >
-	<div class="header mb-4 flex justify-between items-center">
+	<div class="header mb-4">
 		<h2 class="text-lg font-semibold">{prediction.description}</h2>
-		<span class="text-sm">Submissions closing in {timeLeft}</span>
+		<span class="mt-2 text-xs flex justify-center">{calculateTimeLeft()}</span>
 	</div>
 
 	<Tabs.Root class="border-t border-b border-lightgray">
@@ -116,64 +147,84 @@
 					onclick={() => selectOption(option.id)}
 					class={selectedOptionId === option.id
 						? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500 '
-						: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold '}
+						: hasPlacedBet && userBet.prediction_option_id === option.id
+							? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500 '
+							: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold '}
+					disabled={hasPlacedBet}
 				>
-					{option.description}
+					{option.description} ({option.odds.toFixed(2)}x)<br />
+					{option.poolPercentage.toFixed(2)}%
+					<!-- - {option.bettorCount} bettors<br />
+					Total: ${option.total_amount_bet} -->
 				</Tabs.Trigger>
 			{/each}
 		</Tabs.List>
 	</Tabs.Root>
 
 	<div class="custom-bet-input mt-4">
-		<input
-			class="w-full bg-gray-800 border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-blue-500"
-			type="text"
-			bind:value={amount}
-			placeholder="Enter Amount"
-			oninput={handleInput}
-		/>
-		<div class="flex justify-between mt-2">
-			<button
-				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
-				onclick={() => setAmountPercentage(0.25)}
-			>
-				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
-					>25%</span
+		{#if hasPlacedBet}
+			<p class="text-white text-xs text-center">
+				Bet Placed: ${userBet.amount} on {prediction.options.find(
+					(option) => option.id === userBet.prediction_option_id
+				)?.description}.
+			</p>
+		{:else}
+			<input
+				class="w-full bg-gray-800 border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-blue-500"
+				type="text"
+				bind:value={amount}
+				placeholder="Enter Amount"
+				oninput={handleInput}
+			/>
+			<div class="flex justify-between mt-2">
+				<button
+					class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
+					onclick={() => setAmountPercentage(0.25)}
 				>
-			</button>
-			<button
-				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-				onclick={() => setAmountPercentage(0.5)}
-			>
-				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
-					>50%</span
+					<span
+						class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+						>25%</span
+					>
+				</button>
+				<button
+					class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+					onclick={() => setAmountPercentage(0.5)}
 				>
-			</button>
-			<button
-				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-				onclick={() => setAmountPercentage(0.75)}
-			>
-				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
-					>75%</span
+					<span
+						class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+						>50%</span
+					>
+				</button>
+				<button
+					class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
+					onclick={() => setAmountPercentage(0.75)}
 				>
-			</button>
-			<button
-				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
-				onclick={() => setAmountPercentage(1)}
-			>
-				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
-					>Max</span
+					<span
+						class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+						>75%</span
+					>
+				</button>
+				<button
+					class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
+					onclick={() => setAmountPercentage(1)}
 				>
-			</button>
-		</div>
+					<span
+						class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
+						>Max</span
+					>
+				</button>
+			</div>
+		{/if}
 	</div>
 
 	<button
 		class="place-bet-button w-full mt-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 rounded-lg py-2"
-		on:click={placeBet}
-		disabled={!amount || !selectedOptionId || loading}
+		onclick={placeBet}
+		disabled={!amount || !selectedOptionId || loading || hasPlacedBet}
 	>
-		{#if loading}
+		{#if hasPlacedBet}
+			Bet Placed
+		{:else if loading}
 			Placing bet...
 		{:else}
 			Place Bet

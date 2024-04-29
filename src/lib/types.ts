@@ -59,8 +59,7 @@ export interface Prediction {
 	description: string;
 	start_time: string;
 	end_time: string;
-	outcome: boolean | null;
-	is_active: boolean;
+	status: 'UPCOMING' | 'ONGOING' | 'PENDING' | 'COMPLETED';
 	options: PredictionOption[];
 }
 
@@ -73,7 +72,6 @@ export interface PredictionOption {
 export interface Bet {
 	id: number;
 	prediction_id: number;
-	user_id: string;
 	prediction_option_id: number;
 	amount: number;
 	placed_at: string;

@@ -59,18 +59,35 @@ export async function POST({ request, locals: { safeGetSession } }) {
 		throw error(400, 'Insufficient balance to place bet');
 	}
 
-	// Check if the prediction is still active and if the option exists
+	// Check if the prediction is still open for betting
 	const { data: predictionData, error: predictionError } = await supabase
 		.from('predictions')
-		.select('id, is_active')
+		.select('id, status, end_time')
 		.eq('id', predictionId)
 		.single();
 
-	if (predictionError || !predictionData || !predictionData.is_active) {
-		console.error('Prediction not found or no longer active:', predictionError);
-		throw error(404, 'Prediction not found or no longer active');
+	if (predictionError || !predictionData) {
+		console.error('Prediction not found:', predictionError);
+		throw error(404, 'Prediction not found');
 	}
 
+	const { status, end_time } = predictionData;
+
+	// Check if the prediction is still open for betting
+	const currentTime = new Date().toISOString();
+	if (status !== 'ONGOING' || end_time < currentTime) {
+		console.error('Prediction is not open for betting');
+		throw error(400, 'Prediction is not open for betting');
+	}
+	// Deduct the bet amount from the user's balance
+	const { error: updateBalanceError } = await supabase
+		.from('profiles')
+		.update({ balance: userBalance - betAmount })
+		.eq('id', uuid);
+	if (updateBalanceError) {
+		console.error('Error updating user balance:', updateBalanceError);
+		throw error(500, 'Error updating user balance');
+	}
 	// Proceed to place the bet
 	const { error: betError } = await supabase.from('bets').insert([
 		{
@@ -84,18 +101,6 @@ export async function POST({ request, locals: { safeGetSession } }) {
 	if (betError) {
 		console.error('Error placing bet:', betError);
 		throw error(500, 'Error placing bet');
-	}
-
-	// Update the total amount bet for the prediction option
-	const { error: incrementBetError } = await supabase.rpc('increment_total_bet', {
-		p_prediction_id: predictionId,
-		p_option_id: optionId,
-		p_bet_amount: betAmount
-	});
-
-	if (incrementBetError) {
-		console.error('Error incrementing total bet:', incrementBetError);
-		throw error(500, 'Error incrementing total bet');
 	}
 
 	return new Response(JSON.stringify({ success: true, message: 'Bet placed successfully' }), {
