@@ -42,18 +42,32 @@
 				})
 			});
 
-			if (!response.ok) {
-				throw new Error('Failed to place bet.');
-			} else {
+			if (response.ok) {
 				const resp = await response.json();
-				if (resp.success) {
-					toast.success(`Your bet of ${betAmount} on option was successfully placed.`);
-				} else {
-					toast.error(resp.error || 'An error occurred while placing your bet.');
+				toast.success(`Your bet of ${betAmount} on option was successfully placed.`);
+			} else {
+				const errorData = await response.json();
+				// Here we handle different status codes
+				switch (response.status) {
+					case 401:
+						toast.error('Unauthorized: Please log in to perform this action.');
+						break;
+					case 429:
+						toast.error(errorData.message);
+						break;
+					case 400:
+						toast.error(errorData.message);
+						break;
+					case 500:
+						toast.error(errorData.message || 'An unexpected error occurred.');
+						break;
+					default:
+						toast.error('An unexpected error occurred.');
 				}
 			}
 		} catch (error) {
-			toast.error('An error occurred while placing your bet.');
+			console.error('Error:', error);
+			toast.error('An unexpected error occurred. Please try again later.');
 		} finally {
 			loading = false;
 		}
@@ -63,12 +77,25 @@
 		selectedOptionId = optionId;
 	}
 
-	function handleCustomBetInput(event: { target: { value: any } }) {
-		const { value } = event.target;
-		amount = value.replace(/[^\d.]/g, '');
-		if (parseFloat(amount) > userBalance) {
-			toast.error('Bet amount exceeds your balance.');
-			amount = userBalance.toString();
+	function setAmountPercentage(percentage: number) {
+		if (userBalance) {
+			const calculatedAmount = userBalance * percentage;
+			amount = calculatedAmount.toFixed(2);
+		}
+	}
+
+	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+		let inputElement = event.currentTarget;
+		let inputValue = inputElement.value.replace(/[^\d.]/g, '');
+		let decimalIndex = inputValue.indexOf('.');
+		if (decimalIndex !== -1) {
+			inputValue = inputValue.slice(0, decimalIndex + 4);
+		}
+		amount = String(inputValue);
+		if (Number(amount) > userBalance) {
+			amount = userBalance.toFixed(2);
+		} else if (inputValue === '') {
+			amount = '';
 		}
 	}
 </script>
@@ -86,7 +113,7 @@
 			{#each prediction.options as option (option.id)}
 				<Tabs.Trigger
 					value={option.id}
-					on:click={() => selectOption(option.id)}
+					onclick={() => selectOption(option.id)}
 					class={selectedOptionId === option.id
 						? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500 '
 						: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold '}
@@ -101,21 +128,14 @@
 		<input
 			class="w-full bg-gray-800 border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-blue-500"
 			type="text"
+			bind:value={amount}
 			placeholder="Enter Amount"
-			on:input={handleCustomBetInput}
-			value={amount}
+			oninput={handleInput}
 		/>
 		<div class="flex justify-between mt-2">
 			<button
 				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600 rounded-l-md"
-				onclick={() => {
-					if (userBalance) {
-						amount = (userBalance * 0.25).toLocaleString(undefined, {
-							minimumFractionDigits: 0,
-							maximumFractionDigits: 2
-						});
-					}
-				}}
+				onclick={() => setAmountPercentage(0.25)}
 			>
 				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
 					>25%</span
@@ -123,14 +143,7 @@
 			</button>
 			<button
 				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-				onclick={() => {
-					if (userBalance) {
-						amount = (userBalance * 0.5).toLocaleString(undefined, {
-							minimumFractionDigits: 0,
-							maximumFractionDigits: 2
-						});
-					}
-				}}
+				onclick={() => setAmountPercentage(0.5)}
 			>
 				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
 					>50%</span
@@ -138,14 +151,7 @@
 			</button>
 			<button
 				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-r border-gray-600"
-				onclick={() => {
-					if (userBalance) {
-						amount = (userBalance * 0.75).toLocaleString(undefined, {
-							minimumFractionDigits: 0,
-							maximumFractionDigits: 2
-						});
-					}
-				}}
+				onclick={() => setAmountPercentage(0.75)}
 			>
 				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
 					>75%</span
@@ -153,14 +159,7 @@
 			</button>
 			<button
 				class="w-1/4 inline-flex items-center justify-center p-0.5 overflow-hidden text-xs text-white bg-lightgray hover:bg-gray-700 border-gray-600 rounded-r-md"
-				onclick={() => {
-					if (userBalance) {
-						amount = userBalance.toLocaleString(undefined, {
-							minimumFractionDigits: 0,
-							maximumFractionDigits: 2
-						});
-					}
-				}}
+				onclick={() => setAmountPercentage(1)}
 			>
 				<span class="relative px-2 py-1 transition-all ease-in duration-75 group-hover:bg-opacity-0"
 					>Max</span

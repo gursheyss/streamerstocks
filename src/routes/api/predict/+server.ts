@@ -17,11 +17,27 @@ export async function POST({ request, locals: { safeGetSession } }) {
 
 	const uuid = session.user.id;
 	const { predictionId, optionId, betAmount } = await request.json();
-	console.log('POST /api/predict', { predictionId, optionId, betAmount });
 
 	// Validate the bet amount is a number and greater than zero
 	if (typeof betAmount !== 'number' || betAmount <= 0) {
 		throw error(400, 'Invalid bet amount');
+	}
+	// Check if the user has already placed a bet on this prediction
+	const { data: existingBet, error: existingBetError } = await supabase
+		.from('bets')
+		.select('*')
+		.eq('user_id', uuid)
+		.eq('prediction_id', predictionId)
+		.maybeSingle();
+
+	if (existingBetError) {
+		console.error('Error checking for existing bet:', existingBetError);
+		throw error(500, 'Error checking for existing bet');
+	}
+
+	// If a bet already exists, throw an error
+	if (existingBet) {
+		throw error(400, 'You have already placed a bet on this prediction.');
 	}
 
 	// Fetch the user's balance
