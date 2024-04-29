@@ -27,7 +27,6 @@
 
 	async function updateStockAndBal(stockID: number, amt: number) {
 		loading = true;
-
 		try {
 			const response = await fetch('/api/trade', {
 				method: 'POST',
@@ -39,24 +38,37 @@
 
 			if (response.ok) {
 				const resp = await response.json();
-				if (resp['success'] == false) {
-					toast.error('You do not have enough balance to make this transaction.');
-				} else if (amt < 0) {
-					toast.success(`Congratulations! You have successfully purchased ${-amt} $${ticker}`);
+				if (resp.success) {
+					const actionText = amt < 0 ? 'purchased' : 'sold';
+					const amountText = Math.abs(amt);
+					toast.success(
+						`Congratulations! You have successfully ${actionText} ${amountText} $${ticker}`
+					);
 				} else {
-					toast.success(`Congratulations! You have successfuly sold ${amt} $${ticker}`);
+					toast.error('An unexpected error occurred.');
 				}
-			} else if (response.status === 401) {
-				toast.error('Unauthorized: Please log in to perform this action.');
-			} else if (response.status === 429) {
-				const errorData = await response.json();
-				toast.error(errorData.message);
 			} else {
-				toast.error('An error occurred. Please try again later.');
+				const errorData = await response.json();
+				switch (response.status) {
+					case 401:
+						toast.error('Unauthorized: Please log in to perform this action.');
+						break;
+					case 429:
+						toast.error(errorData.message);
+						break;
+					case 400:
+						toast.error(errorData.message);
+						break;
+					case 500:
+						toast.error(errorData.message || 'An unexpected error occurred.');
+						break;
+					default:
+						toast.error('An unexpected error occurred.');
+				}
 			}
 		} catch (error) {
 			console.error('Error:', error);
-			toast.error('An error occurred. Please try again later.');
+			toast.error('An unexpected error occurred. Please try again later.');
 		} finally {
 			loading = false;
 		}
