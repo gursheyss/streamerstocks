@@ -61,6 +61,7 @@ export interface Prediction {
 	end_time: string;
 	status: 'UPCOMING' | 'ONGOING' | 'PENDING' | 'COMPLETED';
 	options: PredictionOption[];
+	winning_option_id: number | null;
 }
 
 export interface PredictionOption {

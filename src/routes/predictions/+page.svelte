@@ -17,7 +17,7 @@
 	});
 
 	function groupPredictions() {
-		data.predictions.forEach((prediction) => {
+		data.predictions?.forEach((prediction) => {
 			if (prediction.status === 'ONGOING') {
 				groupedPredictions.ONGOING.push(prediction);
 			} else if (prediction.status === 'PENDING') {

@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { Tabs } from 'bits-ui';
-	import type { Prediction, Bet } from '$lib/types';
+	import type { Prediction, Bet, PredictionOption } from '$lib/types';
 
 	let {
 		prediction,
@@ -17,8 +17,15 @@
 	let timer: NodeJS.Timeout;
 
 	let isPredictionPending = prediction.status === 'PENDING';
-	let userBet = userBets.find((bet) => bet.prediction_id === prediction.id);
-	let hasPlacedBet = !!userBet;
+	let isPredictionCompleted = prediction.status === 'COMPLETED';
+	let winningOption =
+		isPredictionCompleted && prediction.winning_option_id
+			? prediction.options.find((option) => option.id === prediction.winning_option_id)
+			: null;
+	let userBet = $state(userBets.find((bet) => bet.prediction_id === prediction.id));
+	let winningsAmount = calculateWinningsAmount(userBet, winningOption);
+	let hasPlacedBet = $state(!!userBet);
+
 	onMount(() => {
 		timer = setInterval(updateCurrentTime, 1000);
 	});
@@ -26,6 +33,7 @@
 	onDestroy(() => {
 		clearInterval(timer);
 	});
+
 	async function placeBet() {
 		if (!selectedOptionId) {
 			toast.error('Please select an option before placing a bet.');
@@ -86,6 +94,20 @@
 			loading = false;
 		}
 	}
+	function calculateWinningsAmount(
+		userBet: Bet | undefined,
+		winningOption: PredictionOption | null
+	) {
+		if (!isPredictionCompleted || !userBet || !winningOption) {
+			return 0;
+		}
+
+		const isWinningBet = userBet.prediction_option_id === winningOption.id;
+		const betAmount = userBet.amount;
+		const winningOdds = winningOption.odds;
+
+		return isWinningBet ? betAmount * winningOdds : -betAmount;
+	}
 
 	function selectOption(optionId: null) {
 		selectedOptionId = optionId;
@@ -140,18 +162,20 @@
 		<span class="mt-2 text-xs flex justify-center">{calculateTimeLeft()}</span>
 	</div>
 
-	<Tabs.Root class="border-t border-b border-lightgray">
+	<Tabs.Root class="border-t border-b border-lightgray mb-1">
 		<Tabs.List class="flex justify-center">
 			{#each prediction.options as option (option.id)}
 				<Tabs.Trigger
 					value={option.id}
 					onclick={() => selectOption(option.id)}
-					class={selectedOptionId === option.id
-						? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500 '
-						: hasPlacedBet && userBet.prediction_option_id === option.id
-							? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500 '
-							: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold '}
-					disabled={hasPlacedBet || isPredictionPending}
+					class={isPredictionCompleted && winningOption && winningOption.id === option.id
+						? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-green-500'
+						: !isPredictionCompleted && selectedOptionId === option.id
+							? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500'
+							: !isPredictionCompleted && hasPlacedBet && userBet.prediction_option_id === option.id
+								? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500'
+								: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold'}
+					disabled={hasPlacedBet || isPredictionPending || isPredictionCompleted}
 				>
 					{option.description} ({option.odds.toFixed(2)}x)<br />
 					{option.poolPercentage.toFixed(2)}%
@@ -161,8 +185,16 @@
 			{/each}
 		</Tabs.List>
 	</Tabs.Root>
-
-	<div class="custom-bet-input mt-4">
+	{#if isPredictionCompleted && winningOption}
+		{#if userBets}
+			<p class="text-white text-xs text-center border-t border-b border-lightgray mt-1 mb-1">
+				{winningsAmount >= 0
+					? `You won $${winningsAmount.toFixed(2)}`
+					: `You lost $${Math.abs(winningsAmount).toFixed(2)}`}
+			</p>
+		{/if}
+	{/if}
+	<div class="custom-bet-input mt-2">
 		{#if hasPlacedBet}
 			<p class="text-white text-xs text-center">
 				Bet Placed: <span class="font-bold"
@@ -229,9 +261,16 @@
 	<button
 		class="place-bet-button w-full mt-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 rounded-lg py-2"
 		onclick={placeBet}
-		disabled={!amount || !selectedOptionId || loading || hasPlacedBet || isPredictionPending}
+		disabled={!amount ||
+			!selectedOptionId ||
+			loading ||
+			hasPlacedBet ||
+			isPredictionPending ||
+			isPredictionCompleted}
 	>
-		{#if hasPlacedBet}
+		{#if isPredictionCompleted}
+			Winning Option: <strong>{winningOption?.description}</strong>
+		{:else if hasPlacedBet}
 			Bet Placed
 		{:else if isPredictionPending}
 			Submissions closed
