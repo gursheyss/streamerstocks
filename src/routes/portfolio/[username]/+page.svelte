@@ -29,6 +29,10 @@
 {/if}
 
 <div class="flex flex-col space-y-4">
-	<Inventory inventoryData={data.userInventory} />
+	<Inventory
+		inventoryData={data.userInventory}
+		currentUser={data.session?.user.user_metadata.nickname}
+		currentPortfolio={$page.params.username}
+	/>
 	<TradeHistory tradeHistory={data.tradeHistory} />
 </div>
