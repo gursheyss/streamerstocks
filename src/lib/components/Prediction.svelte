@@ -159,10 +159,12 @@
 >
 	<div class="header mb-4">
 		<h2 class="text-lg font-semibold">{prediction.description}</h2>
-		<span class="mt-2 text-xs flex justify-center">{calculateTimeLeft()}</span>
+		{#if !isPredictionCompleted}
+			<span class="mt-2 text-xs flex justify-center">{calculateTimeLeft()}</span>
+		{/if}
 	</div>
 
-	<Tabs.Root class="border-t border-b border-lightgray mb-1">
+	<Tabs.Root class="border-t border-b border-lightgray mb-1 overflow-x-auto">
 		<Tabs.List class="flex justify-center">
 			{#each prediction.options as option (option.id)}
 				<Tabs.Trigger
@@ -187,7 +189,7 @@
 	</Tabs.Root>
 	{#if isPredictionCompleted && winningOption}
 		{#if userBets}
-			<p class="text-white text-xs text-center border-t border-b border-lightgray mt-1 mb-1">
+			<p class="text-white text-xs text-center border-b border-lightgray mt-1 mb-1">
 				{winningsAmount >= 0
 					? `You won $${winningsAmount.toFixed(2)}`
 					: `You lost $${Math.abs(winningsAmount).toFixed(2)}`}
@@ -276,8 +278,32 @@
 			Submissions closed
 		{:else if loading}
 			Placing bet...
+		{:else if !selectedOptionId}
+			Choose Option
 		{:else}
-			Place Bet
+			Place bet on {prediction.options.find((option) => option.id === selectedOptionId)
+				?.description}
 		{/if}
 	</button>
 </div>
+
+<style>
+	:global(::-webkit-scrollbar) {
+		width: 4px;
+		height: 3px;
+	}
+
+	:global(::-webkit-scrollbar-track) {
+		background-color: #f5f5f520;
+		border-radius: 4px;
+	}
+
+	:global(::-webkit-scrollbar-thumb) {
+		background-color: #002b63;
+		border-radius: 4px;
+	}
+
+	:global(::-webkit-scrollbar-thumb:hover) {
+		background-color: #00459e;
+	}
+</style>
