@@ -13,10 +13,12 @@
 	let amount = $state('');
 	let loading = $state(false);
 	let currentTime = $state(new Date());
-	let userBet = userBets.find((bet) => bet.prediction_id === prediction.id);
-	let hasPlacedBet = !!userBet;
 	let selectedOptionId = $state();
 	let timer: NodeJS.Timeout;
+
+	let isPredictionPending = prediction.status === 'PENDING';
+	let userBet = userBets.find((bet) => bet.prediction_id === prediction.id);
+	let hasPlacedBet = !!userBet;
 	onMount(() => {
 		timer = setInterval(updateCurrentTime, 1000);
 	});
@@ -79,7 +81,6 @@
 				}
 			}
 		} catch (error) {
-			console.error('Error:', error);
 			toast.error('An unexpected error occurred. Please try again later.');
 		} finally {
 			loading = false;
@@ -132,7 +133,7 @@
 </script>
 
 <div
-	class="flex flex-col justify-between prediction-component w-1/3 p-4 font-inter border border-lightgray m-4 rounded-[9px] text-white"
+	class="flex flex-col justify-between prediction-component w-1/3 min-w-[300px] p-4 font-inter border border-lightgray m-4 rounded-[9px] text-white"
 >
 	<div class="header mb-4">
 		<h2 class="text-lg font-semibold">{prediction.description}</h2>
@@ -150,7 +151,7 @@
 						: hasPlacedBet && userBet.prediction_option_id === option.id
 							? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500 '
 							: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold '}
-					disabled={hasPlacedBet}
+					disabled={hasPlacedBet || isPredictionPending}
 				>
 					{option.description} ({option.odds.toFixed(2)}x)<br />
 					{option.poolPercentage.toFixed(2)}%
@@ -164,11 +165,19 @@
 	<div class="custom-bet-input mt-4">
 		{#if hasPlacedBet}
 			<p class="text-white text-xs text-center">
-				Bet Placed: ${userBet.amount} on {prediction.options.find(
-					(option) => option.id === userBet.prediction_option_id
-				)?.description}.
+				Bet Placed: <span class="font-bold"
+					>${userBet?.amount.toLocaleString(undefined, {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					})}</span
+				>
+				on
+				<span class="font-bold"
+					>{prediction.options.find((option) => option.id === userBet?.prediction_option_id)
+						?.description}</span
+				>
 			</p>
-		{:else}
+		{:else if !isPredictionPending}
 			<input
 				class="w-full bg-gray-800 border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-blue-500"
 				type="text"
@@ -218,12 +227,14 @@
 	</div>
 
 	<button
-		class="place-bet-button w-full mt-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 rounded-lg py-2"
+		class="place-bet-button w-full mt-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 rounded-lg py-2"
 		onclick={placeBet}
-		disabled={!amount || !selectedOptionId || loading || hasPlacedBet}
+		disabled={!amount || !selectedOptionId || loading || hasPlacedBet || isPredictionPending}
 	>
 		{#if hasPlacedBet}
 			Bet Placed
+		{:else if isPredictionPending}
+			Submissions closed
 		{:else if loading}
 			Placing bet...
 		{:else}

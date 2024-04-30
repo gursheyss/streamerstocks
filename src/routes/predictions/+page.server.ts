@@ -52,7 +52,6 @@ export const load = async ({ locals: { safeGetSession } }) => {
 		console.error('Error fetching predictions:', predictionsError);
 		return fail(500, { error: 'Error fetching predictions' });
 	}
-
 	let predictions: Prediction[] = [];
 	for (let prediction of predictionsData) {
 		let { data: oddsData, error: oddsError } = await supabase.rpc('get_prediction_odds', {
