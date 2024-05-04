@@ -1,5 +1,5 @@
 import { supabase } from '$lib/server/supabase';
-import { ratelimit } from '$lib/server/redis';
+import { ratelimit, redis } from '$lib/server/redis';
 import { error, json } from '@sveltejs/kit';
 
 // /api/predict POST
@@ -89,23 +89,50 @@ export async function POST({ request, locals: { safeGetSession } }) {
 		throw error(500, 'Error updating user balance');
 	}
 	// Proceed to place the bet
-	const { error: betError } = await supabase.from('bets').insert([
-		{
-			prediction_id: predictionId,
-			user_id: uuid,
-			prediction_option_id: optionId,
-			amount: betAmount
-		}
-	]);
+	const { data: betData, error: betError } = await supabase
+		.from('bets')
+		.insert([
+			{
+				prediction_id: predictionId,
+				user_id: uuid,
+				prediction_option_id: optionId,
+				amount: betAmount
+			}
+		])
+		.select('id, prediction_id, prediction_option_id, amount, placed_at')
+		.single();
 
 	if (betError) {
 		console.error('Error placing bet:', betError);
 		throw error(500, 'Error placing bet');
 	}
+	// Update Redis with the new user bet
+	await updateUserBetInRedis(uuid, betData);
 
 	return new Response(JSON.stringify({ success: true, message: 'Bet placed successfully' }), {
 		headers: {
 			'Content-Type': 'application/json'
 		}
 	});
+}
+
+// Helper function to update user bet in Redis
+async function updateUserBetInRedis(userId: string, betData: any) {
+	try {
+		// Add the new bet ID to the user's bets set in Redis
+		await redis.sadd(`user:${userId}:bets`, betData.id);
+
+		// Store the bet details in Redis using a hash
+		await redis.hmset(`user:${userId}:bet:${betData.id}`, {
+			id: betData.id,
+			prediction_id: betData.prediction_id,
+			prediction_option_id: betData.prediction_option_id,
+			amount: betData.amount,
+			placed_at: betData.placed_at
+		});
+
+		console.log(`User bet updated in Redis for user: ${userId}, bet ID: ${betData.id}`);
+	} catch (error) {
+		console.error('Failed to update user bet in Redis:', error);
+	}
 }

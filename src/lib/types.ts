@@ -69,6 +69,8 @@ export interface PredictionOption {
 	prediction_id: number;
 	description: string;
 	outcome: boolean;
+	odds: number;
+	poolPercentage: number;
 }
 
 export interface Bet {

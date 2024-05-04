@@ -23,7 +23,7 @@
 			? prediction.options.find((option) => option.id === prediction.winning_option_id)
 			: null;
 	let userBet = $state(userBets.find((bet) => bet.prediction_id === prediction.id));
-	let winningsAmount = calculateWinningsAmount(userBet, winningOption);
+	let winningsAmount = calculateWinningsAmount(userBet, winningOption ?? null);
 	let hasPlacedBet = $state(!!userBet);
 
 	onMount(() => {
@@ -109,7 +109,7 @@
 		return isWinningBet ? betAmount * winningOdds : -betAmount;
 	}
 
-	function selectOption(optionId: null) {
+	function selectOption(optionId: number) {
 		selectedOptionId = optionId;
 	}
 
@@ -152,6 +152,19 @@
 
 		return `Submissions closing in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
 	}
+
+	function formatEndDate(end_time: string) {
+		const date = new Date(end_time);
+		return date.toLocaleString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric',
+			hour: 'numeric',
+			minute: 'numeric',
+			second: 'numeric',
+			hour12: true
+		});
+	}
 </script>
 
 <div
@@ -161,6 +174,10 @@
 		<h2 class="text-lg font-semibold">{prediction.description}</h2>
 		{#if !isPredictionCompleted}
 			<span class="mt-2 text-xs flex justify-center">{calculateTimeLeft()}</span>
+		{:else}
+			<span class="mt-2 text-xs flex justify-center"
+				>Ended on {formatEndDate(prediction.end_time)}</span
+			>
 		{/if}
 	</div>
 
@@ -168,13 +185,15 @@
 		<Tabs.List class="flex justify-center">
 			{#each prediction.options as option (option.id)}
 				<Tabs.Trigger
-					value={option.id}
+					value={option.id.toString()}
 					onclick={() => selectOption(option.id)}
 					class={isPredictionCompleted && winningOption && winningOption.id === option.id
 						? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-green-500'
 						: !isPredictionCompleted && selectedOptionId === option.id
 							? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500'
-							: !isPredictionCompleted && hasPlacedBet && userBet.prediction_option_id === option.id
+							: !isPredictionCompleted &&
+								  hasPlacedBet &&
+								  userBet?.prediction_option_id === option.id
 								? 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold text-blue-500'
 								: 'tab-button mx-1 py-2 px-4 rounded-lg text-sm font-semibold'}
 					disabled={hasPlacedBet || isPredictionPending || isPredictionCompleted}
