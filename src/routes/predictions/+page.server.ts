@@ -47,53 +47,55 @@ task.start();
 async function initializePredictions() {
 	try {
 		console.log('Initializing predictions cache...');
-		const { data: predictionsData, error: predictionsError } = await supabase
-			.from('predictions')
-			.select('*')
-			.order('start_time', { ascending: false });
+		const [{ data: predictionsData, error: predictionsError }, oddsDataResponse] =
+			await Promise.all([
+				supabase
+					.from('predictions')
+					.select('id, description, start_time, end_time, status, winning_option_id')
+					.order('start_time', { ascending: false }),
+				supabase.rpc('get_all_prediction_odds')
+			]);
 
 		if (predictionsError) {
 			console.error('Error fetching predictions:', predictionsError);
 			return;
 		}
 
+		if (!Array.isArray(oddsDataResponse.data)) {
+			console.error('Error: Odds data is not an array:', oddsDataResponse);
+			return;
+		}
+
+		const oddsData = oddsDataResponse.data;
+
+		const oddsIndex = oddsData.reduce((acc, odds) => {
+			(acc[odds.prediction_id] = acc[odds.prediction_id] || []).push(odds);
+			return acc;
+		}, {});
+
 		const pipeline = redis.pipeline();
 
 		for (const prediction of predictionsData) {
-			const { data: oddsData, error: oddsError } = await supabase.rpc('get_prediction_odds', {
-				p_prediction_id: prediction.id
-			});
+			const predictionOdds = oddsIndex[prediction.id] || [];
+			const totalPool = predictionOdds.reduce((sum, option) => sum + option.total_amount_bet, 0);
 
-			if (oddsError) {
-				console.error(`Error fetching odds for prediction ${prediction.id}:`, oddsError);
-				continue;
-			}
-
-			const totalPool = oddsData.reduce((sum, option) => sum + option.total_amount_bet, 0);
-			const options = await Promise.all(
-				oddsData.map(async (optionOdds) => {
-					const { count, error } = await supabase
-						.from('bets')
-						.select('*', { count: 'exact', head: true })
-						.eq('prediction_option_id', optionOdds.prediction_option_id);
-
-					if (error) {
-						console.error(
-							`Error fetching bettor count for option ${optionOdds.prediction_option_id}:`,
-							error
-						);
-					}
-
-					return {
-						id: optionOdds.prediction_option_id,
-						description: optionOdds.description,
-						total_amount_bet: optionOdds.total_amount_bet,
-						odds: optionOdds.odds,
-						poolPercentage: totalPool > 0 ? (optionOdds.total_amount_bet / totalPool) * 100 : 0,
-						bettorCount: count || 0
-					};
+			const options = predictionOdds.map(
+				(optionOdds: {
+					prediction_option_id: any;
+					description: any;
+					total_amount_bet: number;
+					odds: any;
+				}) => ({
+					id: optionOdds.prediction_option_id,
+					description: optionOdds.description,
+					total_amount_bet: optionOdds.total_amount_bet,
+					odds: optionOdds.odds,
+					poolPercentage: totalPool > 0 ? (optionOdds.total_amount_bet / totalPool) * 100 : 0,
+					bettorCount: 0 // Assume an initial count of zero, update later
 				})
 			);
+
+			// Cache the predictions with their options
 			pipeline.hmset(`prediction:${prediction.id}`, {
 				id: prediction.id,
 				description: prediction.description,
@@ -109,7 +111,6 @@ async function initializePredictions() {
 
 		await pipeline.exec();
 		await redis.expire('prediction_ids', 60);
-
 		console.log('Predictions cache initialized successfully!');
 	} catch (error) {
 		console.error('Error initializing predictions cache:', error);
@@ -155,7 +156,6 @@ async function initializeUserBets(userId: string) {
 }
 export const load = async ({ locals: { safeGetSession } }) => {
 	const session = await safeGetSession();
-
 	try {
 		const predictionIdsExist = await redis.exists('prediction_ids');
 
