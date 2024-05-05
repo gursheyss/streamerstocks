@@ -1,5 +1,6 @@
 import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
+import cron from 'node-cron';
 
 async function initializeLeaderboard() {
 	const { data, error } = await supabase.rpc('calculate_leaderboard_data_v2');
@@ -40,6 +41,8 @@ async function initializeLeaderboard() {
 
 	console.log('Leaderboard initialized successfully!');
 }
+const task = cron.schedule('0 */4 * * *', initializeLeaderboard); // Run every 4 hours
+task.start();
 
 export const load = async () => {
 	try {
