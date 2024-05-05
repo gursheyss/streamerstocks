@@ -56,11 +56,18 @@ export const load = async () => {
 			rev: true
 		});
 
+		const lastHundredUserIds = await redis.zrange('leaderboard', -100, -1, {
+			rev: true
+		});
+
+		leaderboardUserIds.push(...lastHundredUserIds);
+
 		const formattedData = await Promise.all(
 			leaderboardUserIds.map(async (userId) => {
 				const userDetails = await redis.hgetall(`${userId}`);
+				const rank = await redis.zrevrank('leaderboard', userId);
 				return {
-					rank: leaderboardUserIds.indexOf(userId) + 1,
+					rank: rank + 1,
 					username: userDetails?.username,
 					avatar_url: userDetails?.avatar_url,
 					net_worth: Number(userDetails?.net_worth),
