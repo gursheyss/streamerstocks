@@ -82,5 +82,40 @@ export const actions = {
 			console.log(predictionsOptionsTableError);
 			error(500, predictionsOptionsTableError);
 		}
+	},
+	chooseOutcome: async ({ request, locals: { supabase, safeGetSession } }) => {
+		const session = await safeGetSession();
+		if (!session.user) {
+			redirect(302, '/');
+		}
+		const { data: profileData, error: profileError } = await supabase
+			.from('profiles')
+			.select('label')
+			.eq('id', session.user.id);
+
+		if (profileError) {
+			error(500, profileError.message);
+		}
+
+		const label = profileData[0].label;
+		if (label !== 'dev') {
+			redirect(302, '/');
+		}
+
+		const formData = await request.formData();
+		const predictionId = formData.get('prediction_id');
+		const optionId = formData.get('option_id');
+
+		console.log('predictionId:', predictionId);
+		console.log('optionId:', optionId);
+
+		const { error: updatePredictionError } = await supabase.rpc('distribute_winnings', {
+			p_prediction_id: predictionId,
+			p_winning_option_id: optionId
+		});
+
+		if (updatePredictionError) {
+			error(500, updatePredictionError.message);
+		}
 	}
 };

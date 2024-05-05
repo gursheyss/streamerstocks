@@ -61,3 +61,51 @@
 		</div>
 	</form>
 </div>
+
+<div>
+	<form
+		action="?/chooseOutcome"
+		method="POST"
+		use:enhance={() => {
+			return async ({ result }) => {
+				if (result.type === 'success') {
+					toast.success('Outcome chosen successfully');
+				}
+			};
+		}}
+	>
+		<div class="pt-4 pr-4 font-inter">
+			<div class="p-4 w-full border-2 rounded-[9px] border-lightgray">
+				<div class="text-lg mb-4 flex justify-center space-x-2">
+					<span class="font-semibold">Choose Outcome</span>
+				</div>
+				<div class="space-y-2">
+					<input
+						class="w-full border text-center border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
+						placeholder="Enter Prediction ID"
+						type="text"
+						name="prediction_id"
+						required
+					/>
+					<input
+						class="w-full border text-center border-gray-600 bg-lightgray rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:lightgray"
+						placeholder="Enter Prediction Option ID"
+						type="text"
+						name="option_id"
+						required
+					/>
+					<button
+						class="mt-4 w-full relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm text-white rounded-lg bg-lightgray hover:bg-gray-700"
+						type="submit"
+					>
+						<span
+							class="relative px-5 py-2.5 transition-all ease-in duration-75 rounded-md group-hover:bg-opacity-0"
+						>
+							Submit
+						</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
