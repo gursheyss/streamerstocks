@@ -181,7 +181,7 @@
 
 <div class="pt-4 pr-4 font-inter">
 	<div class="pt-4 pr-4 font-inter">
-		<Tabs.Root class="p-3 w-full border-2 rounded-[9px] border-lightgray">
+		<Tabs.Root class="p-3 w-full border-2 rounded-[9px] border-lightgray ">
 			<Tabs.List
 				class="grid w-full grid-cols-2 gap-1 rounded-9px bg-dark-10 p-1 text-sm font-semibold leading-[0.01em]"
 			>
