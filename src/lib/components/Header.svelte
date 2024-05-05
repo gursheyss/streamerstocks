@@ -27,7 +27,7 @@
 </script>
 
 <header class="py-4">
-	<div class="container mx-auto flex items-center justify-between px-4">
+	<div class="lg:container mx-auto flex items-center justify-between px-4">
 		<div class="flex items-center space-x-2">
 			<button class="text-white text-2xl md:hidden" onclick={toggleMenu}> &#9776; </button>
 			<a href="/">
