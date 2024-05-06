@@ -1,11 +1,18 @@
 <script lang="ts">
 	import '../app.pcss';
-	import { invalidate, invalidateAll } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, invalidate, invalidateAll } from '$app/navigation';
 	import Header from '$lib/components/Header.svelte';
 	import { Toaster, toast } from 'svelte-sonner';
+	import { browser } from '$app/environment';
+	import posthog from 'posthog-js';
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
+
+	if (browser) {
+		beforeNavigate(() => posthog.capture('$pageleave'));
+		afterNavigate(() => posthog.capture('$pageview'));
+	}
 
 	$effect(() => {
 		const {
