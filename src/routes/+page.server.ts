@@ -2,10 +2,12 @@ import type { MarketItem } from '$lib/types';
 import type { InventoryItem } from '$lib/types';
 import { supabase } from '$lib/server/supabase';
 import { redis } from '$lib/server/redis';
+import { redirect } from '@sveltejs/kit';
 
 export const actions = {
 	signOut: async ({ locals: { supabase } }) => {
 		await supabase.auth.signOut();
+		redirect(302, '/?signedOut=true');
 	}
 };
 
@@ -34,13 +36,14 @@ export const load = async ({ locals: { safeGetSession } }) => {
 						...marketItem,
 						history: marketItem.history
 					});
-				}
-				else {
-					let {data: lastHourMarketHistory, error: marketError} = await supabase.rpc('get_stock_history_over_range', { stockid: initialData[i].id, hour_range: 24, min_interval: 60});
-					if(marketError) {
-						console.error("error fetching marketData", marketError);
-					}
-					else {
+				} else {
+					let { data: lastHourMarketHistory, error: marketError } = await supabase.rpc(
+						'get_stock_history_over_range',
+						{ stockid: initialData[i].id, hour_range: 24, min_interval: 60 }
+					);
+					if (marketError) {
+						console.error('error fetching marketData', marketError);
+					} else {
 						if (lastHourMarketHistory != null && initialData != null) {
 							initMarketData.push({
 								...initialData[i],

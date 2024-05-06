@@ -3,6 +3,8 @@
 	import type { MarketItem } from '$lib/types.js';
 	import type { InventoryItem } from '$lib/types';
 	import Portfolio from '$lib/components/Portfolio.svelte';
+	import { page } from '$app/stores';
+	import posthog from 'posthog-js';
 
 	let { data } = $props();
 	let supabase = $derived(data.supabase);
@@ -70,6 +72,16 @@
 			// networthSubscription?.unsubscribe();
 		};
 	});
+
+	if ($page.url.searchParams.get('signedIn') === 'True' && $page.data.session) {
+		posthog.identify($page.data.session.user.email, {
+			email: $page.data.session.user.email
+		});
+	}
+
+	if ($page.url.searchParams.get('signedOut') === 'True') {
+		posthog.reset();
+	}
 </script>
 
 <div class="bg-green-700 text-white text-center py-2 mb-4">
