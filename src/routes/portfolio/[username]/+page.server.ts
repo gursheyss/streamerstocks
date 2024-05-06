@@ -11,7 +11,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 		.single();
 
 	if (userError) {
-		throw error(504, userError);
+		error(504, userError);
 	}
 
 	const { data: inventoryData, error: inventoryError } = await supabase
@@ -20,7 +20,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 		.gte('quantity', 0.001)
 		.eq('user_id', userData.id);
 	if (inventoryError) {
-		throw error(504, 'Error fetching user inventory');
+		error(504, 'Error fetching user inventory');
 	}
 
 	const { data: tradeHistoryData, error: tradeError } = await supabase
@@ -32,7 +32,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 		.order('date_purchased', { ascending: false });
 
 	if (tradeError) {
-		throw error(504, 'Error fetching user trade history: ' + tradeError);
+		error(504, 'Error fetching user trade history: ' + tradeError);
 	}
 
 	const tradeHistory = tradeHistoryData.map((trade) => ({
@@ -55,7 +55,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 		);
 
 	if (initialError) {
-		throw error(504, initialError);
+		error(504, initialError);
 	}
 
 	const userBalance = userData?.balance ?? null;
