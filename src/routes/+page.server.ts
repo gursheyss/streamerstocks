@@ -7,7 +7,7 @@ import { redirect } from '@sveltejs/kit';
 export const actions = {
 	signOut: async ({ locals: { supabase } }) => {
 		await supabase.auth.signOut();
-		redirect(302, '/?signedOut=true');
+		redirect(302, '/?signedOut=True');
 	}
 };
 
