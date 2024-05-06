@@ -34,7 +34,7 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 
 	if (browser) {
 		posthog.init('phc_ghksRCA32wlxvWIB3qvGsyql2ptzsnch1qyYrbSANRO', {
-			api_host: 'https://bopstocks.com/ingest',
+			api_host: 'https://www.bopstocks.com/ingest',
 			ui_host: 'https://us.i.posthog.com',
 			capture_pageview: false,
 			capture_pageleave: false
