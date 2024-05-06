@@ -75,7 +75,8 @@
 
 	if ($page.url.searchParams.get('signedIn') === 'True' && $page.data.session) {
 		posthog.identify($page.data.session.user.email, {
-			email: $page.data.session.user.email
+			email: $page.data.session.user.email,
+			username: $page.data.session.user.user_metadata.nickname
 		});
 	}
 
