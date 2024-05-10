@@ -1,5 +1,6 @@
 import { redis } from '$lib/server/redis';
 import { supabase } from '$lib/server/supabase';
+import cron from 'node-cron';
 
 async function initializeLeaderboard() {
 	const { data, error } = await supabase.rpc('calculate_leaderboard_data_v2');
@@ -40,6 +41,8 @@ async function initializeLeaderboard() {
 
 	console.log('Leaderboard initialized successfully!');
 }
+const task = cron.schedule('0 */4 * * *', initializeLeaderboard); // Run every 4 hours
+task.start();
 
 export const load = async () => {
 	try {
@@ -53,11 +56,18 @@ export const load = async () => {
 			rev: true
 		});
 
+		const lastHundredUserIds = await redis.zrange('leaderboard', -100, -1, {
+			rev: true
+		});
+
+		leaderboardUserIds.push(...lastHundredUserIds);
+
 		const formattedData = await Promise.all(
 			leaderboardUserIds.map(async (userId) => {
 				const userDetails = await redis.hgetall(`${userId}`);
+				const rank = await redis.zrevrank('leaderboard', userId);
 				return {
-					rank: leaderboardUserIds.indexOf(userId) + 1,
+					rank: rank + 1,
 					username: userDetails?.username,
 					avatar_url: userDetails?.avatar_url,
 					net_worth: Number(userDetails?.net_worth),
