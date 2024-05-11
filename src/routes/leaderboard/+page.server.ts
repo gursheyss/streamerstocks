@@ -4,6 +4,7 @@ import cron from 'node-cron';
 
 async function initializeLeaderboard() {
 	const { data, error } = await supabase.rpc('calculate_leaderboard_data_v2');
+	await redis.del('leaderboard');
 
 	if (error) {
 		console.error('Failed to fetch leaderboard data:', error);
