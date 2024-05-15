@@ -38,7 +38,7 @@ async function initializeLeaderboard() {
 	);
 
 	await pipeline.exec();
-	await redis.expire('leaderboard', 3600);
+	await redis.expire('leaderboard', 16200); // Expire in 4.5 hours
 
 	console.log('Leaderboard initialized successfully!');
 }
