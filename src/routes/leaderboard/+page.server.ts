@@ -4,6 +4,7 @@ import cron from 'node-cron';
 
 async function initializeLeaderboard() {
 	const { data, error } = await supabase.rpc('calculate_leaderboard_data_v2');
+
 	await redis.del('leaderboard');
 
 	if (error) {
@@ -38,7 +39,7 @@ async function initializeLeaderboard() {
 	);
 
 	await pipeline.exec();
-	await redis.expire('leaderboard', 16200); // Expire in 4.5 hours
+	// await redis.expire('leaderboard', 16200); // Expire in 4.5 hours
 
 	console.log('Leaderboard initialized successfully!');
 }
