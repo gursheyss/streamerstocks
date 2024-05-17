@@ -16,7 +16,6 @@ export const load = async ({ locals: { safeGetSession } }) => {
 	let userBalance: number | null = null;
 	let userInventory: InventoryItem[] | null = null;
 	let marketData: MarketItem[] = [];
-
 	const cachedMarketData = await redis.get('marketData');
 	// add more conditions for validation
 	if (cachedMarketData) {
@@ -47,7 +46,10 @@ export const load = async ({ locals: { safeGetSession } }) => {
 						if (lastHourMarketHistory != null && initialData != null) {
 							initMarketData.push({
 								...initialData[i],
-								history: lastHourMarketHistory,
+								history:
+									lastHourMarketHistory.length > 0
+										? lastHourMarketHistory
+										: [{ price: initialData[i].price, timestamp: Math.floor(Date.now() / 1000) }],
 								low: 0,
 								high: 0,
 								volume: 0

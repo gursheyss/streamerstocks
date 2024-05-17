@@ -43,7 +43,9 @@ export const load = async ({ params, locals: { safeGetSession } }) => {
 		console.error('initial data error', initialError);
 	}
 	let marketData: MarketItem | null = null;
-	let { data: marketHistory, error: marketError } = await supabase.rpc('get_stock_history_ranges', { stockid: initialData[0].id });
+	let { data: marketHistory, error: marketError } = await supabase.rpc('get_stock_history_ranges', {
+		stockid: initialData[0].id
+	});
 	let marketPrice: number | null = null;
 	if (marketError != null) {
 		console.error('error fetching marketdata', marketError);

@@ -15,7 +15,10 @@
 	onMount(() => {
 		const ctx = chartRef.getContext('2d');
 		if (ctx) {
-			const isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
+			let isIncreasing = false;
+			if (stockData.length >= 2) {
+				isIncreasing = stockData[stockData.length - 1].price > stockData[0].price;
+			}
 			const gradientColor = isIncreasing ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.5)';
 
 			const prices = stockData.map((data) => data.price);
@@ -89,20 +92,29 @@
 						x: {
 							ticks: {
 								callback: (tickValue: number | string) => {
-									if (typeof tickValue === 'number') {
+									if (typeof tickValue === 'number' && tickValue < stockData.length) {
 										// Display the time in HH:mm format if the data is within the same day
-										if (stockData[stockData.length - 1].timestamp - stockData[0].timestamp <= 86400) {
-											return new Date(stockData[tickValue].timestamp * 1000).toLocaleString('en-US', {
-												hour: 'numeric',
-												minute: 'numeric'
-											});
-										} 
+										if (
+											stockData[stockData.length - 1].timestamp - stockData[0].timestamp <=
+											86400
+										) {
+											return new Date(stockData[tickValue].timestamp * 1000).toLocaleString(
+												'en-US',
+												{
+													hour: 'numeric',
+													minute: 'numeric'
+												}
+											);
+										}
 										// Display the date in MMM dd format if the data spans multiple days
 										else {
-											return new Date(stockData[tickValue].timestamp * 1000).toLocaleString('en-US', {
-												month: 'short',
-												day: 'numeric'
-											});
+											return new Date(stockData[tickValue].timestamp * 1000).toLocaleString(
+												'en-US',
+												{
+													month: 'short',
+													day: 'numeric'
+												}
+											);
 										}
 									}
 									return tickValue;
