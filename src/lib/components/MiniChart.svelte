@@ -24,7 +24,10 @@
 		const prices = downsampledData.map((data) => data.price);
 		const minPrice = Math.min(...prices);
 		const maxPrice = Math.max(...prices);
-		const padding = maxPrice - minPrice;
+		let padding = maxPrice - minPrice;
+		if (padding === 0) {
+			padding = 0.01;
+		}
 
 		chart = new Chart(ctx, {
 			type: 'line',
@@ -79,8 +82,10 @@
 			return; // fixes breaks when updating too fast
 		}
 
-		const isIncreasing =
-			downsampledData[downsampledData.length - 1].price > downsampledData[0].price;
+		let isIncreasing = false;
+		if (downsampledData.length >= 2) {
+			isIncreasing = downsampledData[downsampledData.length - 1].price > downsampledData[0].price;
+		}
 		const prices = downsampledData.map((data) => data.price);
 		const minPrice = Math.min(...prices);
 		const maxPrice = Math.max(...prices);
