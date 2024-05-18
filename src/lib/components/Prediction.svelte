@@ -199,9 +199,14 @@
 					disabled={hasPlacedBet || isPredictionPending || isPredictionCompleted}
 				>
 					{option.description} ({option.odds.toFixed(2)}x)<br />
-					{option.poolPercentage.toFixed(2)}%
-					<!-- - {option.bettorCount} bettors<br />
-					Total: ${option.total_amount_bet} -->
+					{option.poolPercentage.toFixed(2)}% <br />
+					<!-- - {option.bettorCount} bettors<br /> -->
+					<span class="text-xs text-gray-200"
+						>Total: ${option.total_amount_bet.toLocaleString(undefined, {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2
+						})}</span
+					>
 				</Tabs.Trigger>
 			{/each}
 		</Tabs.List>
