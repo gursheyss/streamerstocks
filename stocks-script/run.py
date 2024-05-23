@@ -87,9 +87,9 @@ def save_prices_to_history(decay_rate:float) -> None:
 
 def update_by_chat_loop(max_batch_size:int, scalar:float, exit_event:threading.Event) -> None:
     '''Update prices based on Twitch chat on an interval if Jason is online'''
-    print("Starting Twitch chat analysis loop\n******************************\n")
-    while not exit_event.is_set():
-        try:
+    try:
+        print("Starting Twitch chat analysis loop\n******************************\n")
+        while not exit_event.is_set():
             if jason_online:
                 print("Analyzing chat:")
                 # Spend half the time analyzing chat, and the other half updating prices
@@ -98,16 +98,16 @@ def update_by_chat_loop(max_batch_size:int, scalar:float, exit_event:threading.E
                     sentiment[key.replace("_sentiment", "_delta")] = sentiment[key]
                 update_prices(sentiment, scalar=scalar)
             time.sleep(1)
-        except:
-            send_error_message("Error analyzing Twitch chat")
-            exit_event.set()
+    except:
+        send_error_message("Error analyzing Twitch chat")
+        exit_event.set()
 
 def update_by_reddit_loop(update_interval_seconds:int, scalar:float, exit_event:threading.Event) -> None:
     '''Update prices based on Reddit if Jason is offline'''
-    print("Starting Reddit analysis loop\n******************************\n")
-    previous_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
-    while not exit_event.is_set():
-        try:
+    try:
+        print("Starting Reddit analysis loop\n******************************\n")
+        previous_sentiment = get_posts_sentiment('jasontheweenie', analysis_group=analysis_group, criteria=['body'], verbose=False)
+        while not exit_event.is_set():
             if not jason_online:
                 current_time = int(time.time())
                 if current_time % update_interval_seconds == 0:
@@ -119,15 +119,15 @@ def update_by_reddit_loop(update_interval_seconds:int, scalar:float, exit_event:
                     update_prices(delta_sentiment, scalar=scalar) # Funny number to make numbers seem more random
                     previous_sentiment = dict(current_sentiment)
             time.sleep(1)
-        except:
-            send_error_message("Error analyzing Reddit")
-            exit_event.set()
+    except:
+        send_error_message("Error analyzing Reddit")
+        exit_event.set()
 
 def check_if_jason_online(exit_event:threading.Event) -> None:
     '''Check if Jason is online every 5 minutes and update the global variable jason_online accordingly'''
-    global jason_online
-    while not exit_event.is_set():
-        try:
+    try:
+        global jason_online
+        while not exit_event.is_set():
             contents = requests.get('https://www.twitch.tv/jasontheween').content.decode('utf-8')
             if 'isLiveBroadcast' in contents:
                 jason_online = True
@@ -136,24 +136,24 @@ def check_if_jason_online(exit_event:threading.Event) -> None:
                 jason_online = False
                 print("Jason is offline")
             time.sleep(300)
-        except:
-            send_error_message("Error checking if Jason is online")
-            exit_event.set()
+    except:
+        send_error_message("Error checking if Jason is online")
+        exit_event.set()
 
 def save_snapshot_loop(save_interval_seconds:int, decay_rate:float, exit_event:threading.Event) -> None:
     '''Save the prices to their history every "save_interval_seconds" seconds'''
-    decay_delta = {}
-    for person in analysis_group:
-        decay_delta[person.lower().replace(" ", "") + "_delta"] = -1
-    while not exit_event.is_set():
-        try:
+    try:
+        decay_delta = {}
+        for person in analysis_group:
+            decay_delta[person.lower().replace(" ", "") + "_delta"] = -1
+        while not exit_event.is_set():
             current_time = int(time.time())
             if current_time % save_interval_seconds == 0:
                 save_prices_to_history(decay_rate)
             time.sleep(1)
-        except:
-            send_error_message("Error saving history")
-            exit_event.set()
+    except:
+        send_error_message("Error saving history")
+        exit_event.set()
 
 if __name__ == "__main__":
     exit_event = threading.Event()
