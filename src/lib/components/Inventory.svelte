@@ -8,28 +8,28 @@
 	}
 </script>
 
-<div class="bg-gray2 rounded-lg shadow-lg font-inter p-4">
-	<h2 class="text-xl font-bold text-white mb-4">Inventory</h2>
-	<table class="w-full border-gray-700">
-		<tbody>
+<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6">
+	<h2 class="text-lg leading-6 font-medium text-white mb-4">Inventory</h2>
+	<table class="min-w-full divide-y divide-gray-700">
+		<tbody class="bg-gray2 divide-y divide-gray-700">
 			{#each inventoryData as item}
 				<tr
 					class="text-white font-bold items-center hover:bg-lightgray cursor-pointer"
 					on:click={() => handleRowClick(item.market.ticker)}
 				>
-					<td class="items-center py-4">
+					<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
 						<span>{item.market.name}</span>
 						<span class="text-gray-400 ml-2">${item.market.ticker}</span>
 					</td>
-					<td class="text-right py-4"
-						>{(Math.floor(item.quantity * 1000) / 1000).toLocaleString(undefined, {
+					<td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+						{(Math.floor(item.quantity * 1000) / 1000).toLocaleString(undefined, {
 							minimumFractionDigits: 0,
 							maximumFractionDigits: 3
-						})} <span class="text-gray-400 ml-1">Shares</span></td
-					>
-					<td class="text-right py-4"
-						>${(item.market.price * item.quantity).toFixed(2).toLocaleString()}</td
-					>
+						})} <span class="text-gray-400 ml-1">Shares</span>
+					</td>
+					<td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+						${(item.market.price * item.quantity).toFixed(2).toLocaleString()}
+					</td>
 				</tr>
 			{/each}
 		</tbody>

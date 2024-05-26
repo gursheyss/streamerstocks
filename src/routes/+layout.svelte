@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.pcss';
 	import { afterNavigate, beforeNavigate, invalidate, invalidateAll } from '$app/navigation';
+	import { navigating } from '$app/stores';
 	import Header from '$lib/components/Header.svelte';
 	import { Toaster, toast } from 'svelte-sonner';
 	import { browser } from '$app/environment';
@@ -39,6 +40,12 @@
 	username={data.session?.user.user_metadata.nickname}
 />
 <Toaster richColors theme="dark" />
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-	<slot />
-</div>
+{#if $navigating}
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center">
+		<span class="loading loading-dots loading-md text-neutral"></span>
+	</div>
+{:else}
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<slot />
+	</div>
+{/if}

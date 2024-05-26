@@ -124,6 +124,11 @@
 					class:text-white={$page.url.pathname === '/leaderboard'}>Leaderboard</a
 				>
 				<a
+					class="text-gray-500 hover:text-white block text-base font-medium"
+					href="/predictions"
+					class:text-white={$page.url.pathname === '/predictions'}>Predictions</a
+				>
+				<a
 					class="text-gray-500 hover:text-white text-base font-medium"
 					href="https://discord.gg/2asZArVb7s"
 					target="_blank">Discord</a

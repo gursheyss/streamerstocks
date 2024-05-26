@@ -54,6 +54,44 @@ export const load = async ({ params, locals: { supabase } }) => {
 			inventoryData.map((item) => item.market.id)
 		);
 
+	const { data: userBets, error: betError } = await supabase
+		.from('bets')
+		.select('*, prediction_id(*), prediction_option_id(*)')
+		.eq('user_id', userData.id)
+		.order('placed_at', { ascending: false });
+
+	if (betError) {
+		console.error('Error fetching user bets:', betError);
+		return { data: null };
+	}
+
+	const { data: userWinnings, error: winningsError } = await supabase
+		.from('winnings')
+		.select('*')
+		.eq('user_id', userData.id);
+
+	if (winningsError) {
+		console.error('Error fetching user winnings:', winningsError);
+		return { data: null };
+	}
+
+	// Create a map of winnings by prediction ID and option ID
+	const winningsMap = new Map();
+	userWinnings.forEach((winning) => {
+		const key = `${winning.prediction_id}-${winning.option_id}`;
+		winningsMap.set(key, winning.amount);
+	});
+
+	// Calculate amount won or lost for each bet
+	const userBetsWithAmount = userBets.map((bet) => {
+		const key = `${bet.prediction_id.id}-${bet.prediction_option_id.id}`;
+		const amountWon = winningsMap.get(key) || 0;
+		const amountWonOrLost = amountWon ? amountWon : -bet.amount;
+		return {
+			...bet,
+			amountWonOrLost
+		};
+	});
 	if (initialError) {
 		error(504, initialError);
 	}
@@ -69,6 +107,7 @@ export const load = async ({ params, locals: { supabase } }) => {
 	return {
 		tradeHistory,
 		marketData,
+		userPredictions: userBetsWithAmount,
 		userBalance,
 		userInventory,
 		netWorth,

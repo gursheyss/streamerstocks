@@ -44,12 +44,12 @@
 								Rank {@html getSortIcon()}
 							</th>
 							<th class="px-6 py-3 text-left">User</th>
-							<th
+							<!-- <th
 								class="px-6 py-3 text-left cursor-pointer"
 								on:click={() => sortData('trade_count')}
 							>
 								# of Trades {@html getSortIcon()}
-							</th>
+							</th> -->
 							<th class="px-6 py-3 text-left cursor-pointer" on:click={() => sortData('pnl')}>
 								PnL {@html getSortIcon()}
 							</th>
@@ -77,9 +77,9 @@
 										<span>{leaderboardItem.username}</span>
 									</div>
 								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
+								<!-- <td class="px-6 py-4 whitespace-nowrap">
 									<span>{leaderboardItem.trade_count}</span>
-								</td>
+								</td> -->
 								<td class="px-6 py-4 whitespace-nowrap">
 									<span
 										class={leaderboardItem.pnl > 0
