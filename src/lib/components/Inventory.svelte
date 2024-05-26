@@ -8,7 +8,7 @@
 	}
 </script>
 
-<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6">
+<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6 overflow-x-auto">
 	<h2 class="text-lg leading-6 font-medium text-white mb-4">Inventory</h2>
 	<table class="min-w-full divide-y divide-gray-700">
 		<tbody class="bg-gray2 divide-y divide-gray-700">

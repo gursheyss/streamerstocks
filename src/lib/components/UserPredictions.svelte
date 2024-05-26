@@ -2,7 +2,7 @@
 	let { userPredictions } = $props();
 </script>
 
-<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6">
+<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6 overflow-x-auto">
 	<h3 class="text-lg leading-6 font-medium text-gray-100 mb-4">Your Predictions</h3>
 	{#if userPredictions.length === 0}
 		<p class="text-sm text-gray-100">You haven't placed any bets on predictions yet.</p>

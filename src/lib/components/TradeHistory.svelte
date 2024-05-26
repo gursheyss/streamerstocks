@@ -6,7 +6,7 @@
 	}
 </script>
 
-<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6">
+<div class="bg-gray2 shadow overflow-hidden sm:rounded-lg p-6 overflow-x-auto">
 	<h3 class="text-lg leading-6 font-medium text-gray-100 mb-4">Trade History</h3>
 	<table class="min-w-full divide-y divide-gray-700">
 		<thead class="bg-gray2">
