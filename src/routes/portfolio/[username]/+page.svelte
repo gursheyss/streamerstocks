@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import TradeHistory from '$lib/components/TradeHistory.svelte';
 	import clsx from 'clsx';
+	import UserPredictions from '$lib/components/UserPredictions.svelte';
 
 	let { data } = $props();
 </script>
@@ -31,4 +32,5 @@
 <div class="flex flex-col space-y-4">
 	<Inventory inventoryData={data.userInventory} />
 	<TradeHistory tradeHistory={data.tradeHistory} />
+	<UserPredictions userPredictions={data.userPredictions} />
 </div>
