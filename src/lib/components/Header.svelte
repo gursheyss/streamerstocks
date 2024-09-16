@@ -33,7 +33,7 @@
 			<a href="/">
 				<div class="flex items-center space-x-2">
 					<span class="text-white text-2xl">📈</span>
-					<h1 class="text-white text-2xl font-bold font-inter">BopStocks</h1>
+					<h1 class="text-white text-2xl font-bold font-inter">StreamerStocks</h1>
 				</div>
 			</a>
 		</div>
