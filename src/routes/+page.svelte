@@ -27,7 +27,7 @@
 		return total;
 	}
 	$effect(() => {
-		document.title = 'BopStocks';
+		document.title = 'StreamerStocks';
 
 		const profileSubscription = data.session
 			? supabase
