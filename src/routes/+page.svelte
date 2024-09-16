@@ -87,7 +87,7 @@
 
 <div class="bg-green-700 text-white text-center py-2 mb-4">
 	<!-- New div -->
-	BopStocks is no longer under active development. Thanks for playing 0_______0
+	StreamerStocks is no longer under active development. Thanks for playing 0_______0
 </div>
 <!-- <div class="bg-green-700 text-white text-center py-2 mb-4">
 	Some prices have been adjusted across the board
