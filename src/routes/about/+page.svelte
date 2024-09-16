@@ -3,10 +3,10 @@
 </script>
 
 <div class="px-4 py-8">
-	<h1 class="text-4xl font-bold text-center mb-8">About BopStocks</h1>
+	<h1 class="text-4xl font-bold text-center mb-8">About StreamerStocks</h1>
 	<AboutCard
-		title={'What is "BopStocks"?'}
-		description={"BopStocks is a stock trading simulation based on streamer JasonTheWeen's community. \
+		title={'What is "StreamerStocks"?'}
+		description={"StreamerStocks is a stock trading simulation based on streamer JasonTheWeen's community. \
             The stocks featured on this website are based on people on Jason's stream \
             and are intended for entertainment purposes only. Please note that the values assigned to these \
             people do not reflect their actual worth or qualities. We encourage users to engage \
@@ -18,7 +18,7 @@
 	/>
 	<AboutCard
 		title={'How it works'}
-		description={"BopStocks simulates the stock market using a complex algorithm based on two main factors:\n\n \
+		description={"StreamerStocks simulates the stock market using a complex algorithm based on two main factors:\n\n \
             1. The supply and demand of their stock\n \
             2. The community's perception of them \n\n \
             So if someone is blackballed, their stock price may drop drastically. Conversely, if a person \
